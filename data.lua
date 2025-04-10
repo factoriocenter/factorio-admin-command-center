@@ -1,3 +1,6 @@
+-- data.lua
+-- Define um estilo customizado para a caixa de texto do console e registra o atalho (Ctrl + ])
+
 data.raw["gui-style"].default["some_luaconsole_input_textbox"] = {
   type = "textbox_style",
   name = "some_luaconsole_input_textbox",
