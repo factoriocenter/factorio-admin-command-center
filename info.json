@@ -1,0 +1,9 @@
+{
+  "name": "factorio-admin-command-center",
+  "version": "1.0.0",
+  "title": "Factorio Admin Command Center",
+  "author": "Louan Fontenele",
+  "factorio_version": "2.0",
+  "dependencies": ["base >= 2.0.0"],
+  "description": "An administrative command center to perform various functions (console, editor, repair, etc.) available only to administrators."
+}
