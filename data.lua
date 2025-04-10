@@ -14,5 +14,7 @@ data:extend({
     type = "custom-input",
     name = "facc_toggle_gui",
     key_sequence = "CONTROL + RIGHTBRACKET"
+    localised_name = {"controls.facc_toggle_gui"},
+    localised_description = {"controls.facc_toggle_gui_description"}
   }
 })
