@@ -5,5 +5,5 @@
   "author": "louanbastos",
   "factorio_version": "2.0",
   "dependencies": ["base >= 2.0.0"],
-  "description": "An administrative command center to perform various functions (console, editor, repair, etc.) available only to administrators."
+  "description": "A central admin command center for Factorio. In SinglePlayer, the main button appears for every player; in Multiplayer, only administrators are allowed to use it."
 }
