@@ -14,8 +14,8 @@
 --  7) Recharge Energy
 --  8) Build Ghost Blueprints
 --  9) Increase Resources
--- 10) Convert to Legendary (new)
--- 11) Build All Ghosts (new)
+-- 10) Convert to Legendary (150x150)  [NEW]
+-- 11) Build All Ghosts (floors, constructions & landfill)  [NEW]
 -- 12) Unlock All Recipes
 -- 13) Unlock All Technologies
 -- 14) Remove Cliffs (50x50)
@@ -27,7 +27,7 @@
 -- 20) Unlock Achievements
 -- 21) "Coming Soon" functionality
 --
--- Shortcut: Ctrl + . toggles the main menu.
+-- Shortcut: CTRL + . toggles the main menu.
 -- The Lua Console is only shown when clicking the "Console" button in the menu.
 
 -- Initialize global variables if not present
@@ -143,7 +143,7 @@ function increase_resources(player)
   player.print({"facc.increase-resources-msg"})
 end
 
--- 10) Convert to Legendary (new)
+-- 10) Convert to Legendary (150x150)
 function convert_to_legendary(player)
   local surface = player.surface
   local force = player.force
@@ -156,7 +156,7 @@ function convert_to_legendary(player)
       ent.die()
     end
   end
-
+  
   -- 2. Use an upgrade planner to convert ghosts to legendary quality.
   local inv = game.create_inventory(1)
   inv[1].set_stack{name = "upgrade-planner"}
@@ -169,13 +169,20 @@ function convert_to_legendary(player)
   end
 
   for _, ghost in pairs(surface.find_entities_filtered{area = area, name = "entity-ghost", force = force}) do
-    if ghost.ghost_prototype then
+    if ghost.ghost_prototype and ghost.ghost_prototype.items_to_place_this then
       local name = ghost.ghost_name
       if not mapped[name] then
         local i = table_size(mapped) + 1
-        planner.set_mapper(i, "from", {type = "entity", name = name})
-        planner.set_mapper(i, "to", {type = "entity", name = name, quality = "legendary"})
-        mapped[name] = true
+        local success, err = pcall(function()
+          planner.set_mapper(i, "from", {type = "entity", name = name})
+          planner.set_mapper(i, "to", {type = "entity", name = name, quality = "legendary"})
+        end)
+        if success then
+          mapped[name] = true
+        else
+          -- Optionally log the error for debugging:
+          -- player.print("Mapping for " .. name .. " failed: " .. err)
+        end
       end
     end
   end
@@ -188,23 +195,27 @@ function convert_to_legendary(player)
     item = planner
   }
   inv.destroy()
-  
+
   -- 3. Rebuild legendary ghosts.
-  for _, ghost in pairs(surface.find_entities_filtered{area = area, name = "entity-ghost"}) do
+  for _, ghost in pairs(surface.find_entities_filtered{
+    area = area,
+    name = "entity-ghost",
+    force = force
+  }) do
     ghost.revive()
   end
-  
+
   player.print({"facc.convert-to-legendary-msg"})
 end
 
--- 11) Build All Ghosts (new)
+-- 11) Build All Ghosts (floors, constructions and landfill)
 function build_all_ghosts(player)
   local surface = player.surface
   -- Revive all entity ghosts.
   for _, e in pairs(surface.find_entities_filtered{force = player.force, type = "entity-ghost"}) do
     if e.valid then e.revive() end
   end
-  -- For tile ghosts, revive landfill separately; set others via set_tiles.
+  -- Handle tile ghosts: for landfill, use revive; for others, set tiles directly.
   for _, t in pairs(surface.find_entities_filtered{type = "tile-ghost"}) do
     if t.valid then
       if t.ghost_name == "landfill" then
@@ -287,7 +298,7 @@ function remove_enemy_nests(player, radius)
   player.print({"facc.remove-nests-msg", radius, radius})
 end
 
--- 20) Unlock Achievements (must be placed later in the menu)
+-- 20) Unlock Achievements
 function unlock_achievements(player)
   local achievements = {
     "getting-on-track", "getting-on-track-like-a-pro", "there-is-no-spoon",
@@ -359,7 +370,7 @@ function toggle_main_gui(player)
     frame.add{type = "button", name = "facc_recharge_energy", caption = {"facc.recharge-energy"}}
     frame.add{type = "button", name = "facc_build_blueprints", caption = {"facc.build-blueprints"}}
     frame.add{type = "button", name = "facc_increase_resources", caption = {"facc.increase-resources"}}
-    -- New buttons inserted here:
+    -- New buttons:
     frame.add{type = "button", name = "facc_convert_to_legendary", caption = {"facc.convert-to-legendary"}}
     frame.add{type = "button", name = "facc_build_all_ghosts", caption = {"facc.build-all-ghosts"}}
     -- Continue with existing buttons:
@@ -373,8 +384,8 @@ function toggle_main_gui(player)
     frame.add{type = "button", name = "facc_remove_nests", caption = {"facc.remove-nests"}}
     -- Place the Unlock Achievements button below all others...
     frame.add{type = "button", name = "facc_unlock_achievements", caption = {"facc.unlock-achievements"}}
-    -- ...and finally the "Coming Soon" button.
-    frame.add{type = "button", name = "facc_coming_soon", caption = {"facc.coming-soon"}}
+    -- ...and finally the Coming Soon button.
+    frame.add{type = "button", name = "facc_coming_soonn", caption = {"facc.coming-soon"}}
   end
 end
 
@@ -463,7 +474,7 @@ end
 -- EVENT HANDLERS
 --------------------------------------------------------------------------------
 
--- Add main button when the player is created, joins the game, or respawns
+-- Add main button when the player is created, joins the game, or respawns.
 script.on_event(defines.events.on_player_created, function(event)
   local player = game.players[event.player_index]
   add_main_button(player)
@@ -479,13 +490,13 @@ script.on_event(defines.events.on_player_respawned, function(event)
   add_main_button(player)
 end)
 
--- Shortcut to toggle the main menu (Ctrl + .)
+-- Shortcut to toggle the main menu (CTRL + .)
 script.on_event("facc_toggle_gui", function(event)
   local player = game.players[event.player_index]
   toggle_main_gui(player)
 end)
 
--- Process GUI click events
+-- Process GUI click events.
 script.on_event(defines.events.on_gui_click, function(event)
   local element = event.element
   if not (element and element.valid) then return end
@@ -501,7 +512,7 @@ script.on_event(defines.events.on_gui_click, function(event)
       player.gui.center["factorio_admin_command_center_frame"].destroy()
     end
 
-  -- Main menu buttons
+  -- Main menu buttons:
   elseif element.name == "facc_console" then
     toggle_console_gui(player)
   elseif element.name == "facc_enter_editor" then
@@ -542,10 +553,10 @@ script.on_event(defines.events.on_gui_click, function(event)
     remove_enemy_nests(player, 50)
   elseif element.name == "facc_unlock_achievements" then
     unlock_achievements(player)
-  elseif element.name == "facc_coming_soon" then
+  elseif element.name == "facc_coming_soonn" then
     player.print({"facc.coming-soon-msg"})
   
-  -- Console buttons
+  -- Console buttons:
   elseif element.name == "some_luaconsole_exec" then
     exec_console_command(player)
   elseif element.name == "some_luaconsole_close" then
