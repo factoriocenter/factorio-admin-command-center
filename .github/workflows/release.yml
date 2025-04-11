@@ -28,9 +28,15 @@ jobs:
             echo "value=${GITHUB_REF##*/}" >> $GITHUB_OUTPUT
           fi
 
+      - name: Prepare folder
+        run: |
+          mkdir factorio-admin-command-center
+          shopt -s extglob
+          mv !(factorio-admin-command-center) factorio-admin-command-center/
+
       - name: Zip mod
         run: |
-          zip -r "factorio-admin-command-center_${{ steps.version.outputs.value }}.zip" . -x "*.git*" ".github/*"
+          zip -r "factorio-admin-command-center_${{ steps.version.outputs.value }}.zip" factorio-admin-command-center/
 
       - name: Upload to Release
         uses: softprops/action-gh-release@v1
