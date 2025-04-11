@@ -4,6 +4,12 @@ name: Zip and Upload Mod
 on:
   release:
     types: [created]
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Versão para o nome do arquivo (ex: 1.0.1)"
+        required: true
+        type: string
 
 jobs:
   build-and-upload:
@@ -13,17 +19,22 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Get tag version
-        id: tag
-        run: echo "version=${GITHUB_REF##*/}" >> $GITHUB_OUTPUT
+      - name: Define version
+        id: version
+        run: |
+          if [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
+            echo "value=${{ github.event.inputs.version }}" >> $GITHUB_OUTPUT
+          else
+            echo "value=${GITHUB_REF##*/}" >> $GITHUB_OUTPUT
+          fi
 
       - name: Zip mod
         run: |
-          zip -r "factorio-admin-command-center_${{ steps.tag.outputs.version }}.zip" . -x "*.git*" ".github/*"
+          zip -r "factorio-admin-command-center_${{ steps.version.outputs.value }}.zip" . -x "*.git*" ".github/*"
 
       - name: Upload to Release
         uses: softprops/action-gh-release@v1
         with:
-          files: factorio-admin-command-center_${{ steps.tag.outputs.version }}.zip
+          files: factorio-admin-command-center_${{ steps.version.outputs.value }}.zip
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
