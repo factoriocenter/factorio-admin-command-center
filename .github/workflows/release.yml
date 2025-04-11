@@ -35,6 +35,7 @@ jobs:
       - name: Upload to Release
         uses: softprops/action-gh-release@v1
         with:
+          tag_name: ${{ steps.version.outputs.value }}
           files: factorio-admin-command-center_${{ steps.version.outputs.value }}.zip
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
