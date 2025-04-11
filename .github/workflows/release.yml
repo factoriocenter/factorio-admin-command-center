@@ -1,0 +1,29 @@
+# .github/workflows/release.yml
+name: Zip and Upload Mod
+
+on:
+  release:
+    types: [created]
+
+jobs:
+  build-and-upload:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Get tag version
+        id: tag
+        run: echo "version=${GITHUB_REF##*/}" >> $GITHUB_OUTPUT
+
+      - name: Zip mod
+        run: |
+          zip -r "factorio-admin-command-center_${{ steps.tag.outputs.version }}.zip" . -x "*.git*" ".github/*"
+
+      - name: Upload to Release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: factorio-admin-command-center_${{ steps.tag.outputs.version }}.zip
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
