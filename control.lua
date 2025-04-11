@@ -14,18 +14,20 @@
 --  7) Recharge Energy
 --  8) Build Ghost Blueprints
 --  9) Increase Resources
--- 10) Unlock Some Achievements
--- 11) Unlock All Recipes
--- 12) Unlock All Technologies
--- 13) Remove Cliffs (50x50)
--- 14) Remove Marked Structures (Deconstruction marks)
--- 15) Reveal Map (150x150)
--- 16) Hide Map
--- 17) Remove Pollution
--- 18) Remove Nests (50x50)
--- 19) "Coming Soon" functionality
+-- 10) Convert to Legendary (new)
+-- 11) Build All Ghosts (new)
+-- 12) Unlock All Recipes
+-- 13) Unlock All Technologies
+-- 14) Remove Cliffs (50x50)
+-- 15) Remove Marked Structures (Deconstruction marks)
+-- 16) Reveal Map (150x150)
+-- 17) Hide Map
+-- 18) Remove Pollution
+-- 19) Remove Nests (50x50)
+-- 20) Unlock Achievements
+-- 21) "Coming Soon" functionality
 --
--- Shortcut: Ctrl + ] toggles the main menu.
+-- Shortcut: Ctrl + . toggles the main menu.
 -- The Lua Console is only shown when clicking the "Console" button in the menu.
 
 -- Initialize global variables if not present
@@ -141,7 +143,151 @@ function increase_resources(player)
   player.print({"facc.increase-resources-msg"})
 end
 
--- 10) Unlock Some Achievements
+-- 10) Convert to Legendary (new)
+function convert_to_legendary(player)
+  local surface = player.surface
+  local force = player.force
+  local px, py = player.position.x, player.position.y
+  local area = { {px - 75, py - 75}, {px + 75, py + 75} }
+  
+  -- 1. Destroy eligible entities to generate ghosts with correct rotation.
+  for _, ent in pairs(surface.find_entities_filtered{area = area, force = force}) do
+    if ent.valid and ent.minable and ent.prototype.items_to_place_this then
+      ent.die()
+    end
+  end
+
+  -- 2. Use an upgrade planner to convert ghosts to legendary quality.
+  local inv = game.create_inventory(1)
+  inv[1].set_stack{name = "upgrade-planner"}
+  local planner = inv[1]
+  local mapped = {}
+  local function table_size(t)
+    local count = 0
+    for _ in pairs(t) do count = count + 1 end
+    return count
+  end
+
+  for _, ghost in pairs(surface.find_entities_filtered{area = area, name = "entity-ghost", force = force}) do
+    if ghost.ghost_prototype then
+      local name = ghost.ghost_name
+      if not mapped[name] then
+        local i = table_size(mapped) + 1
+        planner.set_mapper(i, "from", {type = "entity", name = name})
+        planner.set_mapper(i, "to", {type = "entity", name = name, quality = "legendary"})
+        mapped[name] = true
+      end
+    end
+  end
+
+  surface.upgrade_area{
+    area = area,
+    force = force,
+    player = player,
+    skip_fog_of_war = true,
+    item = planner
+  }
+  inv.destroy()
+  
+  -- 3. Rebuild legendary ghosts.
+  for _, ghost in pairs(surface.find_entities_filtered{area = area, name = "entity-ghost"}) do
+    ghost.revive()
+  end
+  
+  player.print({"facc.convert-to-legendary-msg"})
+end
+
+-- 11) Build All Ghosts (new)
+function build_all_ghosts(player)
+  local surface = player.surface
+  -- Revive all entity ghosts.
+  for _, e in pairs(surface.find_entities_filtered{force = player.force, type = "entity-ghost"}) do
+    if e.valid then e.revive() end
+  end
+  -- For tile ghosts, revive landfill separately; set others via set_tiles.
+  for _, t in pairs(surface.find_entities_filtered{type = "tile-ghost"}) do
+    if t.valid then
+      if t.ghost_name == "landfill" then
+        t.revive()
+      else
+        surface.set_tiles{{name = t.ghost_name, position = t.position}}
+      end
+    end
+  end
+  player.print({"facc.build-all-ghosts-msg"})
+end
+
+-- 12) Unlock All Recipes
+function unlock_all_recipes(player)
+  for _, recipe in pairs(player.force.recipes) do
+    recipe.enabled = true
+  end
+  player.print({"facc.unlock-recipes-msg"})
+end
+
+-- 13) Unlock All Technologies
+function unlock_all_technologies(player)
+  player.force.research_all_technologies()
+  player.print({"facc.unlock-technologies-msg"})
+end
+
+-- 14) Remove Cliffs (50x50)
+function remove_cliffs(player, radius)
+  local pos = player.position
+  for _, cliff in pairs(player.surface.find_entities_filtered{
+    area = { {pos.x - radius, pos.y - radius}, {pos.x + radius, pos.y + radius} },
+    type = "cliff"
+  }) do
+    cliff.destroy()
+  end
+  player.print({"facc.remove-cliffs-msg", radius, radius})
+end
+
+-- 15) Remove Marked Structures (Deconstruction marks)
+function remove_deconstruction_marks(player)
+  for _, entity in pairs(player.surface.find_entities_filtered{to_be_deconstructed = true}) do
+    entity.destroy()
+  end
+  player.print({"facc.remove-decon-msg"})
+end
+
+-- 16) Reveal Map (150x150)
+function reveal_map(player, radius)
+  local pos = player.position
+  player.force.chart(player.surface, {
+    {pos.x - radius, pos.y - radius},
+    {pos.x + radius, pos.y + radius}
+  })
+  player.print({"facc.reveal-map-msg", radius, radius})
+end
+
+-- 17) Hide Map
+function hide_map(player)
+  local surface = player.surface
+  local force = player.force
+  for chunk in surface.get_chunks() do
+    force.unchart_chunk({x = chunk.x, y = chunk.y}, surface)
+  end
+  player.print({"facc.hide-map-msg"})
+end
+
+-- 18) Remove Pollution
+function remove_pollution(player)
+  player.surface.clear_pollution()
+  player.print({"facc.remove-pollution-msg"})
+end
+
+-- 19) Remove Nests (50x50)
+function remove_enemy_nests(player, radius)
+  local pos = player.position
+  local area = { {pos.x - radius, pos.y - radius}, {pos.x + radius, pos.y + radius} }
+  for _, entity in pairs(player.surface.find_entities_filtered{area = area, force = "enemy"}) do
+    entity.destroy()
+  end
+  player.print({"facc.remove-nests-msg", radius, radius})
+end
+
+-- 20) Unlock Achievements (must be placed later in the menu)
 function unlock_achievements(player)
   local achievements = {
     "getting-on-track", "getting-on-track-like-a-pro", "there-is-no-spoon",
@@ -154,81 +300,11 @@ function unlock_achievements(player)
   player.print({"facc.unlock-achievements-msg"})
 end
 
--- 11) Unlock All Recipes
-function unlock_all_recipes(player)
-  for _, recipe in pairs(player.force.recipes) do
-    recipe.enabled = true
-  end
-  player.print({"facc.unlock-recipes-msg"})
-end
-
--- 12) Unlock All Technologies
-function unlock_all_technologies(player)
-  player.force.research_all_technologies()
-  player.print({"facc.unlock-technologies-msg"})
-end
-
--- 13) Remove Cliffs (50x50)
-function remove_cliffs(player, radius)
-  local pos = player.position
-  for _, cliff in pairs(player.surface.find_entities_filtered{
-    area = { {pos.x - radius, pos.y - radius}, {pos.x + radius, pos.y + radius} },
-    type = "cliff"
-  }) do
-    cliff.destroy()
-  end
-  player.print({"facc.remove-cliffs-msg", radius, radius})
-end
-
--- 14) Remove Marked Structures (Deconstruction marks)
-function remove_deconstruction_marks(player)
-  for _, entity in pairs(player.surface.find_entities_filtered{to_be_deconstructed = true}) do
-    entity.destroy()
-  end
-  player.print({"facc.remove-decon-msg"})
-end
-
--- 15) Reveal Map (150x150)
-function reveal_map(player, radius)
-  local pos = player.position
-  player.force.chart(player.surface, {
-    {pos.x - radius, pos.y - radius},
-    {pos.x + radius, pos.y + radius}
-  })
-  player.print({"facc.reveal-map-msg", radius, radius})
-end
-
--- 16) Hide Map
-function hide_map(player)
-  local surface = player.surface
-  local force = player.force
-  for chunk in surface.get_chunks() do
-    force.unchart_chunk({x = chunk.x, y = chunk.y}, surface)
-  end
-  player.print({"facc.hide-map-msg"})
-end
-
--- 17) Remove Pollution
-function remove_pollution(player)
-  player.surface.clear_pollution()
-  player.print({"facc.remove-pollution-msg"})
-end
-
--- 18) Remove Nests (50x50)
-function remove_enemy_nests(player, radius)
-  local pos = player.position
-  local area = { {pos.x - radius, pos.y - radius}, {pos.x + radius, pos.y + radius} }
-  for _, entity in pairs(player.surface.find_entities_filtered{area = area, force = "enemy"}) do
-    entity.destroy()
-  end
-  player.print({"facc.remove-nests-msg", radius, radius})
-end
-
 --------------------------------------------------------------------------------
 -- MAIN MENU INTERFACE FUNCTIONS
 --------------------------------------------------------------------------------
 
--- Add the main button to the top GUI.
+-- Adds the main button to the top GUI.
 function add_main_button(player)
   if is_allowed(player) then
     if not player.gui.top["factorio_admin_command_center_button"] then
@@ -243,7 +319,7 @@ function add_main_button(player)
   end
 end
 
--- Toggle the main menu in the center GUI.
+-- Toggles the main menu in the center GUI.
 function toggle_main_gui(player)
   if not is_allowed(player) then
     player.print({"facc.not-allowed"})
@@ -262,7 +338,7 @@ function toggle_main_gui(player)
       direction = "vertical",
       caption = {"facc.main-title"}
     }
-    -- Add a close button to the menu header
+    -- Add a header flow containing the title and a close menu button.
     local header_flow = frame.add{ type = "flow", direction = "horizontal" }
     header_flow.add{
       type = "label",
@@ -273,7 +349,7 @@ function toggle_main_gui(player)
       name = "facc_close_menu",
       caption = {"facc.close-menu"}
     }
-    -- Add all function buttons below:
+    -- Add functional buttons in the desired order:
     frame.add{type = "button", name = "facc_console", caption = {"facc.console"}}
     frame.add{type = "button", name = "facc_enter_editor", caption = {"facc.enter-editor"}}
     frame.add{type = "button", name = "facc_exit_editor", caption = {"facc.exit-editor"}}
@@ -283,7 +359,10 @@ function toggle_main_gui(player)
     frame.add{type = "button", name = "facc_recharge_energy", caption = {"facc.recharge-energy"}}
     frame.add{type = "button", name = "facc_build_blueprints", caption = {"facc.build-blueprints"}}
     frame.add{type = "button", name = "facc_increase_resources", caption = {"facc.increase-resources"}}
-    frame.add{type = "button", name = "facc_unlock_achievements", caption = {"facc.unlock-achievements"}}
+    -- New buttons inserted here:
+    frame.add{type = "button", name = "facc_convert_to_legendary", caption = {"facc.convert-to-legendary"}}
+    frame.add{type = "button", name = "facc_build_all_ghosts", caption = {"facc.build-all-ghosts"}}
+    -- Continue with existing buttons:
     frame.add{type = "button", name = "facc_unlock_recipes", caption = {"facc.unlock-recipes"}}
     frame.add{type = "button", name = "facc_unlock_technologies", caption = {"facc.unlock-technologies"}}
     frame.add{type = "button", name = "facc_remove_cliffs", caption = {"facc.remove-cliffs"}}
@@ -292,6 +371,9 @@ function toggle_main_gui(player)
     frame.add{type = "button", name = "facc_hide_map", caption = {"facc.hide-map"}}
     frame.add{type = "button", name = "facc_remove_pollution", caption = {"facc.remove-pollution"}}
     frame.add{type = "button", name = "facc_remove_nests", caption = {"facc.remove-nests"}}
+    -- Place the Unlock Achievements button below all others...
+    frame.add{type = "button", name = "facc_unlock_achievements", caption = {"facc.unlock-achievements"}}
+    -- ...and finally the "Coming Soon" button.
     frame.add{type = "button", name = "facc_coming_soon", caption = {"facc.coming-soon"}}
   end
 end
@@ -397,7 +479,7 @@ script.on_event(defines.events.on_player_respawned, function(event)
   add_main_button(player)
 end)
 
--- Shortcut to toggle the main menu (Ctrl + ])
+-- Shortcut to toggle the main menu (Ctrl + .)
 script.on_event("facc_toggle_gui", function(event)
   local player = game.players[event.player_index]
   toggle_main_gui(player)
@@ -438,8 +520,10 @@ script.on_event(defines.events.on_gui_click, function(event)
     build_ghost_blueprints(player)
   elseif element.name == "facc_increase_resources" then
     increase_resources(player)
-  elseif element.name == "facc_unlock_achievements" then
-    unlock_achievements(player)
+  elseif element.name == "facc_convert_to_legendary" then
+    convert_to_legendary(player)
+  elseif element.name == "facc_build_all_ghosts" then
+    build_all_ghosts(player)
   elseif element.name == "facc_unlock_recipes" then
     unlock_all_recipes(player)
   elseif element.name == "facc_unlock_technologies" then
@@ -456,6 +540,8 @@ script.on_event(defines.events.on_gui_click, function(event)
     remove_pollution(player)
   elseif element.name == "facc_remove_nests" then
     remove_enemy_nests(player, 50)
+  elseif element.name == "facc_unlock_achievements" then
+    unlock_achievements(player)
   elseif element.name == "facc_coming_soon" then
     player.print({"facc.coming-soon-msg"})
   
