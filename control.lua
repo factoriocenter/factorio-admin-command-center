@@ -1,22 +1,19 @@
 -- control.lua
 -- Factorio Admin Command Center
 -- This mod provides a central command center for administrative tasks.
--- In SinglePlayer, the main button appears for every player.
--- In Multiplayer, only administrators may see and use the mod.
---
--- Features implemented (all functions can be expanded as needed):
---  1) Lua Console (opened via the "Console" button in the main menu)
---  2) Enter Editor Mode
---  3) Exit Editor Mode
---  4) Delete Ownerless Characters
---  5) Repair & Rebuild
---  6) Ammo to Turrets
---  7) Recharge Energy
---  8) Build Ghost Blueprints
---  9) Increase Resources
+-- Features:
+-- 1) Lua Console (opened via the "Console" button in the main menu)
+-- 2) Enter Editor Mode
+-- 3) Exit Editor Mode
+-- 4) Delete Ownerless Characters
+-- 5) Repair & Rebuild
+-- 6) Ammo to Turrets
+-- 7) Recharge Energy
+-- 8) Build Ghost Blueprints
+-- 9) Increase Resources
 -- 10) Convert Constructions to Legendary (150x150)
 -- 11) Convert Inventory Items to Legendary [NEW]
--- 12) Build All Ghosts (floors, constructions & landfill)
+-- 12) Build All Ghosts (Floors, Constructions & Landfill)
 -- 13) Unlock All Recipes
 -- 14) Unlock All Technologies
 -- 15) Remove Cliffs (50x50)
@@ -37,8 +34,8 @@ if not global.cmd then global.cmd = "" end  -- To store the last Lua Console com
 
 --------------------------------------------------------------------------------
 -- Permission Check Function:
--- If not multiplayer, everyone has access.
--- If multiplayer, only players with admin privileges have access.
+-- In SinglePlayer, every player has access.
+-- In Multiplayer, only admins have access.
 --------------------------------------------------------------------------------
 local function is_allowed(player)
   if not game.is_multiplayer() then
@@ -151,14 +148,14 @@ function convert_to_legendary(player)
   local px, py = player.position.x, player.position.y
   local area = { {px - 75, py - 75}, {px + 75, py + 75} }
   
-  -- 1. Destroy eligible entities to generate ghosts with correct rotation.
+  -- Destroy eligible entities to generate ghosts with correct rotation.
   for _, ent in pairs(surface.find_entities_filtered{area = area, force = force}) do
     if ent.valid and ent.minable and ent.prototype.items_to_place_this then
       ent.die()
     end
   end
   
-  -- 2. Use an upgrade planner to convert ghosts to legendary quality.
+  -- Use an upgrade planner to convert ghosts to legendary quality.
   local inv = game.create_inventory(1)
   inv[1].set_stack{name = "upgrade-planner"}
   local planner = inv[1]
@@ -193,8 +190,8 @@ function convert_to_legendary(player)
     item = planner
   }
   inv.destroy()
-  
-  -- 3. Rebuild legendary ghosts.
+
+  -- Rebuild legendary ghosts.
   for _, ghost in pairs(surface.find_entities_filtered{
     area = area,
     name = "entity-ghost",
@@ -208,7 +205,7 @@ end
 
 -- 11) Convert Inventory Items to Legendary [NEW]
 function convert_inventory_to_legendary(player)
-  -- Expand player inventory slots temporarily.
+  -- Temporarily expand the player's inventory slots.
   local original_bonus = player.character_inventory_slots_bonus or 0
   if player.character then
     player.character_inventory_slots_bonus = original_bonus + 1000
@@ -255,7 +252,7 @@ function convert_inventory_to_legendary(player)
   convert_inventory(player.get_inventory(defines.inventory.character_guns))
   convert_inventory(player.get_inventory(defines.inventory.character_ammo))
 
-  -- Convert armor and its equipment.
+  -- Process armor and equipment.
   local armor_inv = player.get_inventory(defines.inventory.character_armor)
   local armor_stack = armor_inv[1]
   local equipment_buffer = {}
@@ -313,7 +310,7 @@ function convert_inventory_to_legendary(player)
   player.print({"facc.convert-inventory-msg"})
 end
 
--- 12) Build All Ghosts (floors, constructions & landfill)
+-- 12) Build All Ghosts (Floors, Constructions & Landfill)
 function build_all_ghosts(player)
   local surface = player.surface
   for _, e in pairs(surface.find_entities_filtered{force = player.force, type = "entity-ghost"}) do
@@ -452,7 +449,7 @@ function toggle_main_gui(player)
       direction = "vertical",
       caption = {"facc.main-title"}
     }
-    -- Add a header flow containing the title and a close menu button.
+    -- Add a header flow with title and close menu button.
     local header_flow = frame.add{ type = "flow", direction = "horizontal" }
     header_flow.add{
       type = "label",
@@ -463,7 +460,7 @@ function toggle_main_gui(player)
       name = "facc_close_menu",
       caption = {"facc.close-menu"}
     }
-    -- Add functional buttons in the desired order:
+    -- Add functional buttons in the desired order.
     frame.add{type = "button", name = "facc_console", caption = {"facc.console"}}
     frame.add{type = "button", name = "facc_enter_editor", caption = {"facc.enter-editor"}}
     frame.add{type = "button", name = "facc_exit_editor", caption = {"facc.exit-editor"}}
