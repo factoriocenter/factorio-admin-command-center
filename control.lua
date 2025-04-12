@@ -15,7 +15,7 @@
 --  8) Build Ghost Blueprints
 --  9) Increase Resources
 -- 10) Convert Constructions to Legendary (150x150)
--- 11) Convert Inventory to Legendary [NEW]
+-- 11) Convert Inventory Items to Legendary [NEW]
 -- 12) Build All Ghosts (floors, constructions & landfill)
 -- 13) Unlock All Recipes
 -- 14) Unlock All Technologies
@@ -193,7 +193,7 @@ function convert_to_legendary(player)
     item = planner
   }
   inv.destroy()
-
+  
   -- 3. Rebuild legendary ghosts.
   for _, ghost in pairs(surface.find_entities_filtered{
     area = area,
@@ -202,29 +202,29 @@ function convert_to_legendary(player)
   }) do
     ghost.revive()
   end
-
+  
   player.print({"facc.convert-to-legendary-msg"})
 end
 
--- 11) Convert Inventory Items to Legendary
+-- 11) Convert Inventory Items to Legendary [NEW]
 function convert_inventory_to_legendary(player)
-  -- Temporarily expand player inventory slots.
-  local original_bonus = game.player.character_inventory_slots_bonus or 0
-  if game.player.character then
-    game.player.character_inventory_slots_bonus = original_bonus + 1000
+  -- Expand player inventory slots temporarily.
+  local original_bonus = player.character_inventory_slots_bonus or 0
+  if player.character then
+    player.character_inventory_slots_bonus = original_bonus + 1000
   end
 
   local function safe_insert_or_store(item)
-    if game.player.can_insert(item) then
-      game.player.insert(item)
+    if player.can_insert(item) then
+      player.insert(item)
       return true
     else
-      local chest = game.surfaces[1].find_entity("steel-chest", game.player.position)
+      local chest = player.surface.find_entity("steel-chest", player.position)
       if not chest then
-        chest = game.surfaces[1].create_entity{
+        chest = player.surface.create_entity{
           name = "steel-chest",
-          position = {game.player.position.x + 1, game.player.position.y},
-          force = game.player.force
+          position = {player.position.x + 1, player.position.y},
+          force = player.force
         }
       end
       chest.insert(item)
@@ -241,21 +241,22 @@ function convert_inventory_to_legendary(player)
         local removed = inv.remove{name = name, count = count}
         if removed > 0 then
           local ok = pcall(function()
-            game.player.insert{name = name, count = removed, quality = "legendary"}
+            player.insert{name = name, count = removed, quality = "legendary"}
           end)
           if not ok then
-            safe_insert_or_store{name = name, count = removed}
+            safe_insert_or_store({name = name, count = removed})
           end
         end
       end
     end
   end
 
-  convert_inventory(game.player.get_main_inventory())
-  convert_inventory(game.player.get_inventory(defines.inventory.character_guns))
-  convert_inventory(game.player.get_inventory(defines.inventory.character_ammo))
+  convert_inventory(player.get_main_inventory())
+  convert_inventory(player.get_inventory(defines.inventory.character_guns))
+  convert_inventory(player.get_inventory(defines.inventory.character_ammo))
 
-  local armor_inv = game.player.get_inventory(defines.inventory.character_armor)
+  -- Convert armor and its equipment.
+  local armor_inv = player.get_inventory(defines.inventory.character_armor)
   local armor_stack = armor_inv[1]
   local equipment_buffer = {}
 
@@ -277,10 +278,10 @@ function convert_inventory_to_legendary(player)
     local name = armor_stack.name
     armor_inv.remove{name = name, count = 1}
     local ok = pcall(function()
-      game.player.insert{name = name, count = 1, quality = "legendary"}
+      player.insert{name = name, count = 1, quality = "legendary"}
     end)
     if not ok then
-      safe_insert_or_store{name = name, count = 1}
+      safe_insert_or_store({name = name, count = 1})
     end
   end
 
@@ -292,7 +293,7 @@ function convert_inventory_to_legendary(player)
         new_armor.grid.put{name = eq.name, quality = "legendary"}
       end)
       if not success then
-        safe_insert_or_store{name = eq.name, count = 1}
+        safe_insert_or_store({name = eq.name, count = 1})
       end
     end
   end
@@ -302,11 +303,11 @@ function convert_inventory_to_legendary(player)
     local armor_name = final_armor.name
     local armor_quality = final_armor.quality
     armor_inv.remove{name = armor_name, count = 1}
-    game.player.insert{name = armor_name, count = 1, quality = armor_quality}
+    player.insert{name = armor_name, count = 1, quality = armor_quality}
   end
 
-  if game.player.character then
-    game.player.character_inventory_slots_bonus = original_bonus
+  if player.character then
+    player.character_inventory_slots_bonus = original_bonus
   end
 
   player.print({"facc.convert-inventory-msg"})
@@ -473,7 +474,6 @@ function toggle_main_gui(player)
     frame.add{type = "button", name = "facc_build_blueprints", caption = {"facc.build-blueprints"}}
     frame.add{type = "button", name = "facc_increase_resources", caption = {"facc.increase-resources"}}
     frame.add{type = "button", name = "facc_convert_to_legendary", caption = {"facc.convert-to-legendary"}}
-    -- New button: Convert Inventory to Legendary
     frame.add{type = "button", name = "facc_convert_inventory", caption = {"facc.convert-inventory"}}
     frame.add{type = "button", name = "facc_build_all_ghosts", caption = {"facc.build-all-ghosts"}}
     frame.add{type = "button", name = "facc_unlock_recipes", caption = {"facc.unlock-recipes"}}
@@ -573,7 +573,6 @@ end
 -- EVENT HANDLERS
 --------------------------------------------------------------------------------
 
--- Add main button when the player is created, joins the game, or respawns.
 script.on_event(defines.events.on_player_created, function(event)
   local player = game.players[event.player_index]
   add_main_button(player)
@@ -589,29 +588,22 @@ script.on_event(defines.events.on_player_respawned, function(event)
   add_main_button(player)
 end)
 
--- Shortcut to toggle the main menu (CTRL + .)
 script.on_event("facc_toggle_gui", function(event)
   local player = game.players[event.player_index]
   toggle_main_gui(player)
 end)
 
--- Process GUI click events.
 script.on_event(defines.events.on_gui_click, function(event)
   local element = event.element
   if not (element and element.valid) then return end
   local player = game.players[event.player_index]
 
-  -- Main button
   if element.name == "factorio_admin_command_center_button" then
     toggle_main_gui(player)
-  
-  -- Close menu button
   elseif element.name == "facc_close_menu" then
     if player.gui.center["factorio_admin_command_center_frame"] then
       player.gui.center["factorio_admin_command_center_frame"].destroy()
     end
-
-  -- Main menu buttons:
   elseif element.name == "facc_console" then
     toggle_console_gui(player)
   elseif element.name == "facc_enter_editor" then
@@ -656,8 +648,6 @@ script.on_event(defines.events.on_gui_click, function(event)
     unlock_achievements(player)
   elseif element.name == "facc_coming_soonn" then
     player.print({"facc.coming-soon-msg"})
-  
-  -- Console buttons:
   elseif element.name == "some_luaconsole_exec" then
     exec_console_command(player)
   elseif element.name == "some_luaconsole_close" then
