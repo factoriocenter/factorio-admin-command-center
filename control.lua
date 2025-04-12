@@ -14,18 +14,19 @@
 --  7) Recharge Energy
 --  8) Build Ghost Blueprints
 --  9) Increase Resources
--- 10) Convert to Legendary (150x150)  [NEW]
--- 11) Build All Ghosts (floors, constructions & landfill)  [NEW]
--- 12) Unlock All Recipes
--- 13) Unlock All Technologies
--- 14) Remove Cliffs (50x50)
--- 15) Remove Marked Structures (Deconstruction marks)
--- 16) Reveal Map (150x150)
--- 17) Hide Map
--- 18) Remove Pollution
--- 19) Remove Nests (50x50)
--- 20) Unlock Achievements
--- 21) "Coming Soon" functionality
+-- 10) Convert Constructions to Legendary (150x150)
+-- 11) Convert Inventory to Legendary [NEW]
+-- 12) Build All Ghosts (floors, constructions & landfill)
+-- 13) Unlock All Recipes
+-- 14) Unlock All Technologies
+-- 15) Remove Cliffs (50x50)
+-- 16) Remove Marked Structures (Deconstruction marks)
+-- 17) Reveal Map (150x150)
+-- 18) Hide Map
+-- 19) Remove Pollution
+-- 20) Remove Nests (50x50)
+-- 21) Unlock Achievements
+-- 22) "Coming Soon" functionality
 --
 -- Shortcut: CTRL + . toggles the main menu.
 -- The Lua Console is only shown when clicking the "Console" button in the menu.
@@ -143,7 +144,7 @@ function increase_resources(player)
   player.print({"facc.increase-resources-msg"})
 end
 
--- 10) Convert to Legendary (150x150)
+-- 10) Convert Constructions to Legendary (150x150)
 function convert_to_legendary(player)
   local surface = player.surface
   local force = player.force
@@ -179,9 +180,6 @@ function convert_to_legendary(player)
         end)
         if success then
           mapped[name] = true
-        else
-          -- Optionally log the error for debugging:
-          -- player.print("Mapping for " .. name .. " failed: " .. err)
         end
       end
     end
@@ -208,14 +206,118 @@ function convert_to_legendary(player)
   player.print({"facc.convert-to-legendary-msg"})
 end
 
--- 11) Build All Ghosts (floors, constructions and landfill)
+-- 11) Convert Inventory Items to Legendary
+function convert_inventory_to_legendary(player)
+  -- Temporarily expand player inventory slots.
+  local original_bonus = game.player.character_inventory_slots_bonus or 0
+  if game.player.character then
+    game.player.character_inventory_slots_bonus = original_bonus + 1000
+  end
+
+  local function safe_insert_or_store(item)
+    if game.player.can_insert(item) then
+      game.player.insert(item)
+      return true
+    else
+      local chest = game.surfaces[1].find_entity("steel-chest", game.player.position)
+      if not chest then
+        chest = game.surfaces[1].create_entity{
+          name = "steel-chest",
+          position = {game.player.position.x + 1, game.player.position.y},
+          force = game.player.force
+        }
+      end
+      chest.insert(item)
+      return false
+    end
+  end
+
+  local function convert_inventory(inv)
+    for i = 1, #inv do
+      local stack = inv[i]
+      if stack.valid_for_read and stack.quality ~= "legendary" and stack.count > 0 then
+        local name = stack.name
+        local count = stack.count
+        local removed = inv.remove{name = name, count = count}
+        if removed > 0 then
+          local ok = pcall(function()
+            game.player.insert{name = name, count = removed, quality = "legendary"}
+          end)
+          if not ok then
+            safe_insert_or_store{name = name, count = removed}
+          end
+        end
+      end
+    end
+  end
+
+  convert_inventory(game.player.get_main_inventory())
+  convert_inventory(game.player.get_inventory(defines.inventory.character_guns))
+  convert_inventory(game.player.get_inventory(defines.inventory.character_ammo))
+
+  local armor_inv = game.player.get_inventory(defines.inventory.character_armor)
+  local armor_stack = armor_inv[1]
+  local equipment_buffer = {}
+
+  if armor_stack.valid_for_read and armor_stack.grid then
+    for _, eq in pairs(armor_stack.grid.equipment) do
+      table.insert(equipment_buffer, {
+        name = eq.name,
+        size = (eq.shape.width or 1) * (eq.shape.height or 1)
+      })
+    end
+    for _, eq in pairs(equipment_buffer) do
+      pcall(function()
+        armor_stack.grid.take{name = eq.name, count = 1}
+      end)
+    end
+  end
+
+  if armor_stack.valid_for_read and armor_stack.quality ~= "legendary" then
+    local name = armor_stack.name
+    armor_inv.remove{name = name, count = 1}
+    local ok = pcall(function()
+      game.player.insert{name = name, count = 1, quality = "legendary"}
+    end)
+    if not ok then
+      safe_insert_or_store{name = name, count = 1}
+    end
+  end
+
+  local new_armor = armor_inv[1]
+  if new_armor.valid_for_read and new_armor.grid then
+    table.sort(equipment_buffer, function(a, b) return a.size > b.size end)
+    for _, eq in pairs(equipment_buffer) do
+      local success = pcall(function()
+        new_armor.grid.put{name = eq.name, quality = "legendary"}
+      end)
+      if not success then
+        safe_insert_or_store{name = eq.name, count = 1}
+      end
+    end
+  end
+
+  local final_armor = armor_inv[1]
+  if final_armor.valid_for_read then
+    local armor_name = final_armor.name
+    local armor_quality = final_armor.quality
+    armor_inv.remove{name = armor_name, count = 1}
+    game.player.insert{name = armor_name, count = 1, quality = armor_quality}
+  end
+
+  if game.player.character then
+    game.player.character_inventory_slots_bonus = original_bonus
+  end
+
+  player.print({"facc.convert-inventory-msg"})
+end
+
+-- 12) Build All Ghosts (floors, constructions & landfill)
 function build_all_ghosts(player)
   local surface = player.surface
-  -- Revive all entity ghosts.
   for _, e in pairs(surface.find_entities_filtered{force = player.force, type = "entity-ghost"}) do
     if e.valid then e.revive() end
   end
-  -- Handle tile ghosts: for landfill, use revive; for others, set tiles directly.
   for _, t in pairs(surface.find_entities_filtered{type = "tile-ghost"}) do
     if t.valid then
       if t.ghost_name == "landfill" then
@@ -228,7 +330,7 @@ function build_all_ghosts(player)
   player.print({"facc.build-all-ghosts-msg"})
 end
 
--- 12) Unlock All Recipes
+-- 13) Unlock All Recipes
 function unlock_all_recipes(player)
   for _, recipe in pairs(player.force.recipes) do
     recipe.enabled = true
@@ -236,13 +338,13 @@ function unlock_all_recipes(player)
   player.print({"facc.unlock-recipes-msg"})
 end
 
--- 13) Unlock All Technologies
+-- 14) Unlock All Technologies
 function unlock_all_technologies(player)
   player.force.research_all_technologies()
   player.print({"facc.unlock-technologies-msg"})
 end
 
--- 14) Remove Cliffs (50x50)
+-- 15) Remove Cliffs (50x50)
 function remove_cliffs(player, radius)
   local pos = player.position
   for _, cliff in pairs(player.surface.find_entities_filtered{
@@ -254,7 +356,7 @@ function remove_cliffs(player, radius)
   player.print({"facc.remove-cliffs-msg", radius, radius})
 end
 
--- 15) Remove Marked Structures (Deconstruction marks)
+-- 16) Remove Marked Structures (Deconstruction marks)
 function remove_deconstruction_marks(player)
   for _, entity in pairs(player.surface.find_entities_filtered{to_be_deconstructed = true}) do
     entity.destroy()
@@ -262,7 +364,7 @@ function remove_deconstruction_marks(player)
   player.print({"facc.remove-decon-msg"})
 end
 
--- 16) Reveal Map (150x150)
+-- 17) Reveal Map (150x150)
 function reveal_map(player, radius)
   local pos = player.position
   player.force.chart(player.surface, {
@@ -272,7 +374,7 @@ function reveal_map(player, radius)
   player.print({"facc.reveal-map-msg", radius, radius})
 end
 
--- 17) Hide Map
+-- 18) Hide Map
 function hide_map(player)
   local surface = player.surface
   local force = player.force
@@ -282,13 +384,13 @@ function hide_map(player)
   player.print({"facc.hide-map-msg"})
 end
 
--- 18) Remove Pollution
+-- 19) Remove Pollution
 function remove_pollution(player)
   player.surface.clear_pollution()
   player.print({"facc.remove-pollution-msg"})
 end
 
--- 19) Remove Nests (50x50)
+-- 20) Remove Nests (50x50)
 function remove_enemy_nests(player, radius)
   local pos = player.position
   local area = { {pos.x - radius, pos.y - radius}, {pos.x + radius, pos.y + radius} }
@@ -298,7 +400,7 @@ function remove_enemy_nests(player, radius)
   player.print({"facc.remove-nests-msg", radius, radius})
 end
 
--- 20) Unlock Achievements
+-- 21) Unlock Achievements
 function unlock_achievements(player)
   local achievements = {
     "getting-on-track", "getting-on-track-like-a-pro", "there-is-no-spoon",
@@ -370,10 +472,10 @@ function toggle_main_gui(player)
     frame.add{type = "button", name = "facc_recharge_energy", caption = {"facc.recharge-energy"}}
     frame.add{type = "button", name = "facc_build_blueprints", caption = {"facc.build-blueprints"}}
     frame.add{type = "button", name = "facc_increase_resources", caption = {"facc.increase-resources"}}
-    -- New buttons:
     frame.add{type = "button", name = "facc_convert_to_legendary", caption = {"facc.convert-to-legendary"}}
+    -- New button: Convert Inventory to Legendary
+    frame.add{type = "button", name = "facc_convert_inventory", caption = {"facc.convert-inventory"}}
     frame.add{type = "button", name = "facc_build_all_ghosts", caption = {"facc.build-all-ghosts"}}
-    -- Continue with existing buttons:
     frame.add{type = "button", name = "facc_unlock_recipes", caption = {"facc.unlock-recipes"}}
     frame.add{type = "button", name = "facc_unlock_technologies", caption = {"facc.unlock-technologies"}}
     frame.add{type = "button", name = "facc_remove_cliffs", caption = {"facc.remove-cliffs"}}
@@ -382,9 +484,7 @@ function toggle_main_gui(player)
     frame.add{type = "button", name = "facc_hide_map", caption = {"facc.hide-map"}}
     frame.add{type = "button", name = "facc_remove_pollution", caption = {"facc.remove-pollution"}}
     frame.add{type = "button", name = "facc_remove_nests", caption = {"facc.remove-nests"}}
-    -- Place the Unlock Achievements button below all others...
     frame.add{type = "button", name = "facc_unlock_achievements", caption = {"facc.unlock-achievements"}}
-    -- ...and finally the Coming Soon button.
     frame.add{type = "button", name = "facc_coming_soonn", caption = {"facc.coming-soon"}}
   end
 end
@@ -419,7 +519,6 @@ function toggle_console_gui(player)
     input.word_wrap = true
     input.style.maximal_height = (player.display_resolution.height / player.display_scale * 0.6)
     input.text = global.cmd or ""
-
     local horizontal_flow = frame.add{type = "flow", direction = "horizontal"}
     horizontal_flow.add{
       type = "button",
@@ -533,6 +632,8 @@ script.on_event(defines.events.on_gui_click, function(event)
     increase_resources(player)
   elseif element.name == "facc_convert_to_legendary" then
     convert_to_legendary(player)
+  elseif element.name == "facc_convert_inventory" then
+    convert_inventory_to_legendary(player)
   elseif element.name == "facc_build_all_ghosts" then
     build_all_ghosts(player)
   elseif element.name == "facc_unlock_recipes" then
