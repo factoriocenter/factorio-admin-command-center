@@ -2,7 +2,8 @@
 
 **Factorio Admin Command Center** is a powerful GUI-based toolkit for admins and single-player users who want total control over their factory world. Skip typing commands and navigate through a sleek, fully-translated interface packed with tools to automate, debug, cheat, or optimize gameplay.
 
-> 🎮 Requires **Factorio 2.0+** | 👨‍💻 Created by [louanbastos](https://github.com/loadsec)
+> 🎮 Requires **Factorio 2.0+** | 👨‍💻 Created by [louanbastos](https://github.com/loadsec)  
+> 📦 Available on [Factorio Mod Portal](https://mods.factorio.com/mod/factorio-admin-command-center)
 
 ---
 
@@ -27,20 +28,27 @@
 
 - **Delete Ownerless Characters** – Clean up character entities without players
 
-### 🧰 Utilities
+### ⚡ Utility Tools
 
 - **Repair & Rebuild** – Heal buildings and revive ghosts
 - **Recharge Energy** – Fully restore energy buffers of valid entities
 - **Ammo to Turrets** – Refill empty turrets with uranium magazines
+- **Remove Pollution** – Instantly clear pollution on surface
 
-### 🛤️ Logistics & Ghosts
+### 🏗️ Blueprint & Ghost Tools
 
 - **Build Ghost Blueprints** – Instantly build entity/tile ghosts
+- **Build All Ghosts** – Also includes tiles and landfill
 - **Remove Marked Structures** – Destroy entities marked for deconstruction
 
-### 📦 Resources
+### 📦 Resource & Power Tools
 
 - **Increase Resources** – Set all resources on the map to max amount
+
+### 💎 Legendary Features
+
+- **Convert Constructions to Legendary (150x150)** – Destroys and upgrades local builds into legendary-quality ghosts
+- **Convert Inventory Items to Legendary** – Replaces player's items, equipment, and armor with legendary-quality versions (safe mode)
 
 ### 🔓 Unlocks
 
@@ -54,7 +62,6 @@
 - **Hide Map** – Unchart all discovered areas
 - **Remove Cliffs (50x50)** – Destroy all nearby cliffs
 - **Remove Nests (50x50)** – Destroy enemy entities around player
-- **Remove Pollution** – Instantly clear pollution on surface
 
 ### 🖥️ Lua Console
 
@@ -82,7 +89,12 @@
 
 ## 📦 Installation
 
-### Manual (from GitHub)
+### ✅ From Mod Portal (Recommended)
+
+Install directly via the official portal:  
+🔗 [Factorio Admin Command Center](https://mods.factorio.com/mod/factorio-admin-command-center)
+
+### 🛠️ Manual (from GitHub)
 
 1. Download this repository as a `.zip`
 2. Rename the folder to `factorio-admin-command-center`
@@ -90,10 +102,6 @@
    - Windows: `%APPDATA%\Factorio\mods`
    - Linux: `~/.factorio/mods/`
 4. Launch the game and enable the mod in the **Mods** menu
-
-### From Mod Portal _(coming soon)_
-
-We plan to publish this mod to the official Factorio Mod Portal soon.
 
 ---
 
@@ -133,8 +141,6 @@ By default, Factorio disables achievements when mods are active — but you can 
 
 🚫 Not yet available.  
 If you know a working tool, feel free to [open an issue](https://github.com/loadsec/factorio-admin-command-center/issues) or contribute one!
-
-> Want help using them? Open an issue and we’ll guide you!
 
 ---
 
