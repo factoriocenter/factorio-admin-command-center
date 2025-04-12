@@ -1,16 +1,16 @@
 -- control.lua
 -- Factorio Admin Command Center
 -- This mod provides a central command center for administrative tasks.
--- Features:
--- 1) Lua Console (opened via the "Console" button in the main menu)
--- 2) Enter Editor Mode
--- 3) Exit Editor Mode
--- 4) Delete Ownerless Characters
--- 5) Repair & Rebuild
--- 6) Ammo to Turrets
--- 7) Recharge Energy
--- 8) Build Ghost Blueprints
--- 9) Increase Resources
+-- Features implemented:
+--  1) Lua Console (opened via the "Console" button in the main menu)
+--  2) Enter Editor Mode
+--  3) Exit Editor Mode
+--  4) Delete Ownerless Characters
+--  5) Repair & Rebuild
+--  6) Ammo to Turrets
+--  7) Recharge Energy
+--  8) Build Ghost Blueprints
+--  9) Increase Resources
 -- 10) Convert Constructions to Legendary (150x150)
 -- 11) Convert Inventory Items to Legendary [NEW]
 -- 12) Build All Ghosts (Floors, Constructions & Landfill)
@@ -35,7 +35,7 @@ if not global.cmd then global.cmd = "" end  -- To store the last Lua Console com
 --------------------------------------------------------------------------------
 -- Permission Check Function:
 -- In SinglePlayer, every player has access.
--- In Multiplayer, only admins have access.
+-- In Multiplayer, only admin players have access.
 --------------------------------------------------------------------------------
 local function is_allowed(player)
   if not game.is_multiplayer() then
@@ -156,7 +156,11 @@ function convert_to_legendary(player)
   end
   
   -- Use an upgrade planner to convert ghosts to legendary quality.
-  local inv = game.create_inventory(1)
+  local status, inv = pcall(function() return game.create_inventory(1) end)
+  if not status then
+    player.print("Error: Unable to create temporary inventory. Legendary conversion aborted.")
+    return
+  end
   inv[1].set_stack{name = "upgrade-planner"}
   local planner = inv[1]
   local mapped = {}
@@ -190,7 +194,7 @@ function convert_to_legendary(player)
     item = planner
   }
   inv.destroy()
-
+  
   -- Rebuild legendary ghosts.
   for _, ghost in pairs(surface.find_entities_filtered{
     area = area,
@@ -252,7 +256,6 @@ function convert_inventory_to_legendary(player)
   convert_inventory(player.get_inventory(defines.inventory.character_guns))
   convert_inventory(player.get_inventory(defines.inventory.character_ammo))
 
-  -- Process armor and equipment.
   local armor_inv = player.get_inventory(defines.inventory.character_armor)
   local armor_stack = armor_inv[1]
   local equipment_buffer = {}
@@ -449,7 +452,7 @@ function toggle_main_gui(player)
       direction = "vertical",
       caption = {"facc.main-title"}
     }
-    -- Add a header flow with title and close menu button.
+    -- Add a header flow with title and a close menu button.
     local header_flow = frame.add{ type = "flow", direction = "horizontal" }
     header_flow.add{
       type = "label",
@@ -460,7 +463,7 @@ function toggle_main_gui(player)
       name = "facc_close_menu",
       caption = {"facc.close-menu"}
     }
-    -- Add functional buttons in the desired order.
+    -- Add functional buttons in the desired order:
     frame.add{type = "button", name = "facc_console", caption = {"facc.console"}}
     frame.add{type = "button", name = "facc_enter_editor", caption = {"facc.enter-editor"}}
     frame.add{type = "button", name = "facc_exit_editor", caption = {"facc.exit-editor"}}
@@ -594,7 +597,7 @@ script.on_event(defines.events.on_gui_click, function(event)
   local element = event.element
   if not (element and element.valid) then return end
   local player = game.players[event.player_index]
-
+  
   if element.name == "factorio_admin_command_center_button" then
     toggle_main_gui(player)
   elseif element.name == "facc_close_menu" then
