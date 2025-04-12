@@ -65,9 +65,9 @@
 
 ### 🖥️ Lua Console
 
-- **Open Console** – Execute Lua code directly in a GUI textbox
-- Includes input memory and error handling
-- Access restricted to host/admins only
+- **Open Console** – Execute Lua code directly in a GUI textbox  
+  Includes input memory and error handling  
+  Access restricted to host/admins only
 
 ### 🔒 Coming Soon
 
@@ -94,14 +94,24 @@
 Install directly via the official portal:  
 🔗 [Factorio Admin Command Center](https://mods.factorio.com/mod/factorio-admin-command-center)
 
-### 🛠️ Manual (from GitHub)
+### 🔻 From GitHub Releases
 
-1. Download this repository as a `.zip`
-2. Rename the folder to `factorio-admin-command-center`
-3. Move it to your mods folder:
-   - Windows: `%APPDATA%\Factorio\mods`
-   - Linux: `~/.factorio/mods/`
-4. Launch the game and enable the mod in the **Mods** menu
+1. Go to the [**Releases** page](https://github.com/loadsec/factorio-admin-command-center/releases)
+2. Download the latest `.zip` file
+3. Move the `.zip` to your Factorio `mods` folder — no need to extract!
+
+> Tip: You can also rename the `.zip` to match the format `factorio-admin-command-center_1.0.2.zip` if needed.
+
+### 🛠️ Manual Installation (Advanced)
+
+1. Clone or download this repository as a `.zip`
+2. Extract it and rename the folder to `factorio-admin-command-center`
+3. Move the folder to your mods directory:
+
+   - **Windows:** `%APPDATA%\Factorio\mods`
+   - **Linux:** `~/.factorio/mods/`
+
+4. Launch Factorio and enable the mod in the **Mods** menu
 
 ---
 
