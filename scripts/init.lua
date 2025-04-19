@@ -1,0 +1,2 @@
+-- scripts/init.lua
+-- Currently unused. Reserved for future global init logic.

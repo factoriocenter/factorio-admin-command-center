@@ -1,9 +1,9 @@
 {
   "name": "factorio-admin-command-center",
-  "version": "1.0.2",
+  "version": "2.0.0",
   "title": "Factorio Admin Command Center",
   "author": "louanbastos",
   "factorio_version": "2.0",
   "dependencies": ["base >= 2.0.0"],
-  "description": "A central admin command center for Factorio. In SinglePlayer, the main button appears for every player; in Multiplayer, only administrators are allowed to use it."
+  "description": "A powerful and intuitive GUI-based administration toolkit for Factorio. Provides instant access to over 20 categorized tools for editing, repairing, map cleanup, blueprint automation, recipe/tech unlocks, pollution control, enemy removal, and more. Features a sidebar tabbed interface, built-in Lua console, and full localization support. Designed for both singleplayer and multiplayer admins, accessible via GUI button or shortcut (CTRL + .)."
 }
