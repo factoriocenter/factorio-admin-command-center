@@ -21,57 +21,67 @@
 
 ### 🛠️ Editor Mode
 
-- **Enter Editor Mode** – Switch to editor controller (player disappears)
-- **Exit Editor Mode** – Restore player character at current position
+- **Toggle Editor Mode** – Enter or exit the map editor with a single button
+  > Now works as a **fully functional toggle** – no more separate "enter/exit" buttons
 
 ### 🧍 Character Control
 
 - **Delete Ownerless Characters** – Clean up character entities without players
+- **Convert Inventory to Legendary** – Replace inventory, armor, and equipment with legendary versions
 
 ### ⚡ Utility Tools
 
-- **Repair & Rebuild** – Heal buildings and revive ghosts
-- **Recharge Energy** – Fully restore energy buffers of valid entities
-- **Ammo to Turrets** – Refill empty turrets with uranium magazines
-- **Remove Pollution** – Instantly clear pollution on surface
+- **Repair & Rebuild** – Heal damaged entities and revive ghosts
+- **Recharge Energy** – Fully restore energy buffers of electric structures
+- **Ammo to Turrets** – Fill empty turrets with uranium magazines
+- **Remove Pollution** – Instantly clear all surface pollution
 
 ### 🏗️ Blueprint & Ghost Tools
 
-- **Build Ghost Blueprints** – Instantly build entity/tile ghosts
-- **Build All Ghosts** – Also includes tiles and landfill
-- **Remove Marked Structures** – Destroy entities marked for deconstruction
+- **Build Ghost Blueprints** – Build entity and tile ghosts (excludes landfill)
+- **Build All Ghosts** – Builds all ghosts, including tiles and landfill
+- **Remove Marked Structures** – Delete all deconstruction-marked entities
 
 ### 📦 Resource & Power Tools
 
-- **Increase Resources** – Set all resources on the map to max amount
+- **Increase Resources** – Set all visible resource entities to max value (2³² - 1)
 
 ### 💎 Legendary Features
 
-- **Convert Constructions to Legendary (150x150)** – Destroys and upgrades local builds into legendary-quality ghosts
-- **Convert Inventory Items to Legendary** – Replaces player's items, equipment, and armor with legendary-quality versions (safe mode)
+- **Convert Constructions to Legendary** – Destroys and rebuilds nearby constructions with legendary quality  
+  → 🧭 **Radius configurable via slider** (up to 150x150)
+
+- **Convert Inventory Items to Legendary** – Replaces all items, weapons, armor, and equipment with legendary-quality versions
 
 ### 🔓 Unlocks
 
-- **Unlock All Recipes** – Enable all recipes for your force
-- **Unlock All Technologies** – Complete all tech instantly
-- **Unlock Achievements** – Unlock select in-game achievements
+- **Unlock All Recipes** – Enable every recipe for your force
+- **Unlock All Technologies** – Instantly complete all technologies
+- **Unlock Achievements** – Unlock key in-game and Space Age achievements
 
 ### 🌍 Map Tools
 
-- **Reveal Map (150x150)** – Chart surrounding area for your force
-- **Hide Map** – Unchart all discovered areas
-- **Remove Cliffs (50x50)** – Destroy all nearby cliffs
-- **Remove Nests (50x50)** – Destroy enemy entities around player
+- **Reveal Map** – Reveal terrain around the player  
+  → 🧭 **Radius adjustable via slider** (up to 150x150)
+
+- **Hide Map** – Unchart all explored areas
+- **Remove Cliffs** – Destroy cliffs around player  
+  → 🧭 **Radius configurable via slider** (up to 50x50)
+
+- **Remove Nests** – Wipe enemy spawners and worms  
+  → 🧭 **Radius configurable via slider** (up to 50x50)
+
+> 🧩 **Radius-based tools** come with in-GUI sliders to dynamically define area of effect
 
 ### 🖥️ Lua Console
 
-- **Open Console** – Execute Lua code directly in a GUI textbox  
-  Includes input memory and error handling  
-  Access restricted to host/admins only
+- **Open Lua Console** – Execute Lua code directly in a GUI textbox  
+  Includes multiline input, execution memory, and error feedback
+  > Access restricted to **admins or single-player** for safety
 
 ### 🔒 Coming Soon
 
-- Reserved space for future buttons/features 🚧
+- Reserved space for future tools and features 🚧
 
 ---
 
@@ -83,7 +93,7 @@
 | Execute Console | Via GUI only |
 
 > You can rebind the shortcut in **Settings → Controls → Mods**  
-> Localized names and descriptions included ✅
+> Fully localized controls included ✅
 
 ---
 
@@ -100,12 +110,12 @@ Install directly via the official portal:
 2. Download the latest `.zip` file
 3. Move the `.zip` to your Factorio `mods` folder — no need to extract!
 
-> Tip: You can also rename the `.zip` to match the format `factorio-admin-command-center_1.0.2.zip` if needed.
+> Tip: Rename the `.zip` to match the format `factorio-admin-command-center_2.0.0.zip` if needed
 
 ### 🛠️ Manual Installation (Advanced)
 
 1. Clone or download this repository as a `.zip`
-2. Extract it and rename the folder to `factorio-admin-command-center`
+2. Extract and rename the folder to `factorio-admin-command-center`
 3. Move the folder to your mods directory:
 
    - **Windows:** `%APPDATA%\Factorio\mods`
@@ -133,9 +143,9 @@ Install directly via the official portal:
 
 ## 🏆 Using Mods Without Disabling Achievements
 
-By default, Factorio disables achievements when mods are active — but you can **re-enable achievements** using external tools designed for this.
+Factorio disables achievements when mods are enabled — but you can **re-enable them** with external tools:
 
-> ⚠️ Use at your own risk. These tools patch the game to restore achievement functionality while mods are active.
+> ⚠️ Use at your own risk — these patch the game binary
 
 ### 🖥️ Windows
 
@@ -150,7 +160,7 @@ By default, Factorio disables achievements when mods are active — but you can 
 ### 🍎 macOS
 
 🚫 Not yet available.  
-If you know a working tool, feel free to [open an issue](https://github.com/loadsec/factorio-admin-command-center/issues) or contribute one!
+Know a working tool? [Open an issue](https://github.com/loadsec/factorio-admin-command-center/issues)!
 
 ---
 
@@ -163,7 +173,7 @@ Pull requests are welcome!
 3. Make your changes
 4. Commit: `git commit -m "feat: add feature"`
 5. Push: `git push origin feature/my-feature`
-6. Open a PR and describe what you’ve done! 💬
+6. Open a PR and describe your update 💬
 
 You can also help by:
 
@@ -191,7 +201,7 @@ This project is licensed under the [MIT License](LICENSE)
 If you found this mod helpful or fun:
 
 - ⭐ Star the repo on GitHub
-- 💬 Share with fellow admins
+- 💬 Share it with fellow admins
 - 🧠 Suggest new features or improvements!
 
 ---
