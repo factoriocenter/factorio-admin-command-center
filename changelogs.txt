@@ -1,0 +1,35 @@
+---------------------------------------------------------------------------------------------------
+Version: 2.0.0
+Date: 2025-04-19
+  Features:
+    - Full modular rewrite of the mod architecture for scalability and maintainability.
+    - New admin GUI with a clean tabbed layout and contextual sliders.
+    - Toggle Map Editor: merged enter/exit into a single toggle for simplicity.
+    - Built-in Lua Console with multiline input and command memory.
+    - New functionality to convert all constructions to legendary quality.
+    - Added shortcut (CTRL + .) to open the Admin Command Center.
+    - All features now support localized permissions (admin-only in multiplayer).
+    - English and Brazilian Portuguese localization support.
+  Changes:
+    - Redesigned GUI with better spacing, padding, and native button styles.
+    - Tooltip and confirmation behavior aligned with vanilla UX.
+    - Console now supports safe execution and better error handling.
+  Bugfixes:
+    - Fixed visual inconsistencies in button spacing and label alignment.
+    - Resolved entity ghost revival behavior not including landfill correctly.
+---------------------------------------------------------------------------------------------------
+Version: 1.0.2
+Date: 2025-04-12
+  Features:
+    - New Feature: Convert inventory items, armor and equipment to legendary quality.
+---------------------------------------------------------------------------------------------------
+Version: 1.0.1
+Date: 2025-04-12
+  Features:
+    - Convert constructions to legendary using ghost + upgrade planner.
+    - Build Ghosts: Revive ghost entities, tiles, and landfills.
+---------------------------------------------------------------------------------------------------
+Version: 1.0.0
+Date: 2025-04-11
+  Features:
+    - Initial release with Admin GUI interface and feature framework.
