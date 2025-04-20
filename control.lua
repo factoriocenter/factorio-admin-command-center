@@ -24,3 +24,14 @@ end
 function is_allowed(player)
   return not game.is_multiplayer() or player.admin
 end
+
+-- Reference to main GUI module for toggling via custom input
+local main_gui = require("scripts/gui/main_gui")
+
+-- Register custom-input event (CTRL + .) to toggle the admin GUI
+script.on_event("facc_toggle_gui", function(event)
+  local player = game.get_player(event.player_index)
+  if player then
+    main_gui.toggle_main_gui(player)
+  end
+end)
