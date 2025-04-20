@@ -1,47 +1,52 @@
 ---------------------------------------------------------------------------------------------------
+Version: 2.0.3
+Date: 2025-04-20
+  Bugfixes:
+    - Fixed an issue causing the changelog to not display correctly inside the in-game Mods menu and on the Mod Portal.
+---------------------------------------------------------------------------------------------------
 Version: 2.0.2
 Date: 2025-04-20
   Features:
-    - Update new thumbnail
-    - Fixed changelog bug
----------------------------------------------------------------------------------------------------
+    - Updated the mod thumbnail for improved visibility.
+  Bugfixes:
+    - Fixed a formatting issue in the changelog that caused it to render incorrectly on the Mod Portal.
 ---------------------------------------------------------------------------------------------------
 Version: 2.0.1
 Date: 2025-04-20
-  Features:
-    - Fixed a bug that did not allow opening FACC using Ctrl + Period
+  Bugfixes:
+    - Fixed an issue preventing the Admin Command Center from opening using the CTRL + Period shortcut.
 ---------------------------------------------------------------------------------------------------
 Version: 2.0.0
 Date: 2025-04-19
   Features:
-    - Full modular rewrite of the mod architecture for scalability and maintainability.
-    - New admin GUI with a clean tabbed layout and contextual sliders.
+    - Completely modular rewrite of the mod for better scalability and maintainability.
+    - New Admin GUI with tabbed interface and configurable sliders.
+    - Built-in Lua Console with multiline support and execution memory.
+    - Added new tool: convert constructions to legendary-quality ghosts using upgrade planner logic.
     - Toggle Map Editor: merged enter/exit into a single toggle for simplicity.
-    - Built-in Lua Console with multiline input and command memory.
-    - New functionality to convert all constructions to legendary quality.
-    - Added shortcut (CTRL + .) to open the Admin Command Center.
-    - All features now support localized permissions (admin-only in multiplayer).
-    - English and Brazilian Portuguese localization support.
+    - Introduced keyboard shortcut (CTRL + .) for quick access to the GUI.
+    - Support for both English and Brazilian Portuguese translations.
   Changes:
-    - Redesigned GUI with better spacing, padding, and native button styles.
-    - Tooltip and confirmation behavior aligned with vanilla UX.
-    - Console now supports safe execution and better error handling.
+    - Reorganized GUI layout with improved padding, alignment, and vanilla-style buttons.
+    - All features are now context-aware: only available to admins in multiplayer.
+    - Improved tooltip behavior and action confirmations.
+    - Console now uses safer Lua execution with proper error reporting.
   Bugfixes:
-    - Fixed visual inconsistencies in button spacing and label alignment.
-    - Resolved entity ghost revival behavior not including landfill correctly.
+    - Fixed spacing and alignment inconsistencies in the GUI layout.
+    - Corrected ghost revival logic to properly include tile ghosts and landfill.
 ---------------------------------------------------------------------------------------------------
 Version: 1.0.2
 Date: 2025-04-12
   Features:
-    - New Feature: Convert inventory items, armor and equipment to legendary quality.
+    - Added ability to convert all inventory items, armor, and equipment to legendary quality.
 ---------------------------------------------------------------------------------------------------
 Version: 1.0.1
 Date: 2025-04-12
   Features:
-    - Convert constructions to legendary using ghost + upgrade planner.
-    - Build Ghosts: Revive ghost entities, tiles, and landfills.
+    - Added conversion of constructions to legendary ghosts using upgrade planner.
+    - Added ghost builder that revives entities, tiles, and landfills.
 ---------------------------------------------------------------------------------------------------
 Version: 1.0.0
 Date: 2025-04-11
-  Features:
-    - Initial release with Admin GUI interface and feature framework.
+  Major Features:
+    - Initial release with Admin GUI interface, blueprint revival tools, pollution removal, map reveals, and tech unlocks.
