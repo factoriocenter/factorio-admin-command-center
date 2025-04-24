@@ -108,13 +108,22 @@ script.on_event(defines.events.on_gui_click, function(event)
   end
 end)
 
--- Optional: update textfield when slider is moved
+-- Safe update of textfield when a slider is moved
 script.on_event(defines.events.on_gui_value_changed, function(event)
   local element = event.element
-  if not (element and element.valid and element.type == "slider") then return end
+  if not (element and element.valid and element.type == "slider") then
+    return
+  end
 
   local player = game.get_player(event.player_index)
-  local value = math.floor(element.slider_value)
+  if not player then return end
+
+  local value_ok, value = pcall(function()
+    return math.floor(element.slider_value)
+  end)
+
+  if not value_ok then return end
+
   local field = element.parent[element.name .. "_value"]
   if field and field.valid then
     field.text = tostring(value)
