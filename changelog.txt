@@ -1,4 +1,11 @@
 ---------------------------------------------------------------------------------------------------
+Version: 2.1.1
+Date: 2025-04-29
+  Improvements:
+    - “Convert Constructions to Legendary” now automatically unlocks Construction Robotics if it isn’t researched, runs the conversion, and then restores the player’s original tech state.
+  Bugfixes:
+    - Fixed a crash in “Upgrade Inventory Blueprints to Legendary” when no valid main inventory is available (e.g. in editor mode).
+---------------------------------------------------------------------------------------------------
 Version: 2.1.0
 Date: 2025-04-28
   Features:

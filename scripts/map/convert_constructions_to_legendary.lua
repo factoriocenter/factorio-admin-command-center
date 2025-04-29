@@ -1,6 +1,7 @@
 -- scripts/map/convert_constructions_to_legendary.lua
 -- This module upgrades all eligible constructions in an area around the player
 -- to legendary quality using a temporary upgrade planner and ghost revival.
+-- Enhanced: temporarily research construction robotics if not researched.
 
 local M = {}
 
@@ -17,6 +18,13 @@ function M.run(player, radius)
     {position.x - radius, position.y - radius},
     {position.x + radius, position.y + radius}
   }
+
+  -- Ensure construction robotics technology is available for ghost placement
+  local tech = force.technologies["construction-robotics"]
+  local had_tech = tech and tech.researched
+  if tech and not had_tech then
+    tech.researched = true
+  end
 
   -- Step 1: Destroy valid entities to leave ghosts (with correct rotation)
   for _, entity in pairs(surface.find_entities_filtered{area = area, force = force}) do
@@ -69,6 +77,11 @@ function M.run(player, radius)
     if ghost.valid then
       ghost.revive()
     end
+  end
+
+  -- Revert construction robotics technology if it was not researched before
+  if tech and not had_tech then
+    tech.researched = false
   end
 
   player.print({"facc.convert-to-legendary-msg"})
