@@ -1,6 +1,6 @@
 -- scripts/blueprint/build_all_ghosts.lua
--- This module revives all ghost entities, tiles, and also handles landfill placement.
--- Intended for fully applying blueprint ghost layers in the player's vicinity.
+-- This module revives all ghost entities, tile ghosts (including landfill).
+-- Intended for fully applying blueprint ghost layers.
 
 local M = {}
 
@@ -21,14 +21,19 @@ function M.run(player)
   end
 
   -- Revive tile ghosts (including landfill)
+  local tiles_to_set = {}
   for _, tile in pairs(surface.find_entities_filtered{type = "tile-ghost"}) do
     if tile.valid then
       if tile.ghost_name == "landfill" then
-        tile.revive()
+        tile.revive() -- landfill treated like normal
       else
-        surface.set_tiles{{name = tile.ghost_name, position = tile.position}}
+        table.insert(tiles_to_set, {name = tile.ghost_name, position = tile.position})
       end
     end
+  end
+
+  if #tiles_to_set > 0 then
+    surface.set_tiles(tiles_to_set)
   end
 
   player.print({"facc.build-all-ghosts-msg"})

@@ -77,8 +77,8 @@ local TABS = {
   blueprint = {
     label = {"facc.tab-blueprint"},
     elements = {
-      {name = "facc_build_blueprints", caption = {"facc.build-blueprints"}},
-      {name = "facc_build_all_ghosts", caption = {"facc.build-all-ghosts"}}
+      {name = "facc_build_all_ghosts", caption = {"facc.build-all-ghosts"}},
+      {name = "facc_upgrade_blueprints", caption = {"facc.upgrade-blueprints"}},
     }
   },
   map = {

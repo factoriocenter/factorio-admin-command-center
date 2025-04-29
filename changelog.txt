@@ -1,4 +1,18 @@
 ---------------------------------------------------------------------------------------------------
+Version: 2.1.0
+Date: 2025-04-28
+  Features:
+    - Added new tool: Upgrade all inventory blueprints and blueprint books to legendary quality.
+    - Unified ghost building tools: now a single "Build Ghosts" command revives all entity ghosts, tile ghosts, and landfill without needing separate options.
+
+  Changes:
+    - Removed redundant "Build Ghost Blueprints" button.
+    - Simplified the GUI by merging ghost construction actions into one streamlined command.
+    - Improved player feedback: if no blueprints are found when upgrading, a clear warning message is shown.
+
+  Bugfixes:
+    - Minor localization corrections and cleanup for internal consistency.
+---------------------------------------------------------------------------------------------------
 Version: 2.0.4
 Date: 2025-04-24
   Bugfixes:
