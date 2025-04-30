@@ -78,6 +78,7 @@ foreach ($file in $allFiles) {
 Add-Content -Path $outputFile -Value '## 📝 Processing Summary'
 Add-Content -Path $outputFile -Value ''
 Add-Content -Path $outputFile -Value "- 📁 Directories processed: $($allDirs.Count)"
+Add-Content -Path $outputFile -Value "- 📄 Files processed: $($allFiles.Count)"
 Add-Content -Path $outputFile -Value ''
 
 # List of Directories with root folder prefix
@@ -87,9 +88,6 @@ foreach ($d in $allDirs) {
     $relative = $d.FullName.Substring($projectRoot.Length + 1)
     Add-Content -Path $outputFile -Value "- $rootFolderName\$relative"
 }
-Add-Content -Path $outputFile -Value ''
-
-Add-Content -Path $outputFile -Value "- 📄 Files processed: $($allFiles.Count)"
 Add-Content -Path $outputFile -Value ''
 
 # List of Files with root folder prefix
