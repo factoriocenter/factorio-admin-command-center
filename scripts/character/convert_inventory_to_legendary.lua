@@ -1,8 +1,13 @@
 -- scripts/character/convert_inventory_to_legendary.lua
--- This module converts all items in the player's inventory, weapons, ammo,
--- and armor (including equipment) into their legendary quality versions.
+-- Converts all items in the player's inventory, weapons, ammo, armor, and equipment to legendary quality
+-- Ignores blueprints, blueprint books, and both vanilla planners (upgrade and deconstruction)
 
 local M = {}
+
+-- Permission check: allow in singleplayer or if admin in multiplayer
+local function is_allowed(player)
+  return player and (not game.is_multiplayer() or player.admin)
+end
 
 function M.run(player)
   if not is_allowed(player) then
@@ -10,17 +15,16 @@ function M.run(player)
     return
   end
 
-  -- Temporarily increase inventory capacity to prevent overflow
+  -- Temporarily increase inventory slots to prevent overflow
   local original_bonus = player.character_inventory_slots_bonus or 0
   if player.character then
     player.character_inventory_slots_bonus = original_bonus + 1000
   end
 
-  -- Helper to insert into inventory or nearby chest
+  -- Safely insert item into inventory or store in a chest
   local function safe_insert_or_store(item)
     if player.can_insert(item) then
       player.insert(item)
-      return true
     else
       local chest = player.surface.find_entity("steel-chest", player.position)
       if not chest then
@@ -31,31 +35,38 @@ function M.run(player)
         }
       end
       chest.insert(item)
-      return false
     end
   end
 
-  -- Convert an inventory slot to legendary
+  -- Convert items in given inventory, skipping blueprints and planners
   local function convert_inventory(inv)
     for i = 1, #inv do
       local stack = inv[i]
       if stack.valid_for_read and stack.quality ~= "legendary" and stack.count > 0 then
-        local name = stack.name
-        local count = stack.count
-        local removed = inv.remove{name = name, count = count}
-        if removed > 0 then
-          local success = pcall(function()
-            player.insert{name = name, count = removed, quality = "legendary"}
-          end)
-          if not success then
-            safe_insert_or_store({name = name, count = removed})
+        -- Skip blueprint, blueprint book, upgrade planner, and deconstruction planner
+        if stack.is_blueprint or stack.is_blueprint_book
+           or stack.name == "upgrade-planner"
+           or stack.name == "deconstruction-planner" then
+          -- do nothing
+        else
+          -- Convert normal item to legendary
+          local name = stack.name
+          local count = stack.count
+          local removed = inv.remove{name = name, count = count}
+          if removed > 0 then
+            local success, _ = pcall(function()
+              player.insert{name = name, count = removed, quality = "legendary"}
+            end)
+            if not success then
+              safe_insert_or_store({name = name, count = removed})
+            end
           end
         end
       end
     end
   end
 
-  -- Convert all relevant inventories
+  -- Apply conversion to main inventories
   convert_inventory(player.get_main_inventory())
   convert_inventory(player.get_inventory(defines.inventory.character_guns))
   convert_inventory(player.get_inventory(defines.inventory.character_ammo))
@@ -67,22 +78,17 @@ function M.run(player)
 
   if armor_stack.valid_for_read and armor_stack.grid then
     for _, eq in pairs(armor_stack.grid.equipment) do
-      table.insert(equipment_buffer, {
-        name = eq.name,
-        size = (eq.shape.width or 1) * (eq.shape.height or 1)
-      })
+      table.insert(equipment_buffer, {name = eq.name, size = (eq.shape.width or 1) * (eq.shape.height or 1)})
     end
     for _, eq in pairs(equipment_buffer) do
-      pcall(function()
-        armor_stack.grid.take{name = eq.name, count = 1}
-      end)
+      pcall(function() armor_stack.grid.take{name = eq.name, count = 1} end)
     end
   end
 
   if armor_stack.valid_for_read and armor_stack.quality ~= "legendary" then
     local name = armor_stack.name
     armor_inv.remove{name = name, count = 1}
-    local success = pcall(function()
+    local success, _ = pcall(function()
       player.insert{name = name, count = 1, quality = "legendary"}
     end)
     if not success then
@@ -90,12 +96,12 @@ function M.run(player)
     end
   end
 
-  -- Restore equipment into new legendary armor
+  -- Insert equipment back into new legendary armor
   local new_armor = armor_inv[1]
   if new_armor.valid_for_read and new_armor.grid then
     table.sort(equipment_buffer, function(a, b) return a.size > b.size end)
     for _, eq in pairs(equipment_buffer) do
-      local success = pcall(function()
+      local success, _ = pcall(function()
         new_armor.grid.put{name = eq.name, quality = "legendary"}
       end)
       if not success then
@@ -104,16 +110,7 @@ function M.run(player)
     end
   end
 
-  -- Final reinsert in case of forced override
-  local final_armor = armor_inv[1]
-  if final_armor.valid_for_read then
-    local armor_name = final_armor.name
-    local armor_quality = final_armor.quality
-    armor_inv.remove{name = armor_name, count = 1}
-    player.insert{name = armor_name, count = 1, quality = armor_quality}
-  end
-
-  -- Restore inventory bonus
+  -- Restore original inventory slot bonus
   if player.character then
     player.character_inventory_slots_bonus = original_bonus
   end

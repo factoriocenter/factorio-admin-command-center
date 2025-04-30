@@ -1,4 +1,14 @@
 ---------------------------------------------------------------------------------------------------
+Version: 2.2.1
+Date: 2025-04-30
+  Bugfixes:
+    - convert_inventory_to_legendary.lua: skip blueprints, blueprint books, upgrade-planner and deconstruction-planner to prevent clearing their contents.
+  Scripting:
+    - Simplified convert_inventory_to_legendary.lua by removing internal blueprint-upgrade routines and keeping functions focused.
+    - Improved inventory overflow handling with temporary slot bonus and fallback chest storage.
+  Changes:
+    - Separated blueprint-upgrade feature into its own module for better maintainability.
+---------------------------------------------------------------------------------------------------
 Version: 2.2.0
 Date: 2025-04-30
   Major Features:
