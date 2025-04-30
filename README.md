@@ -48,8 +48,9 @@
 
 ### 💎 Legendary Features
 
-- **Convert Constructions to Legendary** – Uses a temporary upgrade-planner to convert any built structure (real or ghost) in an area to legendary quality (radius configurable via slider)
+- **Convert Constructions to Legendary** – Uses a temporary upgrade planner to convert any built structure (real or ghost) in an area to legendary quality (radius configurable via slider)
 - **Convert Inventory Items to Legendary** – Replace all carried items, weapons, armor, and equipment with legendary-quality versions
+- **Legendary Upgrader Tool** – Introduced in version 2.2.0, this selection tool allows you to **drag an area** and instantly upgrade all entities and ghosts within it to legendary quality. Inspired by the mod _Quality Upgrade Planner_, this tool streamlines the upgrade process with a single intuitive gesture. It comes with an optional shortcut button and provides feedback when equipped or applied.
 
 ### 🔓 Unlocks
 
