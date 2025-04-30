@@ -37,7 +37,6 @@
 
 ### 🏗️ Blueprint & Ghost Tools
 
-- **Build Ghost Blueprints** – Build entity and tile ghosts (excludes landfill)
 - **Build All Ghosts** – Build all entity and tile ghosts, including landfill
 - **Upgrade Blueprints to Legendary** – Convert all blueprints and blueprint books in inventory to legendary quality
 - **Remove Marked Structures** – Delete all deconstruction-marked entities
