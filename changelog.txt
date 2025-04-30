@@ -1,4 +1,25 @@
 ---------------------------------------------------------------------------------------------------
+Version: 2.2.0
+Date: 2025-04-30
+  Major Features:
+    - Introduced **Legendary Upgrader** selection tool: drag-select an area to convert every built entity and ghost to legendary quality using a temporary upgrade-planner. (Based on the mod Quality upgrade planner by Quezler)
+  Features:
+    - Unified real-entity and ghost conversion into one streamlined workflow.
+    - Chat notifications when the tool is equipped, on error, and upon successful conversion.
+  Optimizations:
+    - Unique prototype mapping: each prototype is registered only once to eliminate redundant `set_mapper` calls.
+  Scripting:
+    - All upgrader logic consolidated into a single `legendary_upgrader.lua` script for easier maintenance and modding.
+  Control:
+    - Added toolbar shortcut (`facc_give_legendary_upgrader`) to instantly equip the Legendary Upgrader (fully remappable).
+  Ease of use:
+    - Automatic cleanup of the temporary inventory after upgrade.
+  Bugfixes:
+    - Prevent crashes when encountering prototypes lacking `filter_slot_count` or `item_prototypes`.
+    - Fixed argument-count errors and bad-argument errors in `set_mapper` calls.
+  Info:
+    - Permission checks ensure only single-player or admin users may run the upgrader.
+---------------------------------------------------------------------------------------------------
 Version: 2.1.1
 Date: 2025-04-29
   Changes:
@@ -11,12 +32,10 @@ Date: 2025-04-28
   Features:
     - Added new tool: Upgrade all inventory blueprints and blueprint books to legendary quality.
     - Unified ghost building tools: now a single "Build Ghosts" command revives all entity ghosts, tile ghosts, and landfill without needing separate options.
-
   Changes:
     - Removed redundant "Build Ghost Blueprints" button.
     - Simplified the GUI by merging ghost construction actions into one streamlined command.
     - Improved player feedback: if no blueprints are found when upgrading, a clear warning message is shown.
-
   Bugfixes:
     - Minor localization corrections and cleanup for internal consistency.
 ---------------------------------------------------------------------------------------------------
@@ -49,7 +68,7 @@ Date: 2025-04-19
     - Completely modular rewrite of the mod for better scalability and maintainability.
     - New Admin GUI with tabbed interface and configurable sliders.
     - Built-in Lua Console with multiline support and execution memory.
-    - Added new tool: convert constructions to legendary-quality ghosts using upgrade planner logic.
+    - Added new tool: convert constructions to legendary-quality ghosts using upgrade-planner logic.
     - Toggle Map Editor: merged enter/exit into a single toggle for simplicity.
     - Introduced keyboard shortcut (CTRL + .) for quick access to the GUI.
     - Support for both English and Brazilian Portuguese translations.
