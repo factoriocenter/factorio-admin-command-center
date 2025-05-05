@@ -1,4 +1,13 @@
 ---------------------------------------------------------------------------------------------------
+Version: 2.2.3
+Date: 2025-05-05
+  Features:
+    - **Legacy button removal**: automatically strip out the old top-left GUI toggle button on startup and after updates.
+  Changes:
+    - **Control script**: added `remove_old_button` function with `script.on_init` and `script.on_configuration_changed` handlers to clean up legacy UI.
+  Bugfixes:
+    - **Duplicate toggle buttons** prevented by removing the old button from existing saves.
+---------------------------------------------------------------------------------------------------
 Version: 2.2.2
 Date: 2025-05-03
   Features:

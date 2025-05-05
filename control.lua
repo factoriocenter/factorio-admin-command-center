@@ -6,13 +6,38 @@ function is_allowed(player)
   return not game.is_multiplayer() or player.admin
 end
 
+--------------------------------------------------------------------------------
+-- Remove old top-left toggle button on init and after mod updates
+--------------------------------------------------------------------------------
+local function remove_old_button()
+  for _, player in pairs(game.players) do
+    local btn = player.gui.top["facc_main_button"]
+    if btn and btn.valid then
+      btn.destroy()
+    end
+  end
+end
+
+-- On first load: strip out the old button from existing saves
+script.on_init(remove_old_button)
+
+-- On mod configuration changed (e.g. update): strip it again
+script.on_configuration_changed(function(event)
+  local changes = event.mod_changes and event.mod_changes["factorio-admin-command-center"]
+  if changes and changes.new_version then
+    remove_old_button()
+  end
+end)
+
+--------------------------------------------------------------------------------
 -- Load all core modules; legendary_upgrader.lua no longer registers its own shortcut handler
+--------------------------------------------------------------------------------
 local modules = {
   "scripts/init",
   "scripts/gui/main_gui",
   "scripts/gui/console_gui",
   "scripts/events/gui_events",
-  "scripts/events/player_events",
+  "scripts/events/player_events",  -- now deprecated but still safe to require
   "scripts/legendary_upgrader"
 }
 for _, path in pairs(modules) do
