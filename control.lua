@@ -11,9 +11,9 @@ end
 --------------------------------------------------------------------------------
 local function remove_old_button()
   for _, player in pairs(game.players) do
-    local btn = player.gui.top["facc_main_button"]
-    if btn and btn.valid then
-      btn.destroy()
+    for _, name in ipairs({ "facc_main_button", "factorio_admin_command_center_button" }) do
+      local btn = player.gui.top[name]
+      if btn and btn.valid then btn.destroy() end
     end
   end
 end
