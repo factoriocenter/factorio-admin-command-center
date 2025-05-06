@@ -1,12 +1,12 @@
 {
   "name": "factorio-admin-command-center",
-  "version": "2.2.4",
+  "version": "2.3.0",
   "title": "Factorio Admin Command Center",
   "author": "louanbastos",
   "contact": "https://github.com/loadsec",
   "homepage": "https://github.com/loadsec/factorio-admin-command-center",
   "repository": "https://github.com/loadsec/factorio-admin-command-center",
   "factorio_version": "2.0",
-  "dependencies": ["base >= 2.0.0"],
+  "dependencies": ["base >= 2.0.0", "quality >= 2.0.0"],
   "description": "A powerful and intuitive GUI-based administration toolkit for Factorio. Includes over 20 categorized tools for editing, blueprinting, map cleanup, tech unlocks, pollution control, and more — all accessible via a sleek tabbed interface with Lua console support."
 }

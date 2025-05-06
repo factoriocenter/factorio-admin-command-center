@@ -1,3 +1,0 @@
--- scripts/events/player_events.lua
--- This module is now deprecated: GUI toggle is handled via keyboard shortcut (Ctrl + .) and toolbar shortcut.
--- No top-left button is added anymore.

@@ -1,5 +1,5 @@
 -- control.lua
--- Main entry point for the mod. Handles both GUI toggle and Legendary Upgrader toolbar shortcuts.
+-- Main entry point for the mod. Handles GUI toggle, Legendary Upgrader, and Automations
 
 -- Checks if the player is allowed to use admin features (singleplayer or admin in multiplayer)
 function is_allowed(player)
@@ -30,14 +30,15 @@ script.on_configuration_changed(function(event)
 end)
 
 --------------------------------------------------------------------------------
--- Load all core modules; legendary_upgrader.lua no longer registers its own shortcut handler
+-- Load all core modules in order: init, GUI, Automations, Console, Events, Upgrader
 --------------------------------------------------------------------------------
 local modules = {
   "scripts/init",
   "scripts/gui/main_gui",
+  "scripts/automations/clean_pollution",
+  "scripts/automations/instant_research",
   "scripts/gui/console_gui",
   "scripts/events/gui_events",
-  "scripts/events/player_events",  -- now deprecated but still safe to require
   "scripts/legendary_upgrader"
 }
 for _, path in pairs(modules) do
@@ -50,9 +51,7 @@ local main_gui = require("scripts/gui/main_gui")
 -- Handle Ctrl + . custom input to toggle the admin GUI
 script.on_event("facc_toggle_gui", function(event)
   local player = game.get_player(event.player_index)
-  if player then
-    main_gui.toggle_main_gui(player)
-  end
+  if player then main_gui.toggle_main_gui(player) end
 end)
 
 -- Handle toolbar shortcuts for GUI toggle and Legendary Upgrader
@@ -63,11 +62,9 @@ script.on_event(defines.events.on_lua_shortcut, function(event)
   local name = event.prototype_name
 
   if name == "facc_toggle_gui_shortcut" then
-    -- Toggle the admin GUI
     main_gui.toggle_main_gui(player)
 
   elseif name == "facc_give_legendary_upgrader" then
-    -- Equip the Legendary Upgrader tool if permitted
     if is_allowed(player) then
       player.clear_cursor()
       player.cursor_stack.set_stack({ name = "facc_legendary_upgrader" })

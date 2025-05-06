@@ -1,4 +1,22 @@
 ---------------------------------------------------------------------------------------------------
+Version: 2.3.0
+Date: 2025-05-07
+  Major Features:
+    - **Automation Tab**: added a whole new tab to schedule and run tasks automatically.
+  Features:
+    - **Auto-Clean Pollution**: clear all pollution at whatever interval you set.
+    - **Auto-Instant Research**: finish any ongoing research at whatever interval you set.
+  Scripting:
+    - **Precise timing**: automations now fire exactly every X seconds as defined by your slider.
+  Gui:
+    - **Live slider sync**: number boxes update instantly when you move sliders; switches turn loops on or off.
+  Locale:
+    - **New translation keys**: added entries for the Automation tab, its switches, and sliders in both English and Portuguese.
+  Changes:
+    - **Dependencies updated**: the built-in Quality mod is now required for legendary upgrades.
+  Info:
+    - **Dependency notice**: you must have the Quality mod enabled (it ships with Factorio by default).
+---------------------------------------------------------------------------------------------------
 Version: 2.2.4  
 Date: 2025-05-06  
   Features:
