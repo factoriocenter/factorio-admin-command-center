@@ -1,4 +1,14 @@
 ---------------------------------------------------------------------------------------------------
+Version: 2.2.4  
+Date: 2025-05-06  
+  Features:
+    - **Remembered UI state**: the mod now saves which tab you last had open and all slider positions, then restores them automatically when you reload the game.
+  Changes:
+    - **Reliable save system**: switched to the official storage mechanism for all user-customized settings, improving stability.  
+    - **Load process refined**: adjusted the way settings are loaded to eliminate data-mismatch errors during game startup.
+  Gui:
+    - **Smoother experience**: refined the toggle and auto-restore behavior so the admin window feels more seamless.
+---------------------------------------------------------------------------------------------------
 Version: 2.2.3
 Date: 2025-05-05
   Features:
