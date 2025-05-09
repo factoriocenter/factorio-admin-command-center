@@ -69,7 +69,7 @@ Take control of every aspect of your world with a sleek tabbed interface—no co
 
 - 🔓 **Unlock All Recipes** – Enable every recipe for your force
 - 🧪 **Unlock All Technologies** – Instantly research all techs
-- 🏆 **Unlock Achievements** – Grant every base & Space Age achievement
+- 🏆 **Unlock Achievements** – Grant few base & Space Age achievement
 
 ---
 
