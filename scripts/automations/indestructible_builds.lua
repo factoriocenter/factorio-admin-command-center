@@ -8,11 +8,6 @@
 
 local M = {}
 
--- Permission check: allow in singleplayer or for admins in multiplayer
-local function is_allowed(player)
-    return player and (not game.is_multiplayer() or player.admin)
-end
-
 --- Apply or remove indestructibility on existing entities.
 -- @param player LuaPlayer
 -- @param enabled boolean; true when switch ON (make indestructible), false when switch OFF (make destructible)

@@ -3,10 +3,6 @@
 
 local M = {}
 
-local function is_allowed(player)
-    return not game.is_multiplayer() or player.admin
-end
-
 --- Toggles an eternal day/night cycle.
 -- @param player LuaPlayer
 -- @param enabled boolean; true for always day, false to restore normal cycle

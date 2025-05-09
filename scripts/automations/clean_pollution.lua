@@ -3,13 +3,6 @@
 
 local M = {}
 
---- Permission check: allow in single-player or for admins
--- @param player LuaPlayer invoking the command
--- @return boolean
-local function is_allowed(player)
-  return not game.is_multiplayer() or player.admin
-end
-
 --- Executes pollution cleanup
 -- @param player LuaPlayer
 function M.run(player)

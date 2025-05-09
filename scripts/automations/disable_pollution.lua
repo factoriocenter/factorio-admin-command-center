@@ -3,10 +3,6 @@
 
 local M = {}
 
-local function is_allowed(player)
-    return not game.is_multiplayer() or player.admin
-end
-
 --- Clears all pollution and toggles new pollution generation globally.
 -- @param player LuaPlayer
 -- @param enabled boolean; true to disable pollution, false to enable pollution

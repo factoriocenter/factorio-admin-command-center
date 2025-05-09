@@ -3,11 +3,6 @@
 
 local M = {}
 
--- Permission check: single-player or admin in multiplayer
-local function is_allowed(player)
-  return player and (not game.is_multiplayer() or player.admin)
-end
-
 --- Inserts a fully-equipped legendary mech armor into the first free inventory slot.
 -- @param player LuaPlayer
 function M.run(player)

@@ -8,11 +8,11 @@
 --   * Handle Lua Console execution via custom input (Ctrl + Enter)
 
 --------------------------------------------------------------------------------
--- Permission check: allow admin features only in single-player or if player is admin
+-- Load shared permission checker and expose globally
 --------------------------------------------------------------------------------
-local function is_allowed(player)
-  return not game.is_multiplayer() or player.admin
-end
+local permissions = require("scripts.utils.permissions")
+-- Make `is_allowed(player)` available everywhere
+_G.is_allowed = permissions.is_allowed
 
 --------------------------------------------------------------------------------
 -- Remove old top-left toggle buttons on init and after mod updates
@@ -55,9 +55,8 @@ for _, path in pairs(modules) do
   require(path)
 end
 
--- Reference to the main GUI module for toggling the Admin Command Center
-local main_gui = require("scripts/gui/main_gui")
--- Reference to the console GUI module for executing commands via shortcut
+-- Reference to the main GUI and console modules
+local main_gui    = require("scripts/gui/main_gui")
 local console_gui = require("scripts/gui/console_gui")
 
 --------------------------------------------------------------------------------
@@ -81,11 +80,10 @@ script.on_event(defines.events.on_lua_shortcut, function(event)
 
   local name = event.prototype_name
   if name == "facc_toggle_gui_shortcut" then
-    -- Toggle the main GUI
     main_gui.toggle_main_gui(player)
 
   elseif name == "facc_give_legendary_upgrader" then
-    -- Give Legendary Upgrader if allowed
+    -- Delegate permission check to global is_allowed
     if is_allowed(player) then
       player.clear_cursor()
       player.cursor_stack.set_stack({ name = "facc_legendary_upgrader" })
@@ -99,7 +97,6 @@ end)
 --------------------------------------------------------------------------------
 script.on_event("facc_console_exec_input", function(event)
   local player = game.get_player(event.player_index)
-  -- Only run if the console GUI frame is open
   if player and player.gui.screen.facc_console_frame then
     console_gui.exec_console_command(player)
   end

@@ -1,4 +1,10 @@
 ---------------------------------------------------------------------------------------------------
+Version: 2.4.2  
+Date: 2025-05-09  
+  Bugfixes:
+    - Fixed a glitch in the admin permission checks that could cause the mod to stop working when regular players tried to open the admin menu.
+    - Enhanced access rules so that now only the server owner or designated administrators can view and use the admin tools, preventing accidental use by non-admin players.
+---------------------------------------------------------------------------------------------------
 Version: 2.4.1  
 Date: 2025-05-09  
   Minor Features:

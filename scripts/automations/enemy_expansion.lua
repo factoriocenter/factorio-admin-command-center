@@ -4,11 +4,6 @@
 
 local M = {}
 
--- Permission check: allow in singleplayer or admin in multiplayer
-local function is_allowed(player)
-    return not game.is_multiplayer() or player.admin
-end
-
 --- Toggles biter expansion globally.
 -- @param player LuaPlayer
 -- @param disable boolean; true to disable expansion, false to enable expansion

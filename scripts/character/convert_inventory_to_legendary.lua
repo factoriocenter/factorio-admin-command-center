@@ -4,11 +4,6 @@
 
 local M = {}
 
--- Permission check: allow in singleplayer or if admin in multiplayer
-local function is_allowed(player)
-  return player and (not game.is_multiplayer() or player.admin)
-end
-
 --- Runs the conversion to legendary quality.
 -- Checks for valid player.character before proceeding.
 -- @param player LuaPlayer

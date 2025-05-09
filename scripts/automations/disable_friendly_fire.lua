@@ -3,10 +3,6 @@
 
 local M = {}
 
-local function is_allowed(player)
-    return not game.is_multiplayer() or player.admin
-end
-
 --- Toggles friendly fire for the player's force.
 -- @param player LuaPlayer
 -- @param enabled boolean; true to disable friendly fire, false to enable

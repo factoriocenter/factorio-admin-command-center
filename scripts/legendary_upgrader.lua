@@ -4,11 +4,6 @@
 local TOOL_NAME = "facc_legendary_upgrader"
 local QUALITY   = "legendary"  -- hard-coded legendary quality
 
--- Permission check: allow in singleplayer or admin in multiplayer
-local function is_allowed(player)
-  return player and (not game.is_multiplayer() or player.admin)
-end
-
 -- Main upgrader: triggered when player selects an area with our tool
 script.on_event(defines.events.on_player_selected_area, function(event)
   -- only proceed if this is our Legendary Upgrader

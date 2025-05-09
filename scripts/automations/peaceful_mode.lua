@@ -3,10 +3,6 @@
 
 local M = {}
 
-local function is_allowed(player)
-    return not game.is_multiplayer() or player.admin
-end
-
 --- Toggles peaceful mode on the player's surface.
 -- @param player LuaPlayer
 -- @param enabled boolean; true to enable peaceful mode, false to disable

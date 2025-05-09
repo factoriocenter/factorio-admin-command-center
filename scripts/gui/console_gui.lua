@@ -5,13 +5,6 @@
 local M = {}
 
 --------------------------------------------------------------------------------
--- Permission check: allow only in single-player or for admins in multiplayer
---------------------------------------------------------------------------------
-local function is_allowed(player)
-  return not game.is_multiplayer() or player.admin
-end
-
---------------------------------------------------------------------------------
 -- Opens or closes the Lua Console GUI
 -- @param player LuaPlayer
 --------------------------------------------------------------------------------
