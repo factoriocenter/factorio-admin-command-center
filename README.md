@@ -99,8 +99,6 @@ Install directly via the official portal:
 2. Download the latest `.zip`
 3. Move the `.zip` to your Factorio `mods` folder – no extraction needed!
 
-> Tip: Rename to `factorio-admin-command-center_<version>.zip` if desired
-
 ### 🛠️ Manual Installation
 
 1. Clone or download this repo
