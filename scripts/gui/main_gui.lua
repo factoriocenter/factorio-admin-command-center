@@ -36,13 +36,13 @@ end
 local function add_function_block(parent, elem)
   parent.add{ type="line", direction="horizontal" }
   local flow = parent.add{ type="flow", direction="horizontal" }
-  flow.style.vertical_align          = "center"
+  flow.style.vertical_align           = "center"
   flow.style.horizontally_stretchable = true
-  flow.style.horizontal_spacing      = 6
+  flow.style.horizontal_spacing       = 6
 
   local left = flow.add{ type="flow", direction="vertical" }
   left.style.horizontally_stretchable = true
-  left.style.vertical_spacing        = 4
+  left.style.vertical_spacing         = 4
   left.add{ type="label", caption=elem.caption }
 
   -- Slider if provided
@@ -136,14 +136,26 @@ local TABS = {
         caption = {"facc.auto-instant-research"},
         slider  = { name="slider_auto_instant_research", min=1, max=300, default=1 },
         switch  = true
-      }
+      },
+      {
+        name    = "facc_indestructible_builds",
+        caption = {"facc.indestructible-builds"},
+        switch  = true
+      },
+      { name="facc_cheat_mode",            caption={"facc.cheat-mode"},          switch=true },
+      { name="facc_always_day",            caption={"facc.always-day"},          switch=true },
+      { name="facc_disable_pollution",     caption={"facc.disable-pollution"},   switch=true },
+      { name="facc_disable_friendly_fire", caption={"facc.disable-friendly-fire"},switch=true },
+      { name="facc_peaceful_mode",         caption={"facc.peaceful-mode"},       switch=true },
+      { name="facc_enemy_expansion",       caption={"facc.enemy-expansion"},     switch=true }
     }
   },
   character = {
     label    = {"facc.tab-character"},
     elements = {
-      { name="facc_delete_ownerless", caption={"facc.delete-ownerless"} },
-      { name="facc_convert_inventory", caption={"facc.convert-inventory"} }
+      { name="facc_delete_ownerless",       caption={"facc.delete-ownerless"} },
+      { name="facc_convert_inventory",      caption={"facc.convert-inventory"} },
+      { name="facc_create_legendary_armor", caption={"facc.create-legendary-armor"} }
     }
   },
   blueprint = {

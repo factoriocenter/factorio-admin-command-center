@@ -1,4 +1,22 @@
 ---------------------------------------------------------------------------------------------------
+Version: 2.4.0  
+Date: 2025-05-09  
+  Major Features:
+    - New version with new features and bugfixes.
+  Features:
+    - **Cheat Mode Toggle**: turn on free building and item spawning with a flip.  
+    - **Always-Day Toggle**: keep it daylight forever around you.  
+    - **Disable Pollution Toggle**: clear existing pollution and stop new pollution generation.  
+    - **Disable Friendly-Fire Toggle**: prevent allies from damaging each other.  
+    - **Peaceful-Mode Toggle**: stop biters from attacking unless you provoke them.  
+    - **Disable Enemy Expansion Toggle**: freeze biter nest growth.  
+    - **Legendary Armor Builder**: a single button generates a full mech suit packed with top-tier legendary gear.  
+    - **Indestructible Buildings**: new switch makes all your existing structures unbreakable (and you can flip it back!).  
+  Bugfixes:
+    - **Inventory → Legendary** now shows a friendly “no character” warning instead of crashing if you try it without a player character.  
+  Locale:
+    - English and Portuguese translations added for all new buttons, switches, sliders, and success/failure messages.   
+---------------------------------------------------------------------------------------------------
 Version: 2.3.0
 Date: 2025-05-07
   Major Features:

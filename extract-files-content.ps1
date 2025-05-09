@@ -45,7 +45,7 @@ $languageMap = @{
     '.scala' = $true; '.lua'   = $true; '.yml'  = $true;
     '.yaml'  = $true; '.ini'   = $true; '.toml' = $true;
     '.env'   = $false; '.txt'   = $false; '.bat'  = $true;
-    '.conf'  = $false; '.cfg'   = $false
+    '.conf'  = $false; '.cfg'   = $true
 }
 
 # Files without extensions that should always be included

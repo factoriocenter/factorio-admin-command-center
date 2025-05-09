@@ -9,17 +9,24 @@ local function is_allowed(player)
   return player and (not game.is_multiplayer() or player.admin)
 end
 
+--- Runs the conversion to legendary quality.
+-- Checks for valid player.character before proceeding.
+-- @param player LuaPlayer
 function M.run(player)
   if not is_allowed(player) then
     player.print({"facc.not-allowed"})
     return
   end
 
+  -- Guard: ensure player has a character (avoid "No character" error)
+  if not player.character then
+    player.print("No character present to convert inventory.")
+    return
+  end
+
   -- Temporarily increase inventory slots to prevent overflow
   local original_bonus = player.character_inventory_slots_bonus or 0
-  if player.character then
-    player.character_inventory_slots_bonus = original_bonus + 1000
-  end
+  player.character_inventory_slots_bonus = original_bonus + 1000
 
   -- Safely insert item into inventory or store in a chest
   local function safe_insert_or_store(item)
@@ -54,7 +61,7 @@ function M.run(player)
           local count = stack.count
           local removed = inv.remove{name = name, count = count}
           if removed > 0 then
-            local success, _ = pcall(function()
+            local success = pcall(function()
               player.insert{name = name, count = removed, quality = "legendary"}
             end)
             if not success then
@@ -77,6 +84,7 @@ function M.run(player)
   local equipment_buffer = {}
 
   if armor_stack.valid_for_read and armor_stack.grid then
+    -- Remove and buffer equipment
     for _, eq in pairs(armor_stack.grid.equipment) do
       table.insert(equipment_buffer, {name = eq.name, size = (eq.shape.width or 1) * (eq.shape.height or 1)})
     end
@@ -85,10 +93,11 @@ function M.run(player)
     end
   end
 
+  -- Convert armor itself
   if armor_stack.valid_for_read and armor_stack.quality ~= "legendary" then
     local name = armor_stack.name
     armor_inv.remove{name = name, count = 1}
-    local success, _ = pcall(function()
+    local success = pcall(function()
       player.insert{name = name, count = 1, quality = "legendary"}
     end)
     if not success then
@@ -96,24 +105,22 @@ function M.run(player)
     end
   end
 
-  -- Insert equipment back into new legendary armor
+  -- Re-insert buffered equipment into new legendary armor
   local new_armor = armor_inv[1]
   if new_armor.valid_for_read and new_armor.grid then
     table.sort(equipment_buffer, function(a, b) return a.size > b.size end)
     for _, eq in pairs(equipment_buffer) do
-      local success, _ = pcall(function()
+      local ok = pcall(function()
         new_armor.grid.put{name = eq.name, quality = "legendary"}
       end)
-      if not success then
+      if not ok then
         safe_insert_or_store({name = eq.name, count = 1})
       end
     end
   end
 
   -- Restore original inventory slot bonus
-  if player.character then
-    player.character_inventory_slots_bonus = original_bonus
-  end
+  player.character_inventory_slots_bonus = original_bonus
 
   player.print({"facc.convert-inventory-msg"})
 end
