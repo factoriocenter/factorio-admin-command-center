@@ -1,172 +1,175 @@
 ---------------------------------------------------------------------------------------------------
+Version: 2.4.1  
+Date: 2025-05-09  
+  Minor Features:
+    - Console: Added Ctrl + Enter shortcut to execute the Lua console command when the console GUI is open and the input textbox is NOT focused. 
+---------------------------------------------------------------------------------------------------
 Version: 2.4.0  
 Date: 2025-05-09  
-  Major Features:
-    - New version with new features and bugfixes.
   Features:
-    - **Cheat Mode Toggle**: turn on free building and item spawning with a flip.  
-    - **Always-Day Toggle**: keep it daylight forever around you.  
-    - **Disable Pollution Toggle**: clear existing pollution and stop new pollution generation.  
-    - **Disable Friendly-Fire Toggle**: prevent allies from damaging each other.  
-    - **Peaceful-Mode Toggle**: stop biters from attacking unless you provoke them.  
-    - **Disable Enemy Expansion Toggle**: freeze biter nest growth.  
-    - **Legendary Armor Builder**: a single button generates a full mech suit packed with top-tier legendary gear.  
-    - **Indestructible Buildings**: new switch makes all your existing structures unbreakable (and you can flip it back!).  
+    - Cheat Mode Toggle: turn on free building and item spawning with a flip.
+    - Always-Day Toggle: keep it daylight forever around you.  
+    - Disable Pollution Toggle: clear existing pollution and stop new pollution generation.
+    - Disable Friendly-Fire Toggle: prevent allies from damaging each other.
+    - Peaceful-Mode Toggle: stop biters from attacking unless you provoke them.
+    - Disable Enemy Expansion Toggle: freeze biter nest growth.  
+    - Legendary Armor Builder: a single button generates a full mech suit packed with top-tier legendary gear.
+    - Indestructible Buildings: new switch makes all your existing structures unbreakable (and you can flip it back!).
   Bugfixes:
-    - **Inventory → Legendary** now shows a friendly “no character” warning instead of crashing if you try it without a player character.  
+    - Inventory → Legendary now shows a friendly “no character” warning instead of crashing if you try it without a player character.
   Locale:
-    - English and Portuguese translations added for all new buttons, switches, sliders, and success/failure messages.   
+    - English and Portuguese translations added for all new buttons, switches, sliders, and success/failure messages.
 ---------------------------------------------------------------------------------------------------
 Version: 2.3.0
 Date: 2025-05-07
   Major Features:
-    - **Automation Tab**: added a whole new tab to schedule and run tasks automatically.
+    - Automation Tab: added a whole new tab to schedule and run tasks automatically.
   Features:
-    - **Auto-Clean Pollution**: clear all pollution at whatever interval you set.
-    - **Auto-Instant Research**: finish any ongoing research at whatever interval you set.
+    - Auto-Clean Pollution: clear all pollution at whatever interval you set.
+    - Auto-Instant Research: finish any ongoing research at whatever interval you set.
   Scripting:
-    - **Precise timing**: automations now fire exactly every X seconds as defined by your slider.
+    - Precise timing: automations now fire exactly every X seconds as defined by your slider.
   Gui:
-    - **Live slider sync**: number boxes update instantly when you move sliders; switches turn loops on or off.
+    - Live slider sync: number boxes update instantly when you move sliders; switches turn loops on or off.
   Locale:
-    - **New translation keys**: added entries for the Automation tab, its switches, and sliders in both English and Portuguese.
+    - New translation keys: added entries for the Automation tab, its switches, and sliders in both English and Portuguese.
   Changes:
-    - **Dependencies updated**: the built-in Quality mod is now required for legendary upgrades.
+    - Dependencies updated: the built-in Quality mod is now required for legendary upgrades.
   Info:
-    - **Dependency notice**: you must have the Quality mod enabled (it ships with Factorio by default).
+    - Dependency notice: you must have the Quality mod enabled (it ships with Factorio by default).
 ---------------------------------------------------------------------------------------------------
 Version: 2.2.4  
 Date: 2025-05-06  
   Features:
-    - **Remembered UI state**: the mod now saves which tab you last had open and all slider positions, then restores them automatically when you reload the game.
+    - Remembered UI state: the mod now saves which tab you last had open and all slider positions, then restores them automatically when you reload the game.
   Changes:
-    - **Reliable save system**: switched to the official storage mechanism for all user-customized settings, improving stability.  
-    - **Load process refined**: adjusted the way settings are loaded to eliminate data-mismatch errors during game startup.
+    - Reliable save system: switched to the official storage mechanism for all user-customized settings, improving stability.  
+    - Load process refined: adjusted the way settings are loaded to eliminate data-mismatch errors during game startup.
   Gui:
-    - **Smoother experience**: refined the toggle and auto-restore behavior so the admin window feels more seamless.
+    - Smoother experience: refined the toggle and auto-restore behavior so the admin window feels more seamless.
 ---------------------------------------------------------------------------------------------------
 Version: 2.2.3
 Date: 2025-05-05
   Features:
-    - **Legacy button removal**: automatically strip out the old top-left GUI toggle button on startup and after updates.
+    - Legacy button removal: automatically strip out the old top-left GUI toggle button on startup and after updates.
   Changes:
-    - **Control script**: added `remove_old_button` function with `script.on_init` and `script.on_configuration_changed` handlers to clean up legacy UI.
+    - Control script: added `remove_old_button` function with `script.on_init` and `script.on_configuration_changed` handlers to clean up legacy UI.
   Bugfixes:
-    - **Duplicate toggle buttons** prevented by removing the old button from existing saves.
+    - Duplicate toggle buttons prevented by removing the old button from existing saves.
 ---------------------------------------------------------------------------------------------------
 Version: 2.2.2
 Date: 2025-05-03
   Features:
-    - **Admin GUI toggle**: removed the top-left button in favor of a toolbar shortcut for faster access.
+    - Admin GUI toggle: removed the top-left button in favor of a toolbar shortcut for faster access.
   Changes:
-    - **Shortcut handling** centralized in the main control script; GUI-toggle and Legendary Upgrader shortcuts now share one handler.
-    - **Player Events** module deprecated — no more auto-injected top-left button.
+    - Shortcut handling centralized in the main control script; GUI-toggle and Legendary Upgrader shortcuts now share one handler.
+    - Player Events module deprecated — no more auto-injected top-left button.
   Bugfixes:
-    - **Repair & Rebuild option**: fixed crash when `prototype.max_health` was missing; now regenerates health on all damaged structures.
+    - Repair & Rebuild option: fixed crash when `prototype.max_health` was missing; now regenerates health on all damaged structures.
 ---------------------------------------------------------------------------------------------------
 Version: 2.2.1
 Date: 2025-04-30
   Bugfixes:
-    - **Convert Inventory to Legendary option**: now skips blueprints, blueprint books, upgrade-planner and deconstruction-planner to preserve their contents.
+    - Convert Inventory to Legendary option: now skips blueprints, blueprint books, upgrade-planner and deconstruction-planner to preserve their contents.
   Scripting:
-    - **Convert Inventory** logic simplified — removed internal blueprint-upgrade routines for clearer focus.
-    - **Inventory overflow handling** improved with a temporary slot bonus and fallback chest storage.
+    - Convert Inventory logic simplified — removed internal blueprint-upgrade routines for clearer focus.
+    - Inventory overflow handling improved with a temporary slot bonus and fallback chest storage.
   Changes:
-    - **Blueprint Upgrade feature** extracted into its own module for better maintainability.
+    - Blueprint Upgrade feature extracted into its own module for better maintainability.
 ---------------------------------------------------------------------------------------------------
 Version: 2.2.0
 Date: 2025-04-30
   Major Features:
-    - **Legendary Upgrader tool**: drag-select an area to convert every built entity and ghost to legendary quality using a temporary upgrade-planner (inspired by Quezler’s Quality Upgrade Planner).
+    - Legendary Upgrader tool: drag-select an area to convert every built entity and ghost to legendary quality using a temporary upgrade-planner (inspired by Quezler’s Quality Upgrade Planner).
   Features:
-    - **Unified conversion**: real entities and ghosts handled in one streamlined workflow.
-    - **Chat notifications** on equip, errors, and success.
+    - Unified conversion: real entities and ghosts handled in one streamlined workflow.
+    - Chat notifications on equip, errors, and success.
   Optimizations:
-    - **Prototype mapping** improved — each prototype registered only once to eliminate redundant calls.
+    - Prototype mapping improved — each prototype registered only once to eliminate redundant calls.
   Scripting:
-    - **Upgrader logic** consolidated into a single script for easier maintenance.
+    - Upgrader logic consolidated into a single script for easier maintenance.
   Control:
-    - **Equip shortcut** added: toolbar button to instantly give the Legendary Upgrader (fully remappable).
+    - Equip shortcut added: toolbar button to instantly give the Legendary Upgrader (fully remappable).
   Ease of use:
-    - **Temporary inventory** automatically cleaned up after each upgrade.
+    - Temporary inventory automatically cleaned up after each upgrade.
   Bugfixes:
-    - **Mapper errors** prevented for prototypes lacking certain fields.
-    - **set_mapper calls** corrected to avoid argument-count and bad-argument errors.
+    - Mapper errors prevented for prototypes lacking certain fields.
+    - set_mapper calls corrected to avoid argument-count and bad-argument errors.
   Info:
-    - **Permission checks** ensure only single-player or admin users may run the upgrader.
+    - Permission checks ensure only single-player or admin users may run the upgrader.
 ---------------------------------------------------------------------------------------------------
 Version: 2.1.1
 Date: 2025-04-29
   Changes:
-    - **Convert Constructions to Legendary** now temporarily researches Construction Robotics if needed, runs conversion, then restores original tech state.
+    - Convert Constructions to Legendary now temporarily researches Construction Robotics if needed, runs conversion, then restores original tech state.
   Bugfixes:
-    - **Upgrade Inventory Blueprints to Legendary**: fixed crash when no main inventory is present (e.g., in editor mode).
+    - Upgrade Inventory Blueprints to Legendary: fixed crash when no main inventory is present (e.g., in editor mode).
 ---------------------------------------------------------------------------------------------------
 Version: 2.1.0
 Date: 2025-04-28
   Features:
-    - **Blueprint Upgrade tool**: upgrade all inventory blueprints and blueprint books to legendary quality.
-    - **Build Ghosts command** unified: revives entity ghosts, tile ghosts, and landfill with one action.
+    - Blueprint Upgrade tool: upgrade all inventory blueprints and blueprint books to legendary quality.
+    - Build Ghosts command unified: revives entity ghosts, tile ghosts, and landfill with one action.
   Changes:
-    - **Removed Build Ghost Blueprints button** to eliminate redundancy.
-    - **GUI streamlined** by merging ghost-construction actions.
-    - **Feedback improved**: clear warning when no blueprints are found.
+    - Removed Build Ghost Blueprints button to eliminate redundancy.
+    - GUI streamlined by merging ghost-construction actions.
+    - Feedback improved: clear warning when no blueprints are found.
   Bugfixes:
-    - **Localization**: minor translation corrections and internal cleanup.
+    - Localization: minor translation corrections and internal cleanup.
 ---------------------------------------------------------------------------------------------------
 Version: 2.0.4
 Date: 2025-04-24
   Bugfixes:
-    - **Slider handling**: prevented crash when sliders trigger `on_gui_value_changed` after being destroyed or replaced.
+    - Slider handling: prevented crash when sliders trigger `on_gui_value_changed` after being destroyed or replaced.
 ---------------------------------------------------------------------------------------------------
 Version: 2.0.3
 Date: 2025-04-20
   Bugfixes:
-    - **Changelog display**: fixed rendering issue in the in-game Mods menu and on the Mod Portal.
+    - Changelog display: fixed rendering issue in the in-game Mods menu and on the Mod Portal.
 ---------------------------------------------------------------------------------------------------
 Version: 2.0.2
 Date: 2025-04-20
   Features:
-    - **Mod thumbnail** updated for better visibility.
+    - Mod thumbnail updated for better visibility.
   Bugfixes:
-    - **Changelog formatting**: corrected issue causing incorrect rendering on the Mod Portal.
+    - Changelog formatting: corrected issue causing incorrect rendering on the Mod Portal.
 ---------------------------------------------------------------------------------------------------
 Version: 2.0.1
 Date: 2025-04-20
   Bugfixes:
-    - **GUI shortcut**: fixed CTRL + Period not opening the Admin Command Center.
+    - GUI shortcut: fixed CTRL + Period not opening the Admin Command Center.
 ---------------------------------------------------------------------------------------------------
 Version: 2.0.0
 Date: 2025-04-19
   Features:
-    - **Modular architecture**: complete rewrite for scalability and maintainability.
-    - **Admin GUI**: new tabbed interface with configurable sliders.
-    - **Lua Console**: built-in multiline console with execution memory.
-    - **Convert Constructions to Legendary**: ghost and upgrade structures via upgrade-planner logic.
-    - **Map Editor toggle**: enter/exit editor mode with one button.
-    - **GUI shortcut**: CTRL + . opens the Admin GUI.
-    - **Localization**: supports English and Brazilian Portuguese.
+    - Modular architecture: complete rewrite for scalability and maintainability.
+    - Admin GUI: new tabbed interface with configurable sliders.
+    - Lua Console: built-in multiline console with execution memory.
+    - Convert Constructions to Legendary: ghost and upgrade structures via upgrade-planner logic.
+    - Map Editor toggle: enter/exit editor mode with one button.
+    - GUI shortcut: CTRL + . opens the Admin GUI.
+    - Localization: supports English and Brazilian Portuguese.
   Changes:
-    - **GUI layout** reorganized with improved padding, alignment, and vanilla-style buttons.
-    - **Context awareness**: features only available to admins in multiplayer.
-    - **Tooltips & confirmations** improved.
-    - **Console execution** safer with proper error reporting.
+    - GUI layout reorganized with improved padding, alignment, and vanilla-style buttons.
+    - Context awareness: features only available to admins in multiplayer.
+    - Tooltips & confirmations improved.
+    - Console execution safer with proper error reporting.
   Bugfixes:
-    - **Layout**: fixed spacing and alignment inconsistencies.
-    - **Ghost revival**: corrected logic to include tile ghosts and landfill.
+    - Layout: fixed spacing and alignment inconsistencies.
+    - Ghost revival: corrected logic to include tile ghosts and landfill.
 ---------------------------------------------------------------------------------------------------
 Version: 1.0.2
 Date: 2025-04-12
   Features:
-    - **Convert Inventory to Legendary**: upgrade all carried items, armor, and equipment to legendary quality.
+    - Convert Inventory to Legendary: upgrade all carried items, armor, and equipment to legendary quality.
 ---------------------------------------------------------------------------------------------------
 Version: 1.0.1
 Date: 2025-04-12
   Features:
-    - **Convert Constructions to Ghosts**: use the upgrade-planner to ghost constructions.
-    - **Build Ghosts**: revive entities, tile ghosts, and landfill.
+    - Convert Constructions to Ghosts: use the upgrade-planner to ghost constructions.
+    - Build Ghosts: revive entities, tile ghosts, and landfill.
 ---------------------------------------------------------------------------------------------------
 Version: 1.0.0
 Date: 2025-04-11
   Major Features:
-    - **Initial release**: Admin GUI, blueprint revival tools, pollution removal, map reveal, and technology unlocks.
+    - Initial release: Admin GUI, blueprint revival tools, pollution removal, map reveal, and technology unlocks.
