@@ -35,23 +35,50 @@ if (Test-Path $outputFile) {
 
 # Mapping of file extensions to decide inclusion
 $languageMap = @{
-    '.php'   = $true; '.js'    = $true;  '.ts'   = $true;
-    '.jsx'   = $true; '.tsx'   = $true; '.html' = $true;
-    '.css'   = $true; '.json'  = $true; '.xml'  = $true;
-    '.md'    = $true; '.py'    = $true; '.sh'   = $true;
-    '.c'     = $true; '.cpp'   = $true; '.cs'   = $true;
-    '.java'  = $true; '.go'    = $true; '.rb'   = $true;
-    '.rs'    = $true; '.swift' = $true; '.kt'   = $true;
-    '.scala' = $true; '.lua'   = $true; '.yml'  = $true;
-    '.yaml'  = $true; '.ini'   = $true; '.toml' = $true;
-    '.env'   = $false; '.txt'   = $false; '.bat'  = $true;
-    '.conf'  = $false; '.cfg'   = $true
+    '.php'   = $true; 
+    '.js'    = $true;  
+    '.ts'   = $true;
+    '.jsx'   = $true; 
+    '.tsx'   = $true; 
+    '.html' = $true;
+    '.css'   = $true; 
+    '.json'  = $true; 
+    '.xml'  = $true;
+    '.md'    = $true; 
+    '.py'    = $true; 
+    '.sh'   = $true;
+    '.c'     = $true; 
+    '.cpp'   = $true; 
+    '.cs'   = $true;
+    '.java'  = $true; 
+    '.go'    = $true; 
+    '.rb'   = $true;
+    '.rs'    = $true; 
+    '.swift' = $true; 
+    '.kt'   = $true;
+    '.scala' = $true; 
+    '.lua'   = $true; 
+    '.yml'  = $true;
+    '.yaml'  = $true; 
+    '.ini'   = $true; 
+    '.toml' = $true;
+    '.env'   = $false; 
+    '.txt'  = $false; 
+    '.bat'  = $true;
+    '.conf'  = $false; 
+    '.cfg'  = $true;  
+    '.gitignore' = $false;
+    '.gitattributes' = $false;
 }
 
 # Files without extensions that should always be included
+# $alwaysAllow = @(
+#     'Dockerfile', 'Makefile', '.gitignore', '.prettierrc',
+#     '.editorconfig', '.gitattributes', '.eslintrc', '.babelrc'
+# )
 $alwaysAllow = @(
-    'Dockerfile', 'Makefile', '.gitignore', '.prettierrc',
-    '.editorconfig', '.gitattributes', '.eslintrc', '.babelrc'
+    'Dockerfile', 'Makefile', '.prettierrc',
+    '.editorconfig', '.eslintrc', '.babelrc'
 )
 
 # Process each file and append its content in fenced code blocks

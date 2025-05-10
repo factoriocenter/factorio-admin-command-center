@@ -3,7 +3,7 @@
 **A full-featured GUI-based admin toolkit for Factorio 2.0+.**  
 Take control of every aspect of your world with a sleek tabbed interface—no console typing required. Ideal for both **single-player** and **multiplayer admins**.
 
-> 🎮 Requires **Factorio 2.0+** and **Quality 2.0+** | 👨‍💻 Created by [louanbastos](https://github.com/loadsec)  
+> 🎮 Requires **Factorio 2.0+** and **Quality 2.0+** | 👨‍💻 Created by [louanbastos](https://github.com/louanfontenele)  
 > 📦 Available on [Factorio Mod Portal](https://mods.factorio.com/mod/factorio-admin-command-center)
 
 ---
@@ -95,7 +95,7 @@ Install directly via the official portal:
 
 ### 🔻 From GitHub Releases
 
-1. Go to the [Releases page](https://github.com/loadsec/factorio-admin-command-center/releases)
+1. Go to the [Releases page](https://github.com/factoriocenter/factorio-admin-command-center/releases)
 2. Download the latest `.zip`
 3. Move the `.zip` to your Factorio `mods` folder – no extraction needed!
 

@@ -1,4 +1,12 @@
 ---------------------------------------------------------------------------------------------------
+Version: 2.4.3  
+Date: 2025-05-10  
+  Minor Features:
+    - Legendary Armor Builder now only shows when both the Quality mod and Space Age DLC are active.
+    - All other legendary tools (Inventory converter, Blueprint upgrader, Upgrader tool, Construction converter) only appear when the Quality mod is active.
+  Changes:
+    - Quality mod and Space Age DLC are now optional dependencies—no longer required to install or run the core admin tools.
+---------------------------------------------------------------------------------------------------
 Version: 2.4.2  
 Date: 2025-05-09  
   Bugfixes:
