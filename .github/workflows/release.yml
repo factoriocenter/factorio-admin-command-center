@@ -44,4 +44,4 @@ jobs:
           tag_name: ${{ steps.version.outputs.value }}
           files: factorio-admin-command-center_${{ steps.version.outputs.value }}.zip
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GH_PAT }}
