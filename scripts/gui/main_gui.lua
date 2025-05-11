@@ -30,8 +30,26 @@ local function save_all_sliders(element)
   end
 end
 
+-- Determines if a given feature control should be enabled
+local function is_feature_enabled(name)
+  if name == "facc_create_legendary_armor" then
+    -- needs both Quality and Space Age
+    return quality_enabled and space_age_enabled
+  end
+  if name == "facc_convert_inventory"
+      or name == "facc_upgrade_blueprints"
+      or name == "facc_convert_to_legendary" then
+    -- needs Quality
+    return quality_enabled
+  end
+  -- all other features always enabled
+  return true
+end
+
 -- Create a button/slider block
 local function add_function_block(parent, elem)
+  local feature_on = is_feature_enabled(elem.name)
+
   parent.add{ type="line", direction="horizontal" }
   local flow = parent.add{ type="flow", direction="horizontal" }
   flow.style.vertical_align           = "center"
@@ -58,6 +76,8 @@ local function add_function_block(parent, elem)
       discrete_slider = true
     }
     slider.style.horizontally_stretchable = true
+    slider.enabled = feature_on
+
     local box = row.add{
       type      = "textfield",
       name      = elem.slider.name .. "_value",
@@ -67,27 +87,30 @@ local function add_function_block(parent, elem)
       style     = "short_number_textfield"
     }
     box.style.width = 40
+    box.enabled = feature_on
   end
 
   local right = flow.add{ type="flow", direction="horizontal" }
   right.style.horizontal_align = "right"
   if elem.switch then
     local state = storage.facc_gui_state.switches[elem.name] and "right" or "left"
-    right.add{
+    local sw = right.add{
       type                = "switch",
       name                = elem.name,
       switch_state        = state,
       left_label_caption  = {"facc.switch-off"},
       right_label_caption = {"facc.switch-on"}
     }
+    sw.enabled = feature_on
   else
-    right.add{
+    local btn = right.add{
       type    = "sprite-button",
       name    = elem.name,
       sprite  = "utility.confirm_slot",
       style   = "item_and_count_select_confirm",
       tooltip = {"facc.confirm-button"}
     }
+    btn.enabled = feature_on
   end
 end
 
@@ -190,31 +213,24 @@ local TABS = {
   }
 }
 
--- Inject “legendary” features only if Quality is enabled;
--- inject Create Legendary Armor only if Space Age is also enabled
-if quality_enabled then
-  -- Character tab
-  table.insert(TABS.character.elements,
-    { name="facc_convert_inventory", caption={"facc.convert-inventory"} }
-  )
-  if space_age_enabled then
-    table.insert(TABS.character.elements,
-      { name="facc_create_legendary_armor", caption={"facc.create-legendary-armor"} }
-    )
-  end
-
-  -- Blueprint tab
-  table.insert(TABS.blueprint.elements,
-    { name="facc_upgrade_blueprints", caption={"facc.upgrade-blueprints"} }
-  )
-
-  -- Map tab
-  table.insert(TABS.map.elements, {
-    name   = "facc_convert_to_legendary",
-    caption= {"facc.convert-to-legendary"},
-    slider = { name="slider_convert_to_legendary", min=1, max=150, default=75 }
-  })
-end
+-- Always inject legendary features into UI (they will be disabled if mods are missing)
+-- Character tab
+table.insert(TABS.character.elements,
+  { name="facc_convert_inventory", caption={"facc.convert-inventory"} }
+)
+table.insert(TABS.character.elements,
+  { name="facc_create_legendary_armor", caption={"facc.create-legendary-armor"} }
+)
+-- Blueprint tab
+table.insert(TABS.blueprint.elements,
+  { name="facc_upgrade_blueprints", caption={"facc.upgrade-blueprints"} }
+)
+-- Map tab
+table.insert(TABS.map.elements, {
+  name   = "facc_convert_to_legendary",
+  caption= {"facc.convert-to-legendary"},
+  slider = { name="slider_convert_to_legendary", min=1, max=150, default=75 }
+})
 
 -- Close GUI helper
 local function close_gui(player)

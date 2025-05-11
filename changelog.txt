@@ -1,32 +1,40 @@
 ---------------------------------------------------------------------------------------------------
-Version: 2.4.3  
-Date: 2025-05-10  
+Version: 2.4.4
+Date: 2025-05-11
+  Changes:
+    - All “legendary” tools now stay visible in the menu, but are greyed out if you don’t have the Quality mod and/or the Space Age DLC installed.
+    - Sliders, switches and buttons for those tools are automatically disabled when the required mods aren’t active, preventing any errors or confusion.
+  Locale:
+    - Names and tooltips now include “(Quality)” or “(Space Age + Quality)” so it’s clear which add-ons you need, updated in both English and Portuguese.
+---------------------------------------------------------------------------------------------------
+Version: 2.4.3
+Date: 2025-05-10
   Minor Features:
     - Legendary Armor Builder now only shows when both the Quality mod and Space Age DLC are active.
     - All other legendary tools (Inventory converter, Blueprint upgrader, Upgrader tool, Construction converter) only appear when the Quality mod is active.
   Changes:
     - Quality mod and Space Age DLC are now optional dependencies—no longer required to install or run the core admin tools.
 ---------------------------------------------------------------------------------------------------
-Version: 2.4.2  
-Date: 2025-05-09  
+Version: 2.4.2
+Date: 2025-05-09
   Bugfixes:
     - Fixed a glitch in the admin permission checks that could cause the mod to stop working when regular players tried to open the admin menu.
     - Enhanced access rules so that now only the server owner or designated administrators can view and use the admin tools, preventing accidental use by non-admin players.
 ---------------------------------------------------------------------------------------------------
-Version: 2.4.1  
-Date: 2025-05-09  
+Version: 2.4.1
+Date: 2025-05-09
   Minor Features:
-    - Console: Added Ctrl + Enter shortcut to execute the Lua console command when the console GUI is open and the input textbox is NOT focused. 
+    - Console: Added Ctrl + Enter shortcut to execute the Lua console command when the console GUI is open and the input textbox is NOT focused.
 ---------------------------------------------------------------------------------------------------
-Version: 2.4.0  
-Date: 2025-05-09  
+Version: 2.4.0
+Date: 2025-05-09
   Features:
     - Cheat Mode Toggle: turn on free building and item spawning with a flip.
-    - Always-Day Toggle: keep it daylight forever around you.  
+    - Always-Day Toggle: keep it daylight forever around you.
     - Disable Pollution Toggle: clear existing pollution and stop new pollution generation.
     - Disable Friendly-Fire Toggle: prevent allies from damaging each other.
     - Peaceful-Mode Toggle: stop biters from attacking unless you provoke them.
-    - Disable Enemy Expansion Toggle: freeze biter nest growth.  
+    - Disable Enemy Expansion Toggle: freeze biter nest growth.
     - Legendary Armor Builder: a single button generates a full mech suit packed with top-tier legendary gear.
     - Indestructible Buildings: new switch makes all your existing structures unbreakable (and you can flip it back!).
   Bugfixes:
@@ -52,12 +60,12 @@ Date: 2025-05-07
   Info:
     - Dependency notice: you must have the Quality mod enabled (it ships with Factorio by default).
 ---------------------------------------------------------------------------------------------------
-Version: 2.2.4  
-Date: 2025-05-06  
+Version: 2.2.4
+Date: 2025-05-06
   Features:
     - Remembered UI state: the mod now saves which tab you last had open and all slider positions, then restores them automatically when you reload the game.
   Changes:
-    - Reliable save system: switched to the official storage mechanism for all user-customized settings, improving stability.  
+    - Reliable save system: switched to the official storage mechanism for all user-customized settings, improving stability.
     - Load process refined: adjusted the way settings are loaded to eliminate data-mismatch errors during game startup.
   Gui:
     - Smoother experience: refined the toggle and auto-restore behavior so the admin window feels more seamless.
