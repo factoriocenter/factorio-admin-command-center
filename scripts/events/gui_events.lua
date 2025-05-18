@@ -38,7 +38,6 @@ local features = {
   facc_increase_resources   = require("scripts/misc/increase_resources"),
   facc_unlock_recipes       = require("scripts/unlocks/unlock_all_recipes"),
   facc_unlock_technologies  = require("scripts/unlocks/unlock_all_technologies"),
-  facc_unlock_achievements  = require("scripts/unlocks/unlock_achievements"),
 }
 
 -- Inject “legendary” handlers only if Quality is enabled;

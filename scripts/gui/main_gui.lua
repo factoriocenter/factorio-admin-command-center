@@ -1,6 +1,11 @@
 -- scripts/gui/main_gui.lua
 -- Main GUI for FACC with adaptive tabs based on active mods.
 -- Persists tab, slider and switch state in storage.
+-- CHANGES:
+--   • Removed the "Editor" tab
+--   • Renamed "Utility" tab to "Essentials"
+--   • Added a new "Switchers" tab for most automations
+--   • Default-open tab changed from "editor" to "utility"
 
 local M = {}
 
@@ -12,7 +17,8 @@ local space_age_enabled = script.active_mods["space-age"] ~= nil
 local function ensure_persistent_state()
   storage.facc_gui_state = storage.facc_gui_state or {}
   local s = storage.facc_gui_state
-  s.tab      = s.tab      or "editor"
+  -- Default to "utility" (Essentials) instead of "editor"
+  s.tab      = s.tab      or "essentials"
   s.sliders  = s.sliders  or {}
   s.switches = s.switches or {}
   s.is_open  = s.is_open  or false
@@ -46,7 +52,7 @@ local function is_feature_enabled(name)
   return true
 end
 
--- Create a button/slider block
+-- Create a button/slider/switch block
 local function add_function_block(parent, elem)
   local feature_on = is_feature_enabled(elem.name)
 
@@ -114,27 +120,37 @@ local function add_function_block(parent, elem)
   end
 end
 
--- Define tab order
+-- Define tab order (no more "editor", added "switchers")
 local TAB_ORDER = {
-  "editor", "utility", "automation",
+  "essentials", "switchers", "automation",
   "character", "blueprint",
   "map", "misc", "unlocks"
 }
 
 -- Base tab definitions
 local TABS = {
-  editor = {
-    label    = {"facc.tab-editor"},
+  -- Essentials (formerly Utility)
+  essentials = {
+    label    = {"facc.tab-essentials"},
     elements = {
-      { name="facc_toggle_editor", caption={"facc.toggle-editor"} }
+      { name="facc_toggle_editor",  caption={"facc.toggle-editor"} },
+      { name="facc_console",        caption={"facc.console"} }
     }
   },
-  utility = {
-    label    = {"facc.tab-utility"},
+  -- New Switchers tab
+  switchers = {
+    label    = {"facc.tab-switchers"},
     elements = {
-      { name="facc_console", caption={"facc.console"} }
+      { name="facc_indestructible_builds", caption={"facc.indestructible-builds"}, switch=true },
+      { name="facc_cheat_mode",            caption={"facc.cheat-mode"},          switch=true },
+      { name="facc_always_day",            caption={"facc.always-day"},          switch=true },
+      { name="facc_disable_pollution",     caption={"facc.disable-pollution"},   switch=true },
+      { name="facc_disable_friendly_fire", caption={"facc.disable-friendly-fire"},switch=true },
+      { name="facc_peaceful_mode",         caption={"facc.peaceful-mode"},       switch=true },
+      { name="facc_enemy_expansion",       caption={"facc.enemy-expansion"},     switch=true }
     }
   },
+  -- Automation (only auto-clean and auto-research remain)
   automation = {
     label    = {"facc.tab-automation"},
     elements = {
@@ -149,14 +165,7 @@ local TABS = {
         caption = {"facc.auto-instant-research"},
         slider  = { name="slider_auto_instant_research", min=1, max=300, default=1 },
         switch  = true
-      },
-      { name="facc_indestructible_builds", caption={"facc.indestructible-builds"}, switch=true },
-      { name="facc_cheat_mode",            caption={"facc.cheat-mode"},          switch=true },
-      { name="facc_always_day",            caption={"facc.always-day"},          switch=true },
-      { name="facc_disable_pollution",     caption={"facc.disable-pollution"},   switch=true },
-      { name="facc_disable_friendly_fire", caption={"facc.disable-friendly-fire"},switch=true },
-      { name="facc_peaceful_mode",         caption={"facc.peaceful-mode"},       switch=true },
-      { name="facc_enemy_expansion",       caption={"facc.enemy-expansion"},     switch=true }
+      }
     }
   },
   character = {
@@ -207,25 +216,21 @@ local TABS = {
     label    = {"facc.tab-unlocks"},
     elements = {
       { name="facc_unlock_recipes",      caption={"facc.unlock-recipes"} },
-      { name="facc_unlock_technologies", caption={"facc.unlock-technologies"} },
-      { name="facc_unlock_achievements", caption={"facc.unlock-achievements"} }
+      { name="facc_unlock_technologies", caption={"facc.unlock-technologies"} }
     }
   }
 }
 
 -- Always inject legendary features into UI (they will be disabled if mods are missing)
--- Character tab
 table.insert(TABS.character.elements,
   { name="facc_convert_inventory", caption={"facc.convert-inventory"} }
 )
 table.insert(TABS.character.elements,
   { name="facc_create_legendary_armor", caption={"facc.create-legendary-armor"} }
 )
--- Blueprint tab
 table.insert(TABS.blueprint.elements,
   { name="facc_upgrade_blueprints", caption={"facc.upgrade-blueprints"} }
 )
--- Map tab
 table.insert(TABS.map.elements, {
   name   = "facc_convert_to_legendary",
   caption= {"facc.convert-to-legendary"},

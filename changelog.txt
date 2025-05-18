@@ -1,4 +1,22 @@
 ---------------------------------------------------------------------------------------------------
+Version: 2.5.0
+Date: 2025-05-18
+  Major Features:
+    - Cheat Tools tab in the crafting menu for easy recipes (infinity-chest, infinity-pipe, etc.), toggleable in settings.
+    - Internal Names option to display each item’s raw prototype ID, toggleable in settings.
+    - New Switchers tab with simple on/off switches for key mod features.
+  Features:
+    - Renamed “Utility” tab to “Essentials” for clearer organization.
+    - Turret Ammo now auto-loads Space Age rockets and railgun rounds.
+    - Recharge Energy now refills player gear, spidertrons, and tanks.
+  Changes:
+    - Removed “Unlock All Achievements” option (no longer functional).
+    - Removed standalone Editor tab; the editor toggle and console are now in Essentials.
+  Gui:
+    - Updated tab names and reorganized panels for more intuitive access.
+  Locale:
+    - Updated all menu labels and messages to reflect new tabs, options, and renamings.
+---------------------------------------------------------------------------------------------------
 Version: 2.4.4
 Date: 2025-05-11
   Changes:
