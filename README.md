@@ -44,8 +44,8 @@ Take control of every aspect of your world with a sleek tabbed interface—no co
 - 🛠️ **Toggle Editor Mode** – Enter or exit the map editor with one click
 - 🧍 **Delete Ownerless Characters** – Remove stray player entities on the map
 - 🩹 **Repair & Rebuild** – Heal damaged entities and revive ghosts
-- ⚡ **Recharge Energy** – Fully refill electric buffers on all machines
-- 🎯 **Ammo to Turrets** – Auto-insert uranium magazines into empty gun turrets
+- ⚡ **Recharge Energy** – Fully refill electric buffers on all machines, plus player equipment, spidertrons, and tanks
+- 🎯 **Ammo to Turrets** – Auto-insert uranium magazines into empty gun turrets (plus Space Age rocket & railgun)
 - 🗑️ **Remove Pollution** – Instantly clear all pollution on the current surface
 
 ### 🏗️ Blueprint & Ghost Tools
