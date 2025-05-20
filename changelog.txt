@@ -1,4 +1,9 @@
 ---------------------------------------------------------------------------------------------------
+Version: 2.6.1
+Date: 2025-05-21
+  Bugfixes:
+    - Fixed console command persistence: last entered command now remains available after saving and reloading the game.
+---------------------------------------------------------------------------------------------------
 Version: 2.6.0
 Date: 2025-05-20
   Major Features:
