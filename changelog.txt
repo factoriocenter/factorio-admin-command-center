@@ -1,4 +1,15 @@
 ---------------------------------------------------------------------------------------------------
+Version: 2.6.0
+Date: 2025-05-20
+  Major Features:
+    - Achievement Overrides: bypass select achievement requirements for easier completion.
+  Features:
+    - Mod setting “Enable Achievement Overrides” (in the main menu mod settings) to turn achievement bypass on or off.
+    - Space Age Platform Distance slider: set close to 1 to travel to a planet, close to 0 to return to the previous planet.
+    - Toggle Minable switch to mark placed items as non-minable.
+  Changes:
+    - Cheat Tools tab is now disabled by default. Existing users who had it enabled don’t need to re-enable it; new users must enable it in mod settings to see it.
+---------------------------------------------------------------------------------------------------
 Version: 2.5.0
 Date: 2025-05-18
   Major Features:

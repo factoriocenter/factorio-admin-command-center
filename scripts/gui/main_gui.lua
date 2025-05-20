@@ -1,33 +1,40 @@
 -- scripts/gui/main_gui.lua
--- Main GUI for FACC with adaptive tabs based on active mods.
--- Persists tab, slider and switch state in storage.
--- CHANGES:
---   • Removed the "Editor" tab
---   • Renamed "Utility" tab to "Essentials"
---   • Added a new "Switchers" tab for most automations
---   • Default-open tab changed from "editor" to "utility"
+-- Main GUI for the Factorio Admin Command Center (FACC).
+-- Builds an adaptive, tabbed interface with controls that enable/disable
+-- based on active mods (Quality, Space Age). Persists tab, slider, and
+-- switch state across open/close cycles.
+--
+-- Changes in this version:
+--   • “Platform Distance” slider + confirm button are fully disabled
+--     (greyed out and non-interactable) whenever the Space Age DLC/mod
+--     is not present.
 
 local M = {}
 
--- Detect whether the Quality mod and the Space Age DLC are active
+--------------------------------------------------------------------------------
+-- Mod detection
+--------------------------------------------------------------------------------
 local quality_enabled   = script.active_mods["quality"]    ~= nil
 local space_age_enabled = script.active_mods["space-age"] ~= nil
 
--- Ensure storage structure exists
+--------------------------------------------------------------------------------
+-- Persistent state initialization
+--------------------------------------------------------------------------------
 local function ensure_persistent_state()
   storage.facc_gui_state = storage.facc_gui_state or {}
   local s = storage.facc_gui_state
-  -- Default to "utility" (Essentials) instead of "editor"
-  s.tab      = s.tab      or "essentials"
-  s.sliders  = s.sliders  or {}
-  s.switches = s.switches or {}
-  s.is_open  = s.is_open  or false
+  s.tab      = s.tab      or "essentials"  -- default tab
+  s.sliders  = s.sliders  or {}            -- slider values
+  s.switches = s.switches or {}            -- switch states
+  s.is_open  = s.is_open  or false         -- GUI open flag
 end
 
--- Recursively save all slider values
+--------------------------------------------------------------------------------
+-- Save all slider values in storage (recursive)
+--------------------------------------------------------------------------------
 local function save_all_sliders(element)
   if element.type == "slider" then
-    storage.facc_gui_state.sliders[element.name] = math.floor(element.slider_value)
+    storage.facc_gui_state.sliders[element.name] = element.slider_value
   end
   if element.children then
     for _, child in ipairs(element.children) do
@@ -36,44 +43,59 @@ local function save_all_sliders(element)
   end
 end
 
--- Determines if a given feature control should be enabled
+--------------------------------------------------------------------------------
+-- Determine if a given GUI control should be enabled
+--------------------------------------------------------------------------------
 local function is_feature_enabled(name)
+  -- Platform Distance only when Space Age is active
+  if name == "facc_set_platform_distance" then
+    return space_age_enabled
+  end
+  -- Legendary Armor requires both Quality & Space Age
   if name == "facc_create_legendary_armor" then
-    -- needs both Quality and Space Age
     return quality_enabled and space_age_enabled
   end
+  -- Blueprint / conversion tools require Quality mod
   if name == "facc_convert_inventory"
       or name == "facc_upgrade_blueprints"
       or name == "facc_convert_to_legendary" then
-    -- needs Quality
     return quality_enabled
   end
-  -- all other features always enabled
+  -- All others always enabled
   return true
 end
 
--- Create a button/slider/switch block
+--------------------------------------------------------------------------------
+-- Add a labelled control block: label + optional slider + switch/button
+--------------------------------------------------------------------------------
 local function add_function_block(parent, elem)
-  local feature_on = is_feature_enabled(elem.name)
+  local enabled = is_feature_enabled(elem.name)
 
+  -- separator line
   parent.add{ type="line", direction="horizontal" }
+
+  -- flow container
   local flow = parent.add{ type="flow", direction="horizontal" }
   flow.style.vertical_align           = "center"
   flow.style.horizontally_stretchable = true
   flow.style.horizontal_spacing       = 6
 
+  -- left area: caption + slider (if present)
   local left = flow.add{ type="flow", direction="vertical" }
   left.style.horizontally_stretchable = true
   left.style.vertical_spacing         = 4
   left.add{ type="label", caption = elem.caption }
 
   if elem.slider then
-    local row = left.add{ type="flow", direction="horizontal" }
-    row.style.horizontal_spacing = 6
-    row.style.vertical_align    = "center"
+    local slider_flow = left.add{ type="flow", direction="horizontal" }
+    slider_flow.style.horizontal_spacing = 6
+    slider_flow.style.vertical_align    = "center"
+
     local saved = storage.facc_gui_state.sliders[elem.slider.name]
-    local init  = saved or elem.slider.default
-    local slider = row.add{
+    local init  = saved ~= nil and saved or elem.slider.default
+
+    -- slider widget
+    local slider = slider_flow.add{
       type            = "slider",
       name            = elem.slider.name,
       minimum_value   = elem.slider.min,
@@ -82,9 +104,10 @@ local function add_function_block(parent, elem)
       discrete_slider = true
     }
     slider.style.horizontally_stretchable = true
-    slider.enabled = feature_on
+    slider.enabled = enabled
 
-    local box = row.add{
+    -- numeric text box
+    local box = slider_flow.add{
       type      = "textfield",
       name      = elem.slider.name .. "_value",
       text      = tostring(init),
@@ -93,11 +116,13 @@ local function add_function_block(parent, elem)
       style     = "short_number_textfield"
     }
     box.style.width = 40
-    box.enabled = feature_on
+    box.enabled = enabled
   end
 
+  -- right area: switch or confirm button
   local right = flow.add{ type="flow", direction="horizontal" }
   right.style.horizontal_align = "right"
+
   if elem.switch then
     local state = storage.facc_gui_state.switches[elem.name] and "right" or "left"
     local sw = right.add{
@@ -107,7 +132,8 @@ local function add_function_block(parent, elem)
       left_label_caption  = {"facc.switch-off"},
       right_label_caption = {"facc.switch-on"}
     }
-    sw.enabled = feature_on
+    sw.enabled = enabled
+
   else
     local btn = right.add{
       type    = "sprite-button",
@@ -116,20 +142,20 @@ local function add_function_block(parent, elem)
       style   = "item_and_count_select_confirm",
       tooltip = {"facc.confirm-button"}
     }
-    btn.enabled = feature_on
+    btn.enabled = enabled
   end
 end
 
--- Define tab order (no more "editor", added "switchers")
+--------------------------------------------------------------------------------
+-- Tab order and definitions
+--------------------------------------------------------------------------------
 local TAB_ORDER = {
   "essentials", "switchers", "automation",
   "character", "blueprint",
   "map", "misc", "unlocks"
 }
 
--- Base tab definitions
 local TABS = {
-  -- Essentials (formerly Utility)
   essentials = {
     label    = {"facc.tab-essentials"},
     elements = {
@@ -137,7 +163,6 @@ local TABS = {
       { name="facc_console",        caption={"facc.console"} }
     }
   },
-  -- New Switchers tab
   switchers = {
     label    = {"facc.tab-switchers"},
     elements = {
@@ -147,24 +172,24 @@ local TABS = {
       { name="facc_disable_pollution",     caption={"facc.disable-pollution"},   switch=true },
       { name="facc_disable_friendly_fire", caption={"facc.disable-friendly-fire"},switch=true },
       { name="facc_peaceful_mode",         caption={"facc.peaceful-mode"},       switch=true },
-      { name="facc_enemy_expansion",       caption={"facc.enemy-expansion"},     switch=true }
+      { name="facc_enemy_expansion",       caption={"facc.enemy-expansion"},     switch=true },
+      { name="facc_toggle_minable",        caption={"facc.toggle-minable"},      switch=true }
     }
   },
-  -- Automation (only auto-clean and auto-research remain)
   automation = {
     label    = {"facc.tab-automation"},
     elements = {
       {
-        name    = "facc_auto_clean_pollution",
-        caption = {"facc.auto-clean-pollution"},
-        slider  = { name="slider_auto_clean_pollution", min=1, max=300, default=1 },
-        switch  = true
+        name   = "facc_auto_clean_pollution",
+        caption= {"facc.auto-clean-pollution"},
+        slider = { name="slider_auto_clean_pollution", min=1, max=300, default=1 },
+        switch = true
       },
       {
-        name    = "facc_auto_instant_research",
-        caption = {"facc.auto-instant-research"},
-        slider  = { name="slider_auto_instant_research", min=1, max=300, default=1 },
-        switch  = true
+        name   = "facc_auto_instant_research",
+        caption= {"facc.auto-instant-research"},
+        slider = { name="slider_auto_instant_research", min=1, max=300, default=1 },
+        switch = true
       }
     }
   },
@@ -209,7 +234,13 @@ local TABS = {
       { name="facc_repair_rebuild",    caption={"facc.repair-rebuild"} },
       { name="facc_recharge_energy",   caption={"facc.recharge-energy"} },
       { name="facc_ammo_turrets",      caption={"facc.ammo-turrets"} },
-      { name="facc_increase_resources",caption={"facc.increase-resources"} }
+      { name="facc_increase_resources",caption={"facc.increase-resources"} },
+      -- Platform Distance control (slider + confirm)
+      {
+        name   = "facc_set_platform_distance",
+        caption= {"facc.platform-distance"},
+        slider = { name="slider_platform_distance", min=0.0, max=1.0, default=0.99 }
+      }
     }
   },
   unlocks = {
@@ -221,7 +252,7 @@ local TABS = {
   }
 }
 
--- Always inject legendary features into UI (they will be disabled if mods are missing)
+-- inject Quality-only features (will be disabled if missing)
 table.insert(TABS.character.elements,
   { name="facc_convert_inventory", caption={"facc.convert-inventory"} }
 )
@@ -237,13 +268,14 @@ table.insert(TABS.map.elements, {
   slider = { name="slider_convert_to_legendary", min=1, max=150, default=75 }
 })
 
--- Close GUI helper
+--------------------------------------------------------------------------------
+-- GUI open/close helpers
+--------------------------------------------------------------------------------
 local function close_gui(player)
   local frame = player.gui.screen["facc_main_frame"]
   if frame then frame.destroy() end
 end
 
--- Open GUI helper
 local function open_gui(player)
   if not (player and player.valid and (not game.is_multiplayer() or player.admin)) then
     player.print({"facc.not-allowed"})
@@ -259,7 +291,7 @@ local function open_gui(player)
   }
   frame.auto_center = true
 
-  -- Header with close button
+  -- header with close button
   local header = frame.add{ type="flow", direction="horizontal" }
   header.style.horizontal_align         = "right"
   header.style.horizontally_stretchable = true
@@ -271,7 +303,7 @@ local function open_gui(player)
     tooltip = {"facc.close-menu"}
   }
 
-  -- Tabbed pane
+  -- tabbed pane
   local pane = frame.add{ type="tabbed-pane", name="facc_tabbed_pane" }
   local tab_indices = {}
   for idx, key in ipairs(TAB_ORDER) do
@@ -282,22 +314,26 @@ local function open_gui(player)
     content.style.padding               = 8
     pane.add_tab(btn, content)
     tab_indices[key] = idx
+
     for _, elem in ipairs(def.elements) do
       add_function_block(content, elem)
     end
   end
 
-  -- Restore last-opened tab
+  -- restore last-opened tab
   local saved = storage.facc_gui_state.tab
   if tab_indices[saved] then
     pane.selected_tab_index = tab_indices[saved]
   end
 end
 
--- Toggle GUI on/off
+--------------------------------------------------------------------------------
+-- Public: toggle the main GUI
+--------------------------------------------------------------------------------
 function M.toggle_main_gui(player)
   ensure_persistent_state()
   if player.gui.screen["facc_main_frame"] then
+    -- save state
     local pane = player.gui.screen["facc_main_frame"]["facc_tabbed_pane"]
     if pane then
       storage.facc_gui_state.tab = TAB_ORDER[pane.selected_tab_index]
