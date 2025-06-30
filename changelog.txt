@@ -1,4 +1,11 @@
 ---------------------------------------------------------------------------------------------------
+Version: 3.0.1
+Date: 2025-06-30
+  Gui:
+    - Always show Quality and Space Age feature controls (visible but disabled when the corresponding mods are inactive) instead of hiding them.
+  Bugfixes:
+    - Fixed startup syntax error in `scripts/gui/main_gui.lua` (“unexpected symbol near ‘.’”) that prevented the mod from loading.
+---------------------------------------------------------------------------------------------------
 Version: 3.0.0
 Date: 2025-06-30
   Gui:

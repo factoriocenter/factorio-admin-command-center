@@ -13,7 +13,8 @@ local space_age_enabled = script.active_mods["space-age"] ~= nil
 --------------------------------------------------------------------------------
 -- Persistent state schema
 --------------------------------------------------------------------------------
-local function ensure_persistent_state()
+--- Ensure the GUI state table exists and initialize defaults.
+function M.ensure_persistent_state()
   storage.facc_gui_state = storage.facc_gui_state or {}
   local s = storage.facc_gui_state
   s.tab      = s.tab      or "essentials"
@@ -25,6 +26,8 @@ end
 --------------------------------------------------------------------------------
 -- Save all slider values recursively
 --------------------------------------------------------------------------------
+--- Recursively traverse GUI elements to save slider values in storage.
+-- @param element LuaGuiElement
 local function save_all_sliders(element)
   if element.type == "slider" then
     storage.facc_gui_state.sliders[element.name] = element.slider_value
@@ -37,8 +40,11 @@ local function save_all_sliders(element)
 end
 
 --------------------------------------------------------------------------------
--- Check if a feature is enabled based on mods/DLC
+-- Feature enablement checks
 --------------------------------------------------------------------------------
+--- Determine if a feature should be enabled based on active mods.
+-- @param name string – the element name
+-- @treturn boolean
 local function is_feature_enabled(name)
   if name == "facc_set_platform_distance" then
     return space_age_enabled
@@ -47,8 +53,8 @@ local function is_feature_enabled(name)
     return quality_enabled and space_age_enabled
   end
   if name == "facc_convert_inventory"
-    or name == "facc_upgrade_blueprints"
-    or name == "facc_convert_to_legendary" then
+      or name == "facc_upgrade_blueprints"
+      or name == "facc_convert_to_legendary" then
     return quality_enabled
   end
   return true
@@ -60,8 +66,10 @@ end
 local SPACING = 12
 
 --------------------------------------------------------------------------------
--- Add a row of controls: label + optional slider + switch/button
+-- Helper: add a row of controls with label, slider, and switch/button
 --------------------------------------------------------------------------------
+-- @param parent LuaGuiElement – the container to add into
+-- @param elem table – descriptor with fields: name, caption, slider?, switch?
 local function add_function_block(parent, elem)
   local enabled = is_feature_enabled(elem.name)
 
@@ -69,14 +77,14 @@ local function add_function_block(parent, elem)
   row.style.horizontal_spacing = SPACING
   row.style.vertical_align    = "center"
 
-  -- Left: label (and slider if present)
+  -- Left side: label and optional slider
   local left = row.add{ type = "flow", direction = "vertical" }
   left.style.vertical_spacing         = SPACING
   left.style.horizontally_stretchable = true
-  left.add{ type="label", caption = elem.caption }
+  left.add{ type = "label", caption = elem.caption }
 
   if elem.slider then
-    local sf = left.add{ type="flow", direction="horizontal" }
+    local sf = left.add{ type = "flow", direction = "horizontal" }
     sf.style.horizontal_spacing = SPACING
     sf.style.vertical_align    = "center"
 
@@ -104,8 +112,8 @@ local function add_function_block(parent, elem)
     box.enabled = enabled
   end
 
-  -- Right: switch or confirm button
-  local right = row.add{ type="flow", direction="horizontal" }
+  -- Right side: switch or confirm button
+  local right = row.add{ type = "flow", direction = "horizontal" }
   right.style.horizontal_align = "right"
   if elem.switch then
     local state = storage.facc_gui_state.switches[elem.name] and "right" or "left"
@@ -134,7 +142,7 @@ end
 --------------------------------------------------------------------------------
 local TAB_ORDER = {
   "essentials", "switchers", "automation", "character",
-  "blueprint",  "map",       "misc",       "unlocks"
+  "blueprint",   "map",        "misc",       "unlocks"
 }
 
 local TABS = {
@@ -221,17 +229,14 @@ local TABS = {
   }
 }
 
--- Inject quality-only entries
-if quality_enabled then
-  table.insert(TABS.character.elements, { name="facc_convert_inventory",      caption={"facc.convert-inventory"} })
-  table.insert(TABS.character.elements, { name="facc_create_legendary_armor", caption={"facc.create-legendary-armor"} })
-  table.insert(TABS.blueprint.elements, { name="facc_upgrade_blueprints",     caption={"facc.upgrade-blueprints"} })
-  table.insert(TABS.map.elements, {
-    name   = "facc_convert_to_legendary",
-    caption= {"facc.convert-to-legendary"},
-    slider ={ name="slider_convert_to_legendary", min=1, max=150, default=75 }
-  })
-end
+--------------------------------------------------------------------------------
+-- Inject quality & Space Age feature entries (always visible)
+--------------------------------------------------------------------------------
+-- these will be greyed out if the mods are not active
+table.insert(TABS.character.elements, { name="facc_convert_inventory",      caption={"facc.convert-inventory"} })
+table.insert(TABS.character.elements, { name="facc_create_legendary_armor", caption={"facc.create-legendary-armor"} })
+table.insert(TABS.blueprint.elements,  { name="facc_upgrade_blueprints",    caption={"facc.upgrade-blueprints"} })
+table.insert(TABS.map.elements,        { name="facc_convert_to_legendary", caption={"facc.convert-to-legendary"}, slider={name="slider_convert_to_legendary", min=1, max=150, default=75} })
 
 --------------------------------------------------------------------------------
 -- Build & display the GUI
@@ -241,75 +246,42 @@ local function open_gui(player)
     player.print({"facc.not-allowed"})
     return
   end
-  ensure_persistent_state()
+  M.ensure_persistent_state()
 
-  -- Destroy any existing main frame
+  -- destroy existing frame if present
   if player.gui.screen["facc_main_frame"] then
     player.gui.screen["facc_main_frame"].destroy()
   end
 
-  --------------------------------------------------------------------------------
-  -- Main frame (no built-in caption)
-  --------------------------------------------------------------------------------
-  local frame = player.gui.screen.add{
-    type      = "frame",
-    name      = "facc_main_frame",
-    caption   = "",
-    direction = "vertical"
-  }
+  -- main window
+  local frame = player.gui.screen.add{ type="frame", name="facc_main_frame", caption="", direction="vertical" }
   frame.auto_center = true
 
-  --------------------------------------------------------------------------------
-  -- Custom title bar (with title, stripes, and close-button)
-  --------------------------------------------------------------------------------
+  -- title bar
   local tf = frame.add{ type="flow", name="title_flow", direction="horizontal" }
   tf.drag_target = frame
   tf.style.horizontal_spacing       = SPACING
   tf.style.horizontally_stretchable = true
   tf.style.vertical_align           = "center"
-
-  -- Title label
-  local lbl = tf.add{ type="label", caption={"facc.main-title"}, style="frame_title" }
-  lbl.drag_target = frame
-
-  -- Stripes grip
+  tf.add{ type="label", caption={"facc.main-title"}, style="frame_title" }.drag_target = frame
   local spacer = tf.add{ type="empty-widget", style="draggable_space_header" }
   spacer.style.horizontally_stretchable = true
   spacer.style.vertically_stretchable   = true
   spacer.drag_target = frame
+  tf.add{ type="sprite-button", name="facc_close_main_gui", sprite="utility/close", style="frame_action_button", tooltip={"facc.close-menu"} }
 
-  -- Close button
-  tf.add{
-    type    = "sprite-button",
-    name    = "facc_close_main_gui",
-    sprite  = "utility/close",
-    style   = "frame_action_button",
-    tooltip = {"facc.close-menu"}
-  }
-
-  --------------------------------------------------------------------------------
-  -- Body: Sidebar + Content
-  --------------------------------------------------------------------------------
+  -- body: sidebar + content
   local container = frame.add{ type="flow", direction="horizontal" }
   container.style.horizontal_spacing = SPACING
 
-  -- Sidebar
-  local menu_frame = container.add{
-    type      = "frame",
-    name      = "facc_menu_frame",
-    style     = "inside_shallow_frame",
-    direction = "vertical"
-  }
+  -- sidebar
+  local menu_frame = container.add{ type="frame", style="inside_shallow_frame", direction="vertical" }
   menu_frame.style.minimal_width         = 200
   menu_frame.style.maximal_width         = 200
   menu_frame.style.vertically_stretchable = true
   menu_frame.style.padding               = SPACING
 
-  local menu_scroll = menu_frame.add{
-    type      = "scroll-pane",
-    name      = "facc_menu_pane",
-    direction = "vertical"
-  }
+  local menu_scroll = menu_frame.add{ type="scroll-pane", name="facc_menu_pane", direction="vertical" }
   menu_scroll.horizontal_scroll_policy    = "never"
   menu_scroll.vertical_scroll_policy      = "auto"
   menu_scroll.style.vertically_stretchable = true
@@ -327,49 +299,26 @@ local function open_gui(player)
     end
   end
 
-  -- Content area
-  local content_outer = container.add{
-    type      = "frame",
-    name      = "facc_content_outer",
-    style     = "inside_shallow_frame",
-    direction = "vertical"
-  }
+  -- content area
+  local content_outer = container.add{ type="frame", style="inside_shallow_frame", direction="vertical" }
   content_outer.style.horizontally_stretchable = true
   content_outer.style.minimal_width           = 600
-  content_outer.style.minimal_height          = 400  -- ensures enough vertical space
+  content_outer.style.minimal_height          = 400
 
-  local subheader = content_outer.add{
-    type      = "frame",
-    name      = "facc_subheader_frame",
-    style     = "subheader_frame",
-    direction = "horizontal"
-  }
-  subheader.style.horizontally_stretchable = true
-  subheader.add{
-    type    = "label",
-    name    = "facc_subheader_label",
-    caption = TABS[storage.facc_gui_state.tab].label,
-    style   = "heading_2_label"
-  }
+  local subheader_frame = content_outer.add{ type="frame", style="subheader_frame", direction="horizontal" }
+  subheader_frame.style.horizontally_stretchable = true
+  subheader_frame.add{ type="label", name="facc_subheader_label", caption=TABS[storage.facc_gui_state.tab].label, style="heading_2_label" }
 
-  local content_pane = content_outer.add{
-    type      = "scroll-pane",
-    name      = "facc_content_pane",
-    direction = "vertical"
-  }
+  local content_pane = content_outer.add{ type="scroll-pane", name="facc_content_pane", direction="vertical" }
   content_pane.horizontal_scroll_policy      = "never"
   content_pane.vertical_scroll_policy        = "auto"
   content_pane.style.vertically_stretchable  = true
   content_pane.style.padding                 = SPACING
 
-  -- Build each tab’s content
+  -- build each tab
   M.content_frames = {}
   for _, key in ipairs(TAB_ORDER) do
-    local sec = content_pane.add{
-      type      = "flow",
-      name      = "facc_content_" .. key,
-      direction = "vertical"
-    }
+    local sec = content_pane.add{ type="flow", name="facc_content_"..key, direction="vertical" }
     sec.visible = (key == storage.facc_gui_state.tab)
     sec.style.vertical_spacing = SPACING
     for _, elem in ipairs(TABS[key].elements) do
@@ -383,67 +332,54 @@ end
 -- Event Handlers
 --------------------------------------------------------------------------------
 
--- Tab switch handler (fixed to avoid nil pairs error)
+-- tab switching
 script.on_event(defines.events.on_gui_selection_state_changed, function(e)
   local elt = e.element
   if not (elt and elt.valid and elt.name == "facc_menu_list") then return end
   local player = game.get_player(e.player_index)
-  ensure_persistent_state()
+  M.ensure_persistent_state()
 
   local idx = elt.selected_index
   if not (idx and TAB_ORDER[idx]) then return end
   storage.facc_gui_state.tab = TAB_ORDER[idx]
 
-  -- rebuild cache if needed
-  if not M.content_frames then
-    local frame = player.gui.screen["facc_main_frame"]
-    if frame then
-      local container = frame.children[2]
-      local outer     = container and container["facc_content_outer"]
-      local pane      = outer and outer["facc_content_pane"]
-      if pane then
-        M.content_frames = {}
-        for _, key in ipairs(TAB_ORDER) do
-          M.content_frames[key] = pane["facc_content_"..key]
-        end
-      end
-    end
+  -- rebuild content_frames cache if needed
+  if not M.content_frames then open_gui(player) end
+
+  -- show/hide tabs
+  for key, frame in pairs(M.content_frames) do
+    frame.visible = (key == storage.facc_gui_state.tab)
   end
 
-  -- show/hide each tab’s content
-  for key, tab_flow in pairs(M.content_frames or {}) do
-    if tab_flow then
-      tab_flow.visible = (key == storage.facc_gui_state.tab)
-    end
-  end
-
-  -- update the subheader label
-  local hdr = player.gui.screen["facc_main_frame"]
-            and player.gui.screen["facc_main_frame"]
-                  .children[2]
-                  ["facc_content_outer"]
-                  ["facc_subheader_frame"]
-                  ["facc_subheader_label"]
-  if hdr then
-    hdr.caption = TABS[storage.facc_gui_state.tab].label
+  -- update subheader
+  local frame = player.gui.screen["facc_main_frame"]
+  if frame then
+    local container = frame.children[2]
+    local content_outer = container["facc_content_outer"]
+    local subheader = content_outer and content_outer["facc_subheader_frame"]
+    local hdr = subheader and subheader["facc_subheader_label"]
+    if hdr then hdr.caption = TABS[storage.facc_gui_state.tab].label end
   end
 end)
 
+-- close button
 script.on_event(defines.events.on_gui_click, function(e)
   if e.element and e.element.valid and e.element.name == "facc_close_main_gui" then
     M.toggle_main_gui(game.get_player(e.player_index))
   end
 end)
 
+-- slider change
 script.on_event(defines.events.on_gui_value_changed, function(e)
   local elt = e.element
   if elt and elt.valid and elt.type == "slider" then
     storage.facc_gui_state.sliders[elt.name] = elt.slider_value
-    local box = elt.parent[elt.name .. "_value"]
+    local box = elt.parent[elt.name.."_value"]
     if box and box.valid then box.text = tostring(elt.slider_value) end
   end
 end)
 
+-- switch toggle
 script.on_event(defines.events.on_gui_switch_state_changed, function(e)
   local elt = e.element
   if elt and elt.valid and elt.type == "switch" then
@@ -451,12 +387,13 @@ script.on_event(defines.events.on_gui_switch_state_changed, function(e)
   end
 end)
 
+-- on_load + on_tick for restoring open GUI after load
 local restore_on_tick = false
 script.on_load(function() restore_on_tick = true end)
 script.on_event(defines.events.on_tick, function()
   if restore_on_tick then
     restore_on_tick = false
-    ensure_persistent_state()
+    M.ensure_persistent_state()
     if storage.facc_gui_state.is_open then
       for _, player in pairs(game.players) do open_gui(player) end
     end
@@ -466,12 +403,16 @@ end)
 --------------------------------------------------------------------------------
 -- Public API: toggle main GUI on/off
 --------------------------------------------------------------------------------
+--- Toggle the main GUI frame for a player.
+-- @param player LuaPlayer
 function M.toggle_main_gui(player)
-  ensure_persistent_state()
+  M.ensure_persistent_state()
   local frame = player.gui.screen["facc_main_frame"]
   if frame then
-    local outer = frame.children[2] and frame.children[2]["facc_content_outer"]
-    local pane  = outer and outer["facc_content_pane"]
+    -- save sliders before closing
+    local container = frame.children[2]
+    local content_outer = container and container["facc_content_outer"]
+    local pane = content_outer and content_outer["facc_content_pane"]
     if pane then save_all_sliders(pane) end
     frame.destroy()
     storage.facc_gui_state.is_open = false
@@ -482,5 +423,4 @@ function M.toggle_main_gui(player)
   end
 end
 
-M.ensure_persistent_state = ensure_persistent_state
 return M
