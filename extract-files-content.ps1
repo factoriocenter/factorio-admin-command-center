@@ -63,10 +63,10 @@ $languageMap = @{
     '.ini'   = $true; 
     '.toml' = $true;
     '.env'   = $false; 
-    '.txt'  = $true; 
+    '.txt'  = $false; 
     '.bat'  = $true;
     '.conf'  = $false; 
-    '.cfg'  = $true;  
+    '.cfg'  = $false;  
     '.gitignore' = $false;
     '.gitattributes' = $false;
 }
