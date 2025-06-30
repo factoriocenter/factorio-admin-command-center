@@ -1,4 +1,22 @@
 ---------------------------------------------------------------------------------------------------
+Version: 3.0.0
+Date: 2025-06-30
+  Gui:
+    - Sidebar scroll pane: revamped the left-hand menu into a vertically scrollable list, styled with `inside_shallow_frame`.
+    - Subheader frame: each tab now shows its title in a dedicated `subheader_frame` using the `heading_2_label` style.
+    - Refined title bar: custom stripes grip implemented via `draggable_space_header`, full-width drag area, and a right-aligned close button.
+  Features:
+    - Persistent restoration: if the GUI was open when saving, it remains open and fully interactive after reload.
+    - Content panel sizing: content area enforces a minimal height and uses an inner scroll-pane for long lists.
+  Changes:
+    - Style cleanup: removed all deprecated elements/styles (`filler`, `horizontal_flow`, `frame_titlebar_flow`), migrated exclusively to supported Factorio GUI styles.
+  Bugfixes:
+    - Tab-switch crash: fixed “bad argument #1 to 'pairs'” error when switching tabs after load.
+    - Slider & switch state persistence: addressed edge cases where slider values or switch states failed to persist.
+    - Unknown style errors: eliminated “Unknown style” errors by updating elements to valid built-in styles.
+  Info:
+    - Legacy GUI flows and filler styles have been removed; update any custom scripts to use the new flow + `draggable_space_header` pattern.
+---------------------------------------------------------------------------------------------------
 Version: 2.6.1
 Date: 2025-05-20
   Bugfixes:
