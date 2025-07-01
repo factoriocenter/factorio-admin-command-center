@@ -1,4 +1,13 @@
 ---------------------------------------------------------------------------------------------------
+Version: 3.1.0
+Date: 2025-07-01
+  Major Features:
+    - Legacy tabs replaced by a new category-based tab system.
+  Features:
+    - Modules reorganized into their respective category panels.
+  Translation:
+    - Refreshed all UI strings to match renamed tabs and elements.
+---------------------------------------------------------------------------------------------------
 Version: 3.0.2
 Date: 2025-07-01
   Bugfixes:

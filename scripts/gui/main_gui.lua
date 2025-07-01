@@ -11,12 +11,158 @@ local quality_enabled   = script.active_mods["quality"]   ~= nil
 local space_age_enabled = script.active_mods["space-age"] ~= nil
 
 --------------------------------------------------------------------------------
--- Persistent state schema
+-- UI layout constants
+--------------------------------------------------------------------------------
+local SPACING = 12
+
+--------------------------------------------------------------------------------
+-- Tab definitions (one per folder/tag)
+--------------------------------------------------------------------------------
+local TAB_ORDER = {
+  "armor",
+  "blueprints",
+  "character",
+  "cheats",
+  -- "circuit-network",  -- coming soon
+  "combat",
+  "enemies",
+  "environment",
+  -- "fluids",           -- coming soon
+  -- "logistic-network", -- coming soon
+  -- "logistics",        -- coming soon
+  -- "manufacturing",    -- coming soon
+  "mining",
+  -- "planets",          -- coming soon
+  "power",
+  -- "storage",          -- coming soon
+  -- "trains",           -- coming soon
+  "transportation"
+}
+
+local TABS = {
+  armor = {
+    label    = {"facc.tab-armor"},
+    elements = {
+      { name="facc_create_legendary_armor", caption={"facc.create-legendary-armor"} }
+    }
+  },
+  blueprints = {
+    label    = {"facc.tab-blueprints"},
+    elements = {
+      { name="facc_build_all_ghosts",     caption={"facc.build-all-ghosts"} },
+      -- { name="facc_build_ghost_blueprints",     caption={"facc.build-ghost-blueprints"} },
+      { name="facc_upgrade_blueprints",   caption={"facc.upgrade-blueprints"} },
+      { name="facc_convert_to_legendary", caption={"facc.convert-to-legendary"},
+        slider={ name="slider_convert_to_legendary", min=1, max=150, default=75 } }
+    }
+  },
+  character = {
+    label    = {"facc.tab-character"},
+    elements = {
+      { name="facc_delete_ownerless",  caption={"facc.delete-ownerless"} },
+      { name="facc_convert_inventory", caption={"facc.convert-inventory"} }
+    }
+  },
+  cheats = {
+    label    = {"facc.tab-cheats"},
+    elements = {
+      { name="facc_cheat_mode",            caption={"facc.cheat-mode"},          switch=true },
+      { name="facc_toggle_editor",         caption={"facc.toggle-editor"} },
+      { name="facc_console",               caption={"facc.console"} },
+      { name="facc_unlock_recipes",        caption={"facc.unlock-recipes"} },
+      { name="facc_unlock_technologies",   caption={"facc.unlock-technologies"} },
+      { name="facc_auto_instant_research", caption={"facc.auto-instant-research"}, slider={ name="slider_auto_instant_research", min=1, max=300, default=1 }, switch=true },
+    }
+  },
+  ["circuit-network"] = {
+    label    = {"facc.tab-circuit-network"},
+    elements = {
+      -- { name="facc_circuit_network", caption={"facc.coming-soon"} },
+    }
+  },
+  combat = {
+    label    = {"facc.tab-combat"},
+    elements = {
+      { name="facc_disable_friendly_fire", caption={"facc.disable-friendly-fire"}, switch=true },
+      { name="facc_indestructible_builds", caption={"facc.indestructible-builds"}, switch=true },
+      { name="facc_peaceful_mode",         caption={"facc.peaceful-mode"},       switch=true },
+      { name="facc_ammo_turrets",          caption={"facc.ammo-turrets"} }
+    }
+  },
+  enemies = {
+    label    = {"facc.tab-enemies"},
+    elements = {
+      { name="facc_enemy_expansion", caption={"facc.enemy-expansion"}, switch=true },
+      { name="facc_remove_nests",    caption={"facc.remove-nests"},
+        slider={ name="slider_remove_nests", min=1, max=150, default=50 } }
+    }
+  },
+  environment = {
+    label    = {"facc.tab-environment"},
+    elements = {
+      { name="facc_always_day",        caption={"facc.always-day"},       switch=true },
+      { name="facc_disable_pollution", caption={"facc.disable-pollution"}, switch=true },
+      { name="facc_remove_pollution",   caption={"facc.remove-pollution"} },
+      { name="facc_repair_rebuild",        caption={"facc.repair-rebuild"} },
+      { name="facc_increase_resources",caption={"facc.increase-resources"} },
+      { name="facc_hide_map",          caption={"facc.hide-map"} },
+      { name="facc_reveal_map",        caption={"facc.reveal-map"},
+      { name="facc_remove_decon",      caption={"facc.remove-decon"} },
+      { name="facc_auto_clean_pollution",  caption={"facc.auto-clean-pollution"}, slider ={ name="slider_auto_clean_pollution", min=1, max=300, default=1 }, switch=true },
+        slider={ name="slider_reveal_map", min=1, max=150, default=150 } },
+      { name="facc_remove_cliffs",     caption={"facc.remove-cliffs"},
+        slider={ name="slider_remove_cliffs", min=1, max=150, default=50 } }
+    }
+  },
+  mining = {
+    label    = {"facc.tab-mining"},
+    elements = {
+      { name="facc_toggle_minable", caption={"facc.toggle-minable"}, switch=true }
+    }
+  },
+  planets = {
+    label    = {"facc.tab-planets"},
+    elements = {
+      -- { name="facc_planets", caption={"facc.coming-soon"} }
+    }
+  },
+  power = {
+    label    = {"facc.tab-power"},
+    elements = {
+      { name="facc_recharge_energy", caption={"facc.recharge-energy"} }
+    }
+  },
+  storage = {
+    label    = {"facc.tab-storage"},
+    elements = {
+      -- { name="facc_storage", caption={"facc.coming-soon"} }
+    }
+  },
+  trains = {
+    label    = {"facc.tab-trains"},
+    elements = {
+      -- { name="facc_trains", caption={"facc.coming-soon"} }
+    }
+  },
+  transportation = {
+    label    = {"facc.tab-transportation"},
+    elements = {
+      { name="facc_set_platform_distance", caption={"facc.platform-distance"},
+        slider={ name="slider_platform_distance", min=0.0, max=1.0, default=0.99 } }
+    }
+  }
+}
+
+--------------------------------------------------------------------------------
+-- Persistent state schema (with version‐mismatch check)
 --------------------------------------------------------------------------------
 function M.ensure_persistent_state()
   storage.facc_gui_state = storage.facc_gui_state or {}
   local s = storage.facc_gui_state
-  s.tab      = s.tab      or "essentials"
+  -- if old save's tab no longer exists, reset to "armor"
+  if not (s.tab and TABS[s.tab]) then
+    s.tab = "armor"
+  end
   s.sliders  = s.sliders  or {}
   s.switches = s.switches or {}
   s.is_open  = s.is_open  or false
@@ -55,28 +201,21 @@ local function is_feature_enabled(name)
 end
 
 --------------------------------------------------------------------------------
--- UI layout constants
---------------------------------------------------------------------------------
-local SPACING = 12
-
---------------------------------------------------------------------------------
--- Helper: add a row of controls with label, slider, and switch/button
+-- Helper: render a function block (label/slider/switch/button)
 --------------------------------------------------------------------------------
 local function add_function_block(parent, elem)
   local enabled = is_feature_enabled(elem.name)
-
-  local row = parent.add{ type = "flow", direction = "horizontal" }
+  local row     = parent.add{ type="flow", direction="horizontal" }
   row.style.horizontal_spacing = SPACING
   row.style.vertical_align    = "center"
 
-  -- Left side: label and optional slider
-  local left = row.add{ type = "flow", direction = "vertical" }
+  local left = row.add{ type="flow", direction="vertical" }
   left.style.vertical_spacing         = SPACING
   left.style.horizontally_stretchable = true
-  left.add{ type = "label", caption = elem.caption }
+  left.add{ type="label", caption = elem.caption }
 
   if elem.slider then
-    local sf = left.add{ type = "flow", direction = "horizontal" }
+    local sf = left.add{ type="flow", direction="horizontal" }
     sf.style.horizontal_spacing = SPACING
     sf.style.vertical_align    = "center"
 
@@ -104,8 +243,7 @@ local function add_function_block(parent, elem)
     box.enabled = enabled
   end
 
-  -- Right side: switch or confirm button
-  local right = row.add{ type = "flow", direction = "horizontal" }
+  local right = row.add{ type="flow", direction="horizontal" }
   right.style.horizontal_align = "right"
   if elem.switch then
     local state = storage.facc_gui_state.switches[elem.name] and "right" or "left"
@@ -130,104 +268,6 @@ local function add_function_block(parent, elem)
 end
 
 --------------------------------------------------------------------------------
--- Tab definitions
---------------------------------------------------------------------------------
-local TAB_ORDER = {
-  "essentials", "switchers", "automation", "character",
-  "blueprint",   "map",        "misc",       "unlocks"
-}
-
-local TABS = {
-  essentials = {
-    label    = {"facc.tab-essentials"},
-    elements = {
-      { name="facc_toggle_editor", caption={"facc.toggle-editor"} },
-      { name="facc_console",       caption={"facc.console"} }
-    }
-  },
-  switchers = {
-    label    = {"facc.tab-switchers"},
-    elements = {
-      { name="facc_indestructible_builds", caption={"facc.indestructible-builds"}, switch=true },
-      { name="facc_cheat_mode",            caption={"facc.cheat-mode"},          switch=true },
-      { name="facc_always_day",            caption={"facc.always-day"},          switch=true },
-      { name="facc_disable_pollution",     caption={"facc.disable-pollution"},   switch=true },
-      { name="facc_disable_friendly_fire", caption={"facc.disable-friendly-fire"},switch=true },
-      { name="facc_peaceful_mode",         caption={"facc.peaceful-mode"},       switch=true },
-      { name="facc_enemy_expansion",       caption={"facc.enemy-expansion"},     switch=true },
-      { name="facc_toggle_minable",        caption={"facc.toggle-minable"},      switch=true }
-    }
-  },
-  automation = {
-    label    = {"facc.tab-automation"},
-    elements = {
-      {
-        name   = "facc_auto_clean_pollution",
-        caption= {"facc.auto-clean-pollution"},
-        slider ={ name="slider_auto_clean_pollution", min=1, max=300, default=1 },
-        switch = true
-      },
-      {
-        name   = "facc_auto_instant_research",
-        caption= {"facc.auto-instant-research"},
-        slider ={ name="slider_auto_instant_research", min=1, max=300, default=1 },
-        switch = true
-      }
-    }
-  },
-  character = {
-    label    = {"facc.tab-character"},
-    elements = {
-      { name="facc_delete_ownerless", caption={"facc.delete-ownerless"} }
-    }
-  },
-  blueprint = {
-    label    = {"facc.tab-blueprint"},
-    elements = {
-      { name="facc_build_all_ghosts", caption={"facc.build-all-ghosts"} }
-    }
-  },
-  map = {
-    label    = {"facc.tab-map"},
-    elements = {
-      { name="facc_remove_cliffs",    caption={"facc.remove-cliffs"},   slider={ name="slider_remove_cliffs", min=1, max=150, default=50 } },
-      { name="facc_remove_nests",     caption={"facc.remove-nests"},    slider={ name="slider_remove_nests",  min=1, max=150, default=50 } },
-      { name="facc_reveal_map",       caption={"facc.reveal-map"},      slider={ name="slider_reveal_map",    min=1, max=150, default=150 } },
-      { name="facc_hide_map",         caption={"facc.hide-map"} },
-      { name="facc_remove_decon",     caption={"facc.remove-decon"} },
-      { name="facc_remove_pollution", caption={"facc.remove-pollution"} }
-    }
-  },
-  misc = {
-    label    = {"facc.tab-misc"},
-    elements = {
-      { name="facc_repair_rebuild",     caption={"facc.repair-rebuild"} },
-      { name="facc_recharge_energy",    caption={"facc.recharge-energy"} },
-      { name="facc_ammo_turrets",       caption={"facc.ammo-turrets"} },
-      { name="facc_increase_resources", caption={"facc.increase-resources"} },
-      {
-        name   = "facc_set_platform_distance",
-        caption= {"facc.platform-distance"},
-        slider ={ name="slider_platform_distance", min=0.0, max=1.0, default=0.99 }
-      }
-    }
-  },
-  unlocks = {
-    label    = {"facc.tab-unlocks"},
-    elements = {
-      { name="facc_unlock_recipes",      caption={"facc.unlock-recipes"} },
-      { name="facc_unlock_technologies", caption={"facc.unlock-technologies"} }
-    }
-  }
-}
-
--- always-visible (but greyed) quality/space-age entries
-table.insert(TABS.character.elements, { name="facc_convert_inventory",      caption={"facc.convert-inventory"} })
-table.insert(TABS.character.elements, { name="facc_create_legendary_armor", caption={"facc.create-legendary-armor"} })
-table.insert(TABS.blueprint.elements,  { name="facc_upgrade_blueprints",    caption={"facc.upgrade-blueprints"} })
-table.insert(TABS.map.elements,        { name="facc_convert_to_legendary",  caption={"facc.convert-to-legendary"}, slider={name="slider_convert_to_legendary", min=1, max=150, default=75} })
-
---------------------------------------------------------------------------------
 -- Build & display the GUI
 --------------------------------------------------------------------------------
 local function open_gui(player)
@@ -237,11 +277,13 @@ local function open_gui(player)
   end
   M.ensure_persistent_state()
 
+  -- destroy existing
   if player.gui.screen["facc_main_frame"] then
     player.gui.screen["facc_main_frame"].destroy()
   end
 
-  local frame = player.gui.screen.add{ type="frame", name="facc_main_frame", caption="", direction="vertical" }
+  -- main frame
+  local frame = player.gui.screen.add{ type="frame", name="facc_main_frame", direction="vertical" }
   frame.auto_center = true
 
   -- title bar
@@ -257,7 +299,7 @@ local function open_gui(player)
   spacer.drag_target = frame
   tf.add{ type="sprite-button", name="facc_close_main_gui", sprite="utility/close", style="frame_action_button", tooltip={"facc.close-menu"} }
 
-  -- body: sidebar + content
+  -- sidebar + content
   local container = frame.add{ type="flow", direction="horizontal" }
   container.style.horizontal_spacing = SPACING
 
@@ -276,15 +318,20 @@ local function open_gui(player)
   local list = menu_scroll.add{ type="list-box", name="facc_menu_list" }
   list.style.horizontally_stretchable = true
   list.style.minimal_width            = 180
-  for _, key in ipairs(TAB_ORDER) do list.add_item(TABS[key].label) end
+  for _, key in ipairs(TAB_ORDER) do
+    list.add_item(TABS[key].label)
+  end
   for i, key in ipairs(TAB_ORDER) do
-    if key == storage.facc_gui_state.tab then list.selected_index = i break end
+    if key == storage.facc_gui_state.tab then
+      list.selected_index = i
+      break
+    end
   end
 
-  -- content area (fixed: now has a name)
+  -- content
   local content_outer = container.add{
     type      = "frame",
-    name      = "facc_content_outer",       -- <— aqui!
+    name      = "facc_content_outer",
     style     = "inside_shallow_frame",
     direction = "vertical"
   }
@@ -292,7 +339,7 @@ local function open_gui(player)
   content_outer.style.minimal_width           = 600
   content_outer.style.minimal_height          = 400
 
-  -- subheader (must match handler lookup)
+  -- subheader
   local subheader_frame = content_outer.add{
     type      = "frame",
     name      = "facc_subheader_frame",
@@ -307,6 +354,7 @@ local function open_gui(player)
     style   = "heading_2_label"
   }
 
+  -- content pane
   local content_pane = content_outer.add{ type="scroll-pane", name="facc_content_pane", direction="vertical" }
   content_pane.horizontal_scroll_policy      = "never"
   content_pane.vertical_scroll_policy        = "auto"
@@ -319,7 +367,9 @@ local function open_gui(player)
     local sec = content_pane.add{ type="flow", name="facc_content_"..key, direction="vertical" }
     sec.visible = (key == storage.facc_gui_state.tab)
     sec.style.vertical_spacing = SPACING
-    for _, elem in ipairs(TABS[key].elements) do add_function_block(sec, elem) end
+    for _, elem in ipairs(TABS[key].elements) do
+      add_function_block(sec, elem)
+    end
     M.content_frames[key] = sec
   end
 end
@@ -327,7 +377,6 @@ end
 --------------------------------------------------------------------------------
 -- Event Handlers
 --------------------------------------------------------------------------------
-
 script.on_event(defines.events.on_gui_selection_state_changed, function(e)
   if not (e.element and e.element.valid and e.element.name == "facc_menu_list") then return end
   local player = game.get_player(e.player_index)
@@ -343,12 +392,20 @@ script.on_event(defines.events.on_gui_selection_state_changed, function(e)
     frm.visible = (k == new_tab)
   end
 
-  -- update subheader immediately
+  -- update subheader safely
   local main = player.gui.screen["facc_main_frame"]
   if main then
-    local outer = main.children[2] and main.children[2]["facc_content_outer"]
-    local hdr  = outer and outer["facc_subheader_frame"] and outer["facc_subheader_frame"]["facc_subheader_label"]
-    if hdr then hdr.caption = TABS[new_tab].label end
+    local container = main.children[2]
+    if container then
+      local outer = container["facc_content_outer"]
+      if outer then
+        local sub = outer["facc_subheader_frame"]
+        if sub then
+          local lbl = sub["facc_subheader_label"]
+          if lbl then lbl.caption = TABS[new_tab].label end
+        end
+      end
+    end
   end
 end)
 
@@ -388,8 +445,9 @@ function M.toggle_main_gui(player)
   M.ensure_persistent_state()
   local frame = player.gui.screen["facc_main_frame"]
   if frame then
-    local outer = frame.children[2] and frame.children[2]["facc_content_outer"]
-    local pane  = outer and outer["facc_content_pane"]
+    local container = frame.children[2]
+    local outer     = container and container["facc_content_outer"]
+    local pane      = outer and outer["facc_content_pane"]
     if pane then save_all_sliders(pane) end
     frame.destroy()
     storage.facc_gui_state.is_open = false

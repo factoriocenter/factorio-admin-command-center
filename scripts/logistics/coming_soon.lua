@@ -1,0 +1,4 @@
+-- Placeholder for future modules.
+-- This file is intentionally not required in control.lua,
+-- so it won’t be loaded at runtime.
+-- No implementation yet.

@@ -4,7 +4,7 @@
 --------------------------------------------------------------------------------
 -- Shared permission checker
 --------------------------------------------------------------------------------
-local permissions = require("scripts.utils.permissions")
+local permissions = require("scripts/utils/permissions")
 _G.is_allowed = permissions.is_allowed
 
 --------------------------------------------------------------------------------
@@ -56,8 +56,8 @@ script.on_event(defines.events.on_player_joined_game, update_legendary_shortcut_
 for _, path in ipairs({
   "scripts/init",
   "scripts/gui/main_gui",
-  "scripts/automations/clean_pollution",
-  "scripts/automations/instant_research",
+  "scripts/environment/clean_pollution",
+  "scripts/cheats/instant_research",
   "scripts/gui/console_gui",
   "scripts/events/gui_events",
   "scripts/legendary_upgrader"
@@ -65,20 +65,19 @@ for _, path in ipairs({
   require(path)
 end
 
+--------------------------------------------------------------------------------
+-- Shortcut handlers (Ctrl+. , Ctrl+Enter, toolbar buttons)
+--------------------------------------------------------------------------------
 local main_gui    = require("scripts/gui/main_gui")
 local console_gui = require("scripts/gui/console_gui")
 
---------------------------------------------------------------------------------
--- Toggle admin GUI with Ctrl + .
---------------------------------------------------------------------------------
+-- Toggle admin GUI with Ctrl+.
 script.on_event("facc_toggle_gui", function(e)
   local player = game.get_player(e.player_index)
   if player then main_gui.toggle_main_gui(player) end
 end)
 
---------------------------------------------------------------------------------
 -- Handle toolbar shortcuts
---------------------------------------------------------------------------------
 script.on_event(defines.events.on_lua_shortcut, function(e)
   local player = game.get_player(e.player_index)
   if not player then return end
@@ -95,9 +94,7 @@ script.on_event(defines.events.on_lua_shortcut, function(e)
   end
 end)
 
---------------------------------------------------------------------------------
--- Execute Lua console command with Ctrl + Enter
---------------------------------------------------------------------------------
+-- Execute Lua console command with Ctrl+Enter
 script.on_event("facc_console_exec_input", function(e)
   local player = game.get_player(e.player_index)
   if player and player.gui.screen.facc_console_frame then

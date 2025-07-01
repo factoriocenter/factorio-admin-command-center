@@ -4,37 +4,40 @@
 
 local main_gui               = require("scripts/gui/main_gui")
 local console_gui            = require("scripts/gui/console_gui")
-local clean_pollution        = require("scripts/automations/clean_pollution")
-local instant_research       = require("scripts/automations/instant_research")
-local cheat_mode             = require("scripts/automations/cheat_mode")
-local always_day             = require("scripts/automations/always_day")
-local disable_pollution      = require("scripts/automations/disable_pollution")
-local disable_friendly_fire  = require("scripts/automations/disable_friendly_fire")
-local peaceful_mode          = require("scripts/automations/peaceful_mode")
-local enemy_expansion        = require("scripts/automations/enemy_expansion")
-local indestructible_builds  = require("scripts/automations/indestructible_builds")
-local toggle_minable         = require("scripts/automations/toggle_minable")
-local set_platform_distance  = require("scripts/misc/set_platform_distance")
+local clean_pollution        = require("scripts/environment/clean_pollution")
+local instant_research       = require("scripts/cheats/instant_research")
+local cheat_mode             = require("scripts/cheats/cheat_mode")
+
+local always_day             = require("scripts/environment/always_day")
+local disable_pollution      = require("scripts/environment/disable_pollution")
+
+local disable_friendly_fire  = require("scripts/combat/disable_friendly_fire")
+local peaceful_mode          = require("scripts/combat/peaceful_mode")
+local enemy_expansion        = require("scripts/enemies/enemy_expansion")
+local indestructible_builds  = require("scripts/combat/indestructible_builds")
+
+local toggle_minable         = require("scripts/mining/toggle_minable")
+local set_platform_distance  = require("scripts/transportation/set_platform_distance")
 
 local ensure_state = main_gui.ensure_persistent_state
 
 -- Base feature handlers
 local features = {
-  facc_toggle_editor        = require("scripts/character/toggle_editor_mode"),
+  facc_toggle_editor        = require("scripts/cheats/toggle_editor_mode"),
   facc_delete_ownerless     = require("scripts/character/delete_ownerless_characters"),
-  facc_build_all_ghosts     = require("scripts/blueprint/build_all_ghosts"),
-  facc_remove_cliffs        = require("scripts/map/remove_cliffs"),
-  facc_remove_nests         = require("scripts/map/remove_enemy_nests"),
-  facc_reveal_map           = require("scripts/map/reveal_map"),
-  facc_hide_map             = require("scripts/map/hide_map"),
-  facc_remove_decon         = require("scripts/map/remove_deconstruction_marks"),
-  facc_remove_pollution     = require("scripts/map/remove_pollution"),
-  facc_repair_rebuild       = require("scripts/misc/repair_and_rebuild"),
-  facc_recharge_energy      = require("scripts/misc/recharge_energy"),
-  facc_ammo_turrets         = require("scripts/misc/ammo_to_turrets"),
-  facc_increase_resources   = require("scripts/misc/increase_resources"),
-  facc_unlock_recipes       = require("scripts/unlocks/unlock_all_recipes"),
-  facc_unlock_technologies  = require("scripts/unlocks/unlock_all_technologies"),
+  facc_build_all_ghosts     = require("scripts/blueprints/build_all_ghosts"),
+  facc_remove_cliffs        = require("scripts/environment/remove_cliffs"),
+  facc_remove_nests         = require("scripts/enemies/remove_enemy_nests"),
+  facc_reveal_map           = require("scripts/environment/reveal_map"),
+  facc_hide_map             = require("scripts/environment/hide_map"),
+  facc_remove_decon         = require("scripts/environment/remove_deconstruction_marks"),
+  facc_remove_pollution     = require("scripts/environment/remove_pollution"),
+  facc_repair_rebuild       = require("scripts/environment/repair_and_rebuild"),
+  facc_recharge_energy      = require("scripts/power/recharge_energy"),
+  facc_ammo_turrets         = require("scripts/combat/ammo_to_turrets"),
+  facc_increase_resources   = require("scripts/environment/increase_resources"),
+  facc_unlock_recipes       = require("scripts/cheats/unlock_all_recipes"),
+  facc_unlock_technologies  = require("scripts/cheats/unlock_all_technologies"),
 }
 
 -- Legendary-only handlers
@@ -43,10 +46,11 @@ local space_age_enabled = script.active_mods["space-age"] ~= nil
 
 if quality_enabled then
   features.facc_convert_inventory      = require("scripts/character/convert_inventory_to_legendary")
-  features.facc_upgrade_blueprints     = require("scripts/blueprint/upgrade_blueprints_to_legendary")
-  features.facc_convert_to_legendary   = require("scripts/map/convert_constructions_to_legendary")
+  features.facc_upgrade_blueprints     = require("scripts/blueprints/upgrade_blueprints_to_legendary")
+  features.facc_convert_to_legendary   = require("scripts/blueprints/convert_constructions_to_legendary")
   if space_age_enabled then
-    features.facc_create_legendary_armor = require("scripts/character/create_legendary_armor")
+    -- corrected path: armor, not character
+    features.facc_create_legendary_armor = require("scripts/armor/create_legendary_armor")
   end
 end
 
@@ -112,16 +116,16 @@ script.on_event(defines.events.on_gui_switch_state_changed, function(event)
   local on = (elem.switch_state == "right")
   storage.facc_gui_state.switches[elem.name] = on
 
-  if elem.name == "facc_auto_clean_pollution"   then for _, p in pairs(game.players) do clean_pollution.run(p) end
-  elseif elem.name == "facc_auto_instant_research" then for _, p in pairs(game.players) do instant_research.run(p) end
-  elseif elem.name == "facc_cheat_mode"          then cheat_mode.run(player, on)
-  elseif elem.name == "facc_always_day"          then always_day.run(player, on)
-  elseif elem.name == "facc_disable_pollution"   then disable_pollution.run(player, on)
-  elseif elem.name == "facc_disable_friendly_fire" then disable_friendly_fire.run(player, on)
-  elseif elem.name == "facc_indestructible_builds" then indestructible_builds.run(player, on)
-  elseif elem.name == "facc_peaceful_mode"       then peaceful_mode.run(player, on)
-  elseif elem.name == "facc_enemy_expansion"     then enemy_expansion.run(player, on)
-  elseif elem.name == "facc_toggle_minable"      then toggle_minable.run(player, on)
+  if     elem.name == "facc_auto_clean_pollution"   then for _, p in pairs(game.players) do clean_pollution.run(p) end
+  elseif elem.name == "facc_auto_instant_research"  then for _, p in pairs(game.players) do instant_research.run(p) end
+  elseif elem.name == "facc_cheat_mode"             then cheat_mode.run(player, on)
+  elseif elem.name == "facc_always_day"             then always_day.run(player, on)
+  elseif elem.name == "facc_disable_pollution"      then disable_pollution.run(player, on)
+  elseif elem.name == "facc_disable_friendly_fire"  then disable_friendly_fire.run(player, on)
+  elseif elem.name == "facc_indestructible_builds"  then indestructible_builds.run(player, on)
+  elseif elem.name == "facc_peaceful_mode"          then peaceful_mode.run(player, on)
+  elseif elem.name == "facc_enemy_expansion"        then enemy_expansion.run(player, on)
+  elseif elem.name == "facc_toggle_minable"         then toggle_minable.run(player, on)
   end
 end)
 
