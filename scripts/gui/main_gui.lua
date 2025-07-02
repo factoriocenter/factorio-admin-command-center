@@ -71,6 +71,7 @@ local TABS = {
       { name="facc_console",               caption={"facc.console"} },
       { name="facc_unlock_recipes",        caption={"facc.unlock-recipes"} },
       { name="facc_unlock_technologies",   caption={"facc.unlock-technologies"} },
+      { name="facc_insert_coins",        caption={"facc.insert-coins"} },
       { name="facc_auto_instant_research", caption={"facc.auto-instant-research"}, slider={ name="slider_auto_instant_research", min=1, max=300, default=1 }, switch=true },
     }
   },

@@ -38,6 +38,7 @@ local features = {
   facc_increase_resources   = require("scripts/environment/increase_resources"),
   facc_unlock_recipes       = require("scripts/cheats/unlock_all_recipes"),
   facc_unlock_technologies  = require("scripts/cheats/unlock_all_technologies"),
+  facc_insert_coins         = require("scripts/cheats/insert_coins"),
 }
 
 -- Legendary-only handlers

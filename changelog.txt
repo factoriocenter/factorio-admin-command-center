@@ -1,4 +1,9 @@
 ---------------------------------------------------------------------------------------------------
+Version: 3.1.1
+Date: 2025-07-02
+  Minor Features:
+    - Added a button in the Cheats tab that inserts 100 000 coins into the player’s inventory. Useful for scenarios: Tight spot or Rocket rush
+---------------------------------------------------------------------------------------------------
 Version: 3.1.0
 Date: 2025-07-01
   Major Features:
