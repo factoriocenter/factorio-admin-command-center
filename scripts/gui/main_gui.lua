@@ -30,12 +30,12 @@ local TAB_ORDER = {
   -- "fluids",           -- coming soon
   -- "logistic-network", -- coming soon
   -- "logistics",        -- coming soon
-  -- "manufacturing",    -- coming soon
+  "manufacturing",
   "mining",
-  -- "planets",          -- coming soon
+  "planets",
   "power",
   -- "storage",          -- coming soon
-  -- "trains",           -- coming soon
+  "trains",
   "transportation"
 }
 
@@ -71,8 +71,11 @@ local TABS = {
       { name="facc_console",               caption={"facc.console"} },
       { name="facc_unlock_recipes",        caption={"facc.unlock-recipes"} },
       { name="facc_unlock_technologies",   caption={"facc.unlock-technologies"} },
-      { name="facc_insert_coins",        caption={"facc.insert-coins"} },
-      { name="facc_auto_instant_research", caption={"facc.auto-instant-research"}, slider={ name="slider_auto_instant_research", min=1, max=300, default=1 }, switch=true },
+      { name="facc_insert_coins",          caption={"facc.insert-coins"} },
+      { name="facc_auto_instant_research", caption={"facc.auto-instant-research"},
+        slider={ name="slider_auto_instant_research", min=1, max=300, default=1 }, switch=true },
+      { name="facc_set_game_speed",        caption={"facc.set-game-speed"},
+        slider={ name="slider_set_game_speed", min=1, max=9, default=3 } }
     }
   },
   ["circuit-network"] = {
@@ -103,30 +106,42 @@ local TABS = {
     elements = {
       { name="facc_always_day",        caption={"facc.always-day"},       switch=true },
       { name="facc_disable_pollution", caption={"facc.disable-pollution"}, switch=true },
-      { name="facc_remove_pollution",   caption={"facc.remove-pollution"} },
-      { name="facc_repair_rebuild",        caption={"facc.repair-rebuild"} },
-      { name="facc_increase_resources",caption={"facc.increase-resources"} },
+      { name="facc_remove_pollution",  caption={"facc.remove-pollution"} },
+      { name="facc_repair_rebuild",    caption={"facc.repair-rebuild"} },
       { name="facc_hide_map",          caption={"facc.hide-map"} },
-      { name="facc_reveal_map",        caption={"facc.reveal-map"},
       { name="facc_remove_decon",      caption={"facc.remove-decon"} },
-      { name="facc_auto_clean_pollution",  caption={"facc.auto-clean-pollution"}, slider ={ name="slider_auto_clean_pollution", min=1, max=300, default=1 }, switch=true },
+      { name="facc_remove_ground_items", caption={"facc.remove-ground-items"} },
+      { name="facc_auto_clean_pollution",  caption={"facc.auto-clean-pollution"},
+        slider={ name="slider_auto_clean_pollution", min=1, max=300, default=1 }, switch=true },
+      { name="facc_reveal_map",        caption={"facc.reveal-map"},
         slider={ name="slider_reveal_map", min=1, max=150, default=150 } },
       { name="facc_remove_cliffs",     caption={"facc.remove-cliffs"},
         slider={ name="slider_remove_cliffs", min=1, max=150, default=50 } }
     }
   },
+  manufacturing = {
+    label    = {"facc.tab-manufacturing"},
+    elements = {
+      { name="facc_set_crafting_speed", caption={"facc.set-crafting-speed"},
+        slider={ name="slider_set_crafting_speed", min=0, max=1000, default=0 } }
+    }
+  },
   mining = {
     label    = {"facc.tab-mining"},
     elements = {
-      { name="facc_toggle_minable", caption={"facc.toggle-minable"}, switch=true }
+      { name="facc_toggle_minable",     caption={"facc.toggle-minable"}, switch=true },
+      { name="facc_set_mining_speed",   caption={"facc.set-mining-speed"},
+        slider={ name="slider_set_mining_speed", min=0, max=1000, default=0 } }
     }
   },
   planets = {
     label    = {"facc.tab-planets"},
     elements = {
-      -- { name="facc_planets", caption={"facc.coming-soon"} }
+      { name="facc_increase_resources",caption={"facc.increase-resources"} },
+      { name="facc_generate_planet_surfaces",   caption={"facc.generate-planet-surfaces"} }
     }
   },
+
   power = {
     label    = {"facc.tab-power"},
     elements = {
@@ -142,7 +157,7 @@ local TABS = {
   trains = {
     label    = {"facc.tab-trains"},
     elements = {
-      -- { name="facc_trains", caption={"facc.coming-soon"} }
+      { name="facc_toggle_trains", caption={"facc.trains-auto-mode"}, switch=true }
     }
   },
   transportation = {
@@ -161,9 +176,7 @@ function M.ensure_persistent_state()
   storage.facc_gui_state = storage.facc_gui_state or {}
   local s = storage.facc_gui_state
   -- if old save's tab no longer exists, reset to "armor"
-  if not (s.tab and TABS[s.tab]) then
-    s.tab = "armor"
-  end
+  if not (s.tab and TABS[s.tab]) then s.tab = "armor" end
   s.sliders  = s.sliders  or {}
   s.switches = s.switches or {}
   s.is_open  = s.is_open  or false
@@ -187,9 +200,8 @@ end
 -- Feature enablement checks
 --------------------------------------------------------------------------------
 local function is_feature_enabled(name)
-  if name == "facc_set_platform_distance" then
-    return space_age_enabled
-  end
+  if name == "facc_set_platform_distance" then return space_age_enabled end
+  if name == "facc_generate_planet_surfaces" then return space_age_enabled end
   if name == "facc_create_legendary_armor" then
     return quality_enabled and space_age_enabled
   end
@@ -210,12 +222,14 @@ local function add_function_block(parent, elem)
   row.style.horizontal_spacing = SPACING
   row.style.vertical_align    = "center"
 
+  -- label on the left
   local left = row.add{ type="flow", direction="vertical" }
   left.style.vertical_spacing         = SPACING
   left.style.horizontally_stretchable = true
   left.add{ type="label", caption = elem.caption }
 
   if elem.slider then
+    -- slider + read-only value field
     local sf = left.add{ type="flow", direction="horizontal" }
     sf.style.horizontal_spacing = SPACING
     sf.style.vertical_align    = "center"
@@ -232,21 +246,32 @@ local function add_function_block(parent, elem)
     slider.style.horizontally_stretchable = true
     slider.enabled = enabled
 
-    local box = sf.add{
-      type      = "textfield",
-      name      = elem.slider.name .. "_value",
-      text      = tostring(init),
-      numeric   = true,
-      read_only = true,
-      style     = "short_number_textfield"
-    }
-    box.style.width = 40
-    box.enabled = enabled
+    -- only show value box for non-platform-distance sliders, always read-only
+    if elem.slider.name ~= "slider_platform_distance" then
+      -- determine what to display: for game-speed slider map index → real speed
+      local display_value = init
+      if elem.slider.name == "slider_set_game_speed" then
+        -- index → speed lookup
+        local speeds = {0.25, 0.5, 1, 2, 4, 8, 16, 32, 64}
+        display_value = speeds[init] or speeds[3]  -- fallback to 1 if out of range
+      end
+      local box = sf.add{
+        type      = "textfield",
+        name      = elem.slider.name .. "_value",
+        text      = tostring(display_value),
+        numeric   = true,
+        read_only = true,
+        style     = "short_number_textfield"
+      }
+      box.style.width = 40
+      box.enabled     = false
+    end
   end
 
-  local right = row.add{ type="flow", direction="horizontal" }
-  right.style.horizontal_align = "right"
+  -- right‐aligned controls (switch or confirm button)
   if elem.switch then
+    local right = row.add{ type="flow", direction="horizontal" }
+    right.style.horizontal_align = "right"
     local state = storage.facc_gui_state.switches[elem.name] and "right" or "left"
     local sw = right.add{
       type                = "switch",
@@ -256,15 +281,25 @@ local function add_function_block(parent, elem)
       right_label_caption = {"facc.switch-on"}
     }
     sw.enabled = enabled
+
   else
-    local btn = right.add{
-      type    = "sprite-button",
-      name    = elem.name,
-      sprite  = "utility.confirm_slot",
-      style   = "item_and_count_select_confirm",
-      tooltip = {"facc.confirm-button"}
-    }
-    btn.enabled = enabled
+    -- Only add confirm button for non-live sliders
+    if     elem.name ~= "facc_set_platform_distance"
+       and elem.name ~= "facc_set_game_speed"
+       and elem.name ~= "facc_set_crafting_speed"
+       and elem.name ~= "facc_set_mining_speed"
+    then
+      local right = row.add{ type="flow", direction="horizontal" }
+      right.style.horizontal_align = "right"
+      local btn = right.add{
+        type    = "sprite-button",
+        name    = elem.name,
+        sprite  = "utility.confirm_slot",
+        style   = "item_and_count_select_confirm",
+        tooltip = {"facc.confirm-button"}
+      }
+      btn.enabled = enabled
+    end
   end
 end
 
@@ -416,11 +451,20 @@ script.on_event(defines.events.on_gui_click, function(e)
   end
 end)
 
+-- Update storage and refresh the displayed numeric value when sliders move
 script.on_event(defines.events.on_gui_value_changed, function(e)
   if e.element and e.element.valid and e.element.type == "slider" then
     storage.facc_gui_state.sliders[e.element.name] = e.element.slider_value
     local box = e.element.parent[e.element.name.."_value"]
-    if box and box.valid then box.text = tostring(e.element.slider_value) end
+    if box and box.valid then
+      -- for game-speed slider, map index → actual speed
+      local new_text = e.element.slider_value
+      if e.element.name == "slider_set_game_speed" then
+        local speeds = {0.25, 0.5, 1, 2, 4, 8, 16, 32, 64}
+        new_text = speeds[e.element.slider_value] or speeds[3]
+      end
+      box.text = tostring(new_text)
+    end
   end
 end)
 

@@ -1,4 +1,21 @@
 ---------------------------------------------------------------------------------------------------
+Version: 3.2.0
+Date: 2025-07-10
+  Features:
+    - Added option to remove ground items.
+    - Added option to toggle trains between automatic and manual mode.
+    - Added option to adjust game speed in real time.
+    - Added option to adjust mining speed in real time.
+    - Added option to adjust crafting speed in real time.
+  Gui:
+    - Made the platform distance slider more interactive and immersive with a drag-and-drop interface.
+    - Standardized the new speed controls (game, mining, crafting) as live sliders without confirm buttons.
+    - New live sliders for game speed, mining speed, and crafting speed.
+  Translation:
+    - Added translations for all new functionalities.
+  Bugfixes:
+    - Fixed an issue where some legacy feature buttons were not displaying in the GUI.
+---------------------------------------------------------------------------------------------------
 Version: 3.1.1
 Date: 2025-07-02
   Minor Features:

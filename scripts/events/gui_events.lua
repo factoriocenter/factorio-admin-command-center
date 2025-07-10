@@ -19,6 +19,13 @@ local indestructible_builds  = require("scripts/combat/indestructible_builds")
 local toggle_minable         = require("scripts/mining/toggle_minable")
 local set_platform_distance  = require("scripts/transportation/set_platform_distance")
 
+local toggle_trains          = require("scripts/trains/toggle_trains")
+
+-- new auto-run slider handlers
+local set_game_speed         = require("scripts/cheats/set_game_speed")
+local set_crafting_speed     = require("scripts/manufacturing/set_crafting_speed")
+local set_mining_speed       = require("scripts/mining/set_mining_speed")
+
 local ensure_state = main_gui.ensure_persistent_state
 
 -- Base feature handlers
@@ -35,10 +42,12 @@ local features = {
   facc_repair_rebuild       = require("scripts/environment/repair_and_rebuild"),
   facc_recharge_energy      = require("scripts/power/recharge_energy"),
   facc_ammo_turrets         = require("scripts/combat/ammo_to_turrets"),
-  facc_increase_resources   = require("scripts/environment/increase_resources"),
+  facc_increase_resources   = require("scripts/planets/increase_resources"),
   facc_unlock_recipes       = require("scripts/cheats/unlock_all_recipes"),
   facc_unlock_technologies  = require("scripts/cheats/unlock_all_technologies"),
   facc_insert_coins         = require("scripts/cheats/insert_coins"),
+  facc_remove_ground_items  = require("scripts/environment/remove_ground_items"),
+  facc_generate_planet_surfaces = require("scripts/planets/generate_planet_surfaces")
 }
 
 -- Legendary-only handlers
@@ -46,11 +55,10 @@ local quality_enabled   = script.active_mods["quality"]    ~= nil
 local space_age_enabled = script.active_mods["space-age"] ~= nil
 
 if quality_enabled then
-  features.facc_convert_inventory      = require("scripts/character/convert_inventory_to_legendary")
-  features.facc_upgrade_blueprints     = require("scripts/blueprints/upgrade_blueprints_to_legendary")
-  features.facc_convert_to_legendary   = require("scripts/blueprints/convert_constructions_to_legendary")
+  features.facc_convert_inventory    = require("scripts/character/convert_inventory_to_legendary")
+  features.facc_upgrade_blueprints   = require("scripts/blueprints/upgrade_blueprints_to_legendary")
+  features.facc_convert_to_legendary = require("scripts/blueprints/convert_constructions_to_legendary")
   if space_age_enabled then
-    -- corrected path: armor, not character
     features.facc_create_legendary_armor = require("scripts/armor/create_legendary_armor")
   end
 end
@@ -63,8 +71,7 @@ script.on_event(defines.events.on_gui_click, function(event)
 
   -- Toggle main GUI
   if name == "facc_main_button" or name == "facc_close_main_gui" then
-    main_gui.toggle_main_gui(player)
-    return
+    main_gui.toggle_main_gui(player); return
   end
 
   -- Console controls
@@ -82,10 +89,8 @@ script.on_event(defines.events.on_gui_click, function(event)
     if name == "facc_reveal_map"           then radius = sliders["slider_reveal_map"] or 150 end
     if name == "facc_convert_to_legendary" then radius = sliders["slider_convert_to_legendary"] or 75 end
 
-    if radius then
-      handler.run(player, radius)
-    else
-      handler.run(player)
+    if radius then handler.run(player, radius)
+    else           handler.run(player)
     end
     return
   end
@@ -98,14 +103,27 @@ script.on_event(defines.events.on_gui_click, function(event)
   end
 end)
 
--- Slider change handler
+-- Slider change handler (auto-run for the four live sliders)
 script.on_event(defines.events.on_gui_value_changed, function(event)
   local elem = event.element
   if not (elem and elem.valid and elem.type == "slider") then return end
   ensure_state()
+  storage.facc_gui_state.sliders[elem.name] = elem.slider_value
   local box = elem.parent[elem.name .. "_value"]
   if box and box.valid then box.text = tostring(elem.slider_value) end
-  storage.facc_gui_state.sliders[elem.name] = elem.slider_value
+
+  local player = game.get_player(event.player_index)
+  if elem.name == "slider_set_game_speed" then
+    local speeds = {0.25, 0.5, 1, 2, 4, 8, 16, 32, 64}
+    local idx = math.floor(elem.slider_value)
+    local speed = speeds[idx] or 1
+    set_game_speed.run(player, speed)
+    local box = elem.parent[elem.name .. "_value"]
+      if box and box.valid then box.text = tostring(speed) end
+  elseif elem.name == "slider_set_crafting_speed" then set_crafting_speed.run(player, elem.slider_value)
+  elseif elem.name == "slider_set_mining_speed"   then set_mining_speed.run(player, elem.slider_value)
+  elseif elem.name == "slider_platform_distance"  then set_platform_distance.run(player, elem.slider_value)
+  end
 end)
 
 -- Switch toggle handler
@@ -117,8 +135,8 @@ script.on_event(defines.events.on_gui_switch_state_changed, function(event)
   local on = (elem.switch_state == "right")
   storage.facc_gui_state.switches[elem.name] = on
 
-  if     elem.name == "facc_auto_clean_pollution"   then for _, p in pairs(game.players) do clean_pollution.run(p) end
-  elseif elem.name == "facc_auto_instant_research"  then for _, p in pairs(game.players) do instant_research.run(p) end
+  if     elem.name == "facc_auto_clean_pollution"   then for _,p in pairs(game.players) do clean_pollution.run(p) end
+  elseif elem.name == "facc_auto_instant_research"  then for _,p in pairs(game.players) do instant_research.run(p) end
   elseif elem.name == "facc_cheat_mode"             then cheat_mode.run(player, on)
   elseif elem.name == "facc_always_day"             then always_day.run(player, on)
   elseif elem.name == "facc_disable_pollution"      then disable_pollution.run(player, on)
@@ -127,6 +145,7 @@ script.on_event(defines.events.on_gui_switch_state_changed, function(event)
   elseif elem.name == "facc_peaceful_mode"          then peaceful_mode.run(player, on)
   elseif elem.name == "facc_enemy_expansion"        then enemy_expansion.run(player, on)
   elseif elem.name == "facc_toggle_minable"         then toggle_minable.run(player, on)
+  elseif elem.name == "facc_toggle_trains"          then toggle_trains.run(player, on)
   end
 end)
 
@@ -137,13 +156,13 @@ script.on_event(defines.events.on_tick, function(event)
   if s.switches["facc_auto_clean_pollution"] then
     local secs = s.sliders["slider_auto_clean_pollution"] or 60
     if secs >= 1 and (event.tick % (secs * 60) == 0) then
-      for _, p in pairs(game.players) do clean_pollution.run(p) end
+      for _,p in pairs(game.players) do clean_pollution.run(p) end
     end
   end
   if s.switches["facc_auto_instant_research"] then
     local secs = s.sliders["slider_auto_instant_research"] or 1
     if secs >= 1 and (event.tick % (secs * 60) == 0) then
-      for _, p in pairs(game.players) do instant_research.run(p) end
+      for _,p in pairs(game.players) do instant_research.run(p) end
     end
   end
 end)

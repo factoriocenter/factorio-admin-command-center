@@ -57,6 +57,7 @@ for _, path in ipairs({
   "scripts/init",
   "scripts/gui/main_gui",
   "scripts/environment/clean_pollution",
+  "scripts/environment/remove_ground_items",
   "scripts/cheats/instant_research",
   "scripts/gui/console_gui",
   "scripts/events/gui_events",
