@@ -372,8 +372,8 @@ local function open_gui(player)
     direction = "vertical"
   }
   content_outer.style.horizontally_stretchable = true
-  content_outer.style.minimal_width           = 600
-  content_outer.style.minimal_height          = 400
+  content_outer.style.minimal_width           = 800
+  content_outer.style.minimal_height          = 600
 
   -- subheader
   local subheader_frame = content_outer.add{
