@@ -1,39 +1,32 @@
 -- scripts/combat/ammo_damage_boost.lua
--- Toggle ammo damage cheat: add or remove a flat bonus to various ammo types.
+-- Live slider: adjusts flat ammo damage bonus (0..1000).
+-- Removes previous slider bonus before applying the new one.
 
 local M = {}
+local MAX_BONUS = 1000
+local AMMO_TYPES = {
+  "shotgun-shell", "cannon-shell", "artillery-shell", "rocket",
+  "bullet", "railgun", "tesla", "laser", "grenade", "flamethrower", "capsule"
+}
 
--- Flat bonus to be added/subtracted
-local AMMO_CHEAT_BONUS = 1000
-
---- Toggles a flat damage bonus for a set of ammo types.
+--- Applies a new ammo damage bonus based on slider movement.
 -- @param player LuaPlayer – the invoking player
--- @param enabled boolean – true to add bonus, false to remove it
-function M.run(player, enabled)
+-- @param old number       – the previous slider value
+-- @param new number       – the new slider value
+function M.apply(player, old, new)
   if not is_allowed(player) then
     player.print({"facc.not-allowed"})
     return
   end
 
+  -- Clamp slider value
+  local bonus = math.max(0, math.min(new, MAX_BONUS))
+
   local force = player.force
-  local ammo_types = {
-    "shotgun-shell", "cannon-shell", "artillery-shell", "rocket",
-    "bullet", "railgun", "tesla", "laser", "grenade", "flamethrower", "capsule"
-  }
-
-  for _, name in ipairs(ammo_types) do
-    local current = force.get_ammo_damage_modifier(name) or 0
-    if enabled then
-      force.set_ammo_damage_modifier(name, current + AMMO_CHEAT_BONUS)
-    else
-      force.set_ammo_damage_modifier(name, current - AMMO_CHEAT_BONUS)
-    end
-  end
-
-  if enabled then
-    player.print({"facc.ammo-damage-boost-activated"})
-  else
-    player.print({"facc.ammo-damage-boost-deactivated"})
+  for _, ammo in ipairs(AMMO_TYPES) do
+    local current = force.get_ammo_damage_modifier(ammo) or 0
+    -- remove old, apply new
+    force.set_ammo_damage_modifier(ammo, current - old + bonus)
   end
 end
 

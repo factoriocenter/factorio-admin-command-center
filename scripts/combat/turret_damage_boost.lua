@@ -1,44 +1,32 @@
--- scripts/combat/turret_attack_boost.lua
--- Toggle turret attack bonus: add or remove a flat bonus to turret attack modifiers.
+-- scripts/combat/turret_damage_boost.lua
+-- Live slider: adjusts flat turret attack bonus (0..1000).
+-- Removes previous slider bonus before applying the new one.
 
 local M = {}
+local MAX_BONUS = 1000
+local TURRET_TYPES = {
+  "gun-turret", "laser-turret", "flamethrower-turret",
+  "artillery-turret", "rocket-turret", "tesla-turret", "railgun-turret"
+}
 
--- Flat bonus to be added/subtracted
-local TURRET_CHEAT_BONUS = 1000
-
---- Toggles a flat attack bonus on a set of turret types.
+--- Applies a new turret attack bonus based on slider movement.
 -- @param player LuaPlayer – the invoking player
--- @param enabled boolean – true to apply bonus, false to remove it
-function M.run(player, enabled)
+-- @param old number       – the previous slider value
+-- @param new number       – the new slider value
+function M.apply(player, old, new)
   if not is_allowed(player) then
     player.print({"facc.not-allowed"})
     return
   end
 
+  -- Clamp slider value
+  local bonus = math.max(0, math.min(new, MAX_BONUS))
+
   local force = player.force
-  local turret_types = {
-    "gun-turret",
-    "laser-turret",
-    "flamethrower-turret",
-    "artillery-turret",
-    "rocket-turret",
-    "tesla-turret",
-    "railgun-turret"
-  }
-
-  for _, name in ipairs(turret_types) do
-    local current = force.get_turret_attack_modifier(name) or 0
-    if enabled then
-      force.set_turret_attack_modifier(name, current + TURRET_CHEAT_BONUS)
-    else
-      force.set_turret_attack_modifier(name, current - TURRET_CHEAT_BONUS)
-    end
-  end
-
-  if enabled then
-    player.print({"facc.turret-damage-boost-activated"})
-  else
-    player.print({"facc.turret-damage-boost-deactivated"})
+  for _, turret in ipairs(TURRET_TYPES) do
+    local current = force.get_turret_attack_modifier(turret) or 0
+    -- remove old, apply new
+    force.set_turret_attack_modifier(turret, current - old + bonus)
   end
 end
 

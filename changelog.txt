@@ -1,4 +1,14 @@
 ---------------------------------------------------------------------------------------------------
+Version: 3.3.1
+Date: 2025-07-17
+  Gui:
+    - Converted Robot Speed from switch to slider.
+    - Converted Long Reach from switch to slider.
+    - Converted Ammo Damage Boost from switch to slider.
+    - Converted Turret Damage Boost from switch to slider.
+  Bugfixes:
+    - Fixed slides bug caused by other mods.
+---------------------------------------------------------------------------------------------------
 Version: 3.3.0
 Date: 2025-07-17
   Features:

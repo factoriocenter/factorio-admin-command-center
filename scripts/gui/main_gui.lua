@@ -23,18 +23,14 @@ local TAB_ORDER = {
   "armor",
   "blueprints",
   "character",
-  -- "circuit-network",  -- coming soon
   "combat",
   "enemies",
   "environment",
-  -- "fluids",           -- coming soon
   "logistic-network",
-  -- "logistics",        -- coming soon
   "manufacturing",
   "mining",
   "planets",
   "power",
-  -- "storage",          -- coming soon
   "trains",
   "transportation"
 }
@@ -50,7 +46,6 @@ local TABS = {
     label    = {"facc.tab-blueprints"},
     elements = {
       { name="facc_build_all_ghosts",     caption={"facc.build-all-ghosts"} },
-      -- { name="facc_build_ghost_blueprints",     caption={"facc.build-ghost-blueprints"} },
       { name="facc_upgrade_blueprints",   caption={"facc.upgrade-blueprints"} },
       { name="facc_convert_to_legendary", caption={"facc.convert-to-legendary"},
         slider={ name="slider_convert_to_legendary", min=1, max=150, default=75 } }
@@ -59,11 +54,11 @@ local TABS = {
   character = {
     label    = {"facc.tab-character"},
     elements = {
-      { name="facc_long_reach",        caption={"facc.long-reach"}, switch=true },
       { name="facc_delete_ownerless",  caption={"facc.delete-ownerless"} },
       { name="facc_convert_inventory", caption={"facc.convert-inventory"} },
       { name="facc_run_faster",        caption={"facc.run-faster"},
-        slider={ name="slider_run_faster", min=0, max=10, default=0 } }
+        slider={ name="slider_run_faster", min=0, max=10, default=0 } },
+      { name="facc_long_reach",        caption={"facc.long-reach"}, slider={ name="slider_long_reach", min=0, max=100, default=0 } },
     }
   },
   cheats = {
@@ -81,21 +76,15 @@ local TABS = {
         slider={ name="slider_set_game_speed", min=1, max=9, default=3 } }
     }
   },
-  ["circuit-network"] = {
-    label    = {"facc.tab-circuit-network"},
-    elements = {
-      -- { name="facc_circuit_network", caption={"facc.coming-soon"} },
-    }
-  },
   combat = {
     label    = {"facc.tab-combat"},
     elements = {
       { name="facc_disable_friendly_fire", caption={"facc.disable-friendly-fire"}, switch=true },
       { name="facc_indestructible_builds", caption={"facc.indestructible-builds"}, switch=true },
       { name="facc_peaceful_mode",         caption={"facc.peaceful-mode"},       switch=true },
-      { name="facc_ammo_damage_boost",     caption={"facc.ammo-damage-boost"},    switch=true },
-      { name="facc_turret_damage_boost",   caption={"facc.turret-damage-boost"},     switch=true },
-      { name="facc_ammo_turrets",          caption={"facc.ammo-turrets"} }
+      { name="facc_ammo_turrets",          caption={"facc.ammo-turrets"} },
+      { name="facc_ammo_damage_boost",     caption={"facc.ammo-damage-boost"}, slider={ name="slider_ammo_damage_boost", min=0, max=1000, default=0 } },
+      { name="facc_turret_damage_boost",   caption={"facc.turret-damage-boost"}, slider={ name="slider_turret_damage_boost", min=0, max=1000, default=0 } },
     }
   },
   enemies = {
@@ -125,10 +114,11 @@ local TABS = {
     }
   },
   ["logistic-network"] = {
-      label    = {"facc.tab-logistic-network"},
-      elements = {
-        { name="facc_increase_robot_speed", caption={"facc.increase-robot-speed"}, switch=true },
-        { name="facc_add_robots", caption={"facc.add-robots"} },
+    label    = {"facc.tab-logistic-network"},
+    elements = {
+      { name="facc_add_robots",          caption={"facc.add-robots"} },
+      { name="facc_increase_robot_speed", caption={"facc.increase-robot-speed"},
+        slider={ name="slider_increase_robot_speed", min=0, max=50, default=0 } }
     }
   },
   manufacturing = {
@@ -150,21 +140,14 @@ local TABS = {
     label    = {"facc.tab-planets"},
     elements = {
       { name="facc_increase_resources",caption={"facc.increase-resources"} },
-      { name="facc_generate_planet_surfaces",   caption={"facc.generate-planet-surfaces"} },
-      { name="facc_regenerate_resources",     caption={"facc.regenerate-resources"} }
+      { name="facc_generate_planet_surfaces", caption={"facc.generate-planet-surfaces"} },
+      { name="facc_regenerate_resources",    caption={"facc.regenerate-resources"} }
     }
   },
-
   power = {
     label    = {"facc.tab-power"},
     elements = {
       { name="facc_recharge_energy", caption={"facc.recharge-energy"} }
-    }
-  },
-  storage = {
-    label    = {"facc.tab-storage"},
-    elements = {
-      -- { name="facc_storage", caption={"facc.coming-soon"} }
     }
   },
   trains = {
@@ -299,6 +282,10 @@ local function add_function_block(parent, elem)
       and elem.name ~= "facc_set_crafting_speed"
       and elem.name ~= "facc_set_mining_speed"
       and elem.name ~= "facc_run_faster"
+      and elem.name ~= "facc_increase_robot_speed"
+      and elem.name ~= "facc_long_reach"
+      and elem.name ~= "facc_ammo_damage_boost"
+      and elem.name ~= "facc_turret_damage_boost"
     then
       local right = row.add{ type="flow", direction="horizontal" }
       right.style.horizontal_align = "right"
@@ -468,7 +455,6 @@ script.on_event(defines.events.on_gui_value_changed, function(e)
     storage.facc_gui_state.sliders[e.element.name] = e.element.slider_value
     local box = e.element.parent[e.element.name.."_value"]
     if box and box.valid then
-      -- for game-speed slider, map index → actual speed
       local new_text = e.element.slider_value
       if e.element.name == "slider_set_game_speed" then
         local speeds = {0.25, 0.5, 1, 2, 4, 8, 16, 32, 64}

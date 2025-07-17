@@ -1,39 +1,36 @@
 -- scripts/character/long_reach.lua
--- Toggle “Long Reach” bonuses for the player’s force.
--- Grants or removes extra build/reach/drop distances,
--- always resetting to the default base value when disabled.
+-- Live slider: adjusts character reach/build/drop bonuses (0..100).
+-- Removes previous slider bonus before applying the new one.
 
 local M = {}
+local MAX_BONUS = 100
 
---- Toggles long-reach bonuses.
+--- Applies a new reach bonus based on slider movement.
 -- @param player LuaPlayer – the invoking player
--- @param enabled boolean – true to add bonuses, false to reset to default
-function M.run(player, enabled)
+-- @param old number       – the previous slider value
+-- @param new number       – the new slider value
+function M.apply(player, old, new)
   if not is_allowed(player) then
     player.print({"facc.not-allowed"})
     return
   end
 
-  local default = 0   -- Factorio's built-in default distance bonus
-  local bonus   = 100  -- Your extra reach amount (can be adjusted)
+  -- Clamp slider value
+  local bonus = math.max(0, math.min(new, MAX_BONUS))
 
   local force = player.force
 
-  if enabled then
-    -- set to default + bonus (avoids stacking if toggled multiple times)
-    force.character_build_distance_bonus          = default + bonus
-    force.character_reach_distance_bonus          = default + bonus
-    force.character_resource_reach_distance_bonus = default + bonus
-    force.character_item_drop_distance_bonus      = default + bonus
-    player.print({"facc.long-reach-activated"})
-  else
-    -- always reset back to default, regardless of current value
-    force.character_build_distance_bonus          = default
-    force.character_reach_distance_bonus          = default
-    force.character_resource_reach_distance_bonus = default
-    force.character_item_drop_distance_bonus      = default
-    player.print({"facc.long-reach-deactivated"})
-  end
+  -- Compute base (remove old slider bonus)
+  local base_build     = force.character_build_distance_bonus - old
+  local base_reach     = force.character_reach_distance_bonus - old
+  local base_resource  = force.character_resource_reach_distance_bonus - old
+  local base_drop      = force.character_item_drop_distance_bonus - old
+
+  -- Apply base + new slider bonus
+  force.character_build_distance_bonus          = base_build    + bonus
+  force.character_reach_distance_bonus          = base_reach    + bonus
+  force.character_resource_reach_distance_bonus = base_resource + bonus
+  force.character_item_drop_distance_bonus      = base_drop     + bonus
 end
 
 return M
