@@ -1,4 +1,20 @@
 ---------------------------------------------------------------------------------------------------
+Version: 3.3.0
+Date: 2025-07-17
+  Features:
+    - Added Increase/Restore Turret Damage Strength module.
+    - Added Increase/Restore Ammo Damage Strength module.
+    - Added Increase Reach module.
+    - Added Increase Player Speed module.
+    - Added Reset Resources module.
+    - Added Legendary/Normal Robots module for logistic network.
+    - Added New Armors module for base game, base+quality, and space-age.
+    - Added Increase/Restore Robots Speed module.
+  Gui:
+    - Moved cheats tab to the top for better access.
+  Translation:
+    - Added translation lines for all new modules.
+---------------------------------------------------------------------------------------------------
 Version: 3.2.1
 Date: 2025-07-10
   Gui:

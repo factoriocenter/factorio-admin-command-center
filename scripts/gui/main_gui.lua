@@ -19,16 +19,16 @@ local SPACING = 12
 -- Tab definitions (one per folder/tag)
 --------------------------------------------------------------------------------
 local TAB_ORDER = {
+  "cheats",
   "armor",
   "blueprints",
   "character",
-  "cheats",
   -- "circuit-network",  -- coming soon
   "combat",
   "enemies",
   "environment",
   -- "fluids",           -- coming soon
-  -- "logistic-network", -- coming soon
+  "logistic-network",
   -- "logistics",        -- coming soon
   "manufacturing",
   "mining",
@@ -43,7 +43,7 @@ local TABS = {
   armor = {
     label    = {"facc.tab-armor"},
     elements = {
-      { name="facc_create_legendary_armor", caption={"facc.create-legendary-armor"} }
+      { name="facc_create_full_armor", caption={"facc.create-full-armor"} }
     }
   },
   blueprints = {
@@ -59,8 +59,11 @@ local TABS = {
   character = {
     label    = {"facc.tab-character"},
     elements = {
+      { name="facc_long_reach",        caption={"facc.long-reach"}, switch=true },
       { name="facc_delete_ownerless",  caption={"facc.delete-ownerless"} },
-      { name="facc_convert_inventory", caption={"facc.convert-inventory"} }
+      { name="facc_convert_inventory", caption={"facc.convert-inventory"} },
+      { name="facc_run_faster",        caption={"facc.run-faster"},
+        slider={ name="slider_run_faster", min=0, max=10, default=0 } }
     }
   },
   cheats = {
@@ -90,6 +93,8 @@ local TABS = {
       { name="facc_disable_friendly_fire", caption={"facc.disable-friendly-fire"}, switch=true },
       { name="facc_indestructible_builds", caption={"facc.indestructible-builds"}, switch=true },
       { name="facc_peaceful_mode",         caption={"facc.peaceful-mode"},       switch=true },
+      { name="facc_ammo_damage_boost",     caption={"facc.ammo-damage-boost"},    switch=true },
+      { name="facc_turret_damage_boost",   caption={"facc.turret-damage-boost"},     switch=true },
       { name="facc_ammo_turrets",          caption={"facc.ammo-turrets"} }
     }
   },
@@ -119,6 +124,13 @@ local TABS = {
         slider={ name="slider_remove_cliffs", min=1, max=150, default=50 } }
     }
   },
+  ["logistic-network"] = {
+      label    = {"facc.tab-logistic-network"},
+      elements = {
+        { name="facc_increase_robot_speed", caption={"facc.increase-robot-speed"}, switch=true },
+        { name="facc_add_robots", caption={"facc.add-robots"} },
+    }
+  },
   manufacturing = {
     label    = {"facc.tab-manufacturing"},
     elements = {
@@ -138,7 +150,8 @@ local TABS = {
     label    = {"facc.tab-planets"},
     elements = {
       { name="facc_increase_resources",caption={"facc.increase-resources"} },
-      { name="facc_generate_planet_surfaces",   caption={"facc.generate-planet-surfaces"} }
+      { name="facc_generate_planet_surfaces",   caption={"facc.generate-planet-surfaces"} },
+      { name="facc_regenerate_resources",     caption={"facc.regenerate-resources"} }
     }
   },
 
@@ -176,7 +189,7 @@ function M.ensure_persistent_state()
   storage.facc_gui_state = storage.facc_gui_state or {}
   local s = storage.facc_gui_state
   -- if old save's tab no longer exists, reset to "armor"
-  if not (s.tab and TABS[s.tab]) then s.tab = "armor" end
+  if not (s.tab and TABS[s.tab]) then s.tab = "cheats" end
   s.sliders  = s.sliders  or {}
   s.switches = s.switches or {}
   s.is_open  = s.is_open  or false
@@ -202,9 +215,6 @@ end
 local function is_feature_enabled(name)
   if name == "facc_set_platform_distance" then return space_age_enabled end
   if name == "facc_generate_planet_surfaces" then return space_age_enabled end
-  if name == "facc_create_legendary_armor" then
-    return quality_enabled and space_age_enabled
-  end
   if name == "facc_convert_inventory"
       or name == "facc_upgrade_blueprints"
       or name == "facc_convert_to_legendary" then
@@ -285,9 +295,10 @@ local function add_function_block(parent, elem)
   else
     -- Only add confirm button for non-live sliders
     if     elem.name ~= "facc_set_platform_distance"
-       and elem.name ~= "facc_set_game_speed"
-       and elem.name ~= "facc_set_crafting_speed"
-       and elem.name ~= "facc_set_mining_speed"
+      and elem.name ~= "facc_set_game_speed"
+      and elem.name ~= "facc_set_crafting_speed"
+      and elem.name ~= "facc_set_mining_speed"
+      and elem.name ~= "facc_run_faster"
     then
       local right = row.add{ type="flow", direction="horizontal" }
       right.style.horizontal_align = "right"

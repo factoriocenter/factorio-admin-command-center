@@ -20,11 +20,16 @@ local toggle_minable         = require("scripts/mining/toggle_minable")
 local set_platform_distance  = require("scripts/transportation/set_platform_distance")
 
 local toggle_trains          = require("scripts/trains/toggle_trains")
+local long_reach             = require("scripts/character/long_reach")
+local ammo_damage_boost  = require("scripts/combat/ammo_damage_boost")
+local turret_damage_boost    = require("scripts/combat/turret_damage_boost")
+local increase_robot_speed   = require("scripts/logistic-network/increase_robot_speed")
 
 -- new auto-run slider handlers
 local set_game_speed         = require("scripts/cheats/set_game_speed")
 local set_crafting_speed     = require("scripts/manufacturing/set_crafting_speed")
 local set_mining_speed       = require("scripts/mining/set_mining_speed")
+local run_faster             = require("scripts/character/run_faster")
 
 local ensure_state = main_gui.ensure_persistent_state
 
@@ -47,7 +52,10 @@ local features = {
   facc_unlock_technologies  = require("scripts/cheats/unlock_all_technologies"),
   facc_insert_coins         = require("scripts/cheats/insert_coins"),
   facc_remove_ground_items  = require("scripts/environment/remove_ground_items"),
-  facc_generate_planet_surfaces = require("scripts/planets/generate_planet_surfaces")
+  facc_generate_planet_surfaces = require("scripts/planets/generate_planet_surfaces"),
+  facc_create_full_armor    = require("scripts/armor/create_full_armor"),
+  facc_add_robots           = require("scripts/logistic-network/add_robots"),
+  facc_regenerate_resources    = require("scripts/planets/regenerate_resources"),
 }
 
 -- Legendary-only handlers
@@ -58,9 +66,6 @@ if quality_enabled then
   features.facc_convert_inventory    = require("scripts/character/convert_inventory_to_legendary")
   features.facc_upgrade_blueprints   = require("scripts/blueprints/upgrade_blueprints_to_legendary")
   features.facc_convert_to_legendary = require("scripts/blueprints/convert_constructions_to_legendary")
-  if space_age_enabled then
-    features.facc_create_legendary_armor = require("scripts/armor/create_legendary_armor")
-  end
 end
 
 -- Click dispatcher
@@ -123,6 +128,7 @@ script.on_event(defines.events.on_gui_value_changed, function(event)
   elseif elem.name == "slider_set_crafting_speed" then set_crafting_speed.run(player, elem.slider_value)
   elseif elem.name == "slider_set_mining_speed"   then set_mining_speed.run(player, elem.slider_value)
   elseif elem.name == "slider_platform_distance"  then set_platform_distance.run(player, elem.slider_value)
+  elseif elem.name == "slider_run_faster" then run_faster.run(player, elem.slider_value)
   end
 end)
 
@@ -146,6 +152,10 @@ script.on_event(defines.events.on_gui_switch_state_changed, function(event)
   elseif elem.name == "facc_enemy_expansion"        then enemy_expansion.run(player, on)
   elseif elem.name == "facc_toggle_minable"         then toggle_minable.run(player, on)
   elseif elem.name == "facc_toggle_trains"          then toggle_trains.run(player, on)
+  elseif elem.name == "facc_long_reach"             then long_reach.run(player, on)
+  elseif elem.name == "facc_ammo_damage_boost"      then ammo_damage_boost.run(player, on)
+  elseif elem.name == "facc_turret_damage_boost"    then turret_damage_boost.run(player, on)
+  elseif elem.name == "facc_increase_robot_speed"   then increase_robot_speed.run(player, on)
   end
 end)
 
