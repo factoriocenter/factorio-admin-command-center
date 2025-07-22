@@ -23,6 +23,7 @@ local toggle_trains          = require("scripts/trains/toggle_trains")
 local long_reach             = require("scripts/character/long_reach")
 local ammo_damage_boost      = require("scripts/combat/ammo_damage_boost")
 local turret_damage_boost    = require("scripts/combat/turret_damage_boost")
+local enable_ghost_on_death   = require("scripts/blueprints/enable_ghost_on_death")
 
 -- new auto-run slider handlers
 local set_game_speed         = require("scripts/cheats/set_game_speed")
@@ -63,6 +64,7 @@ local FACC_BUTTONS = {
   facc_create_full_armor=true,
   facc_add_robots=true,
   facc_regenerate_resources=true,
+  facc_high_infinite_research_levels = true,
   -- Legendary features
   facc_convert_inventory=true,
   facc_upgrade_blueprints=true,
@@ -101,6 +103,7 @@ local FACC_SWITCHES = {
   facc_enemy_expansion=true,
   facc_toggle_minable=true,
   facc_toggle_trains=true,
+  facc_ghost_on_death = true,
 }
 
 -- Base feature handlers
@@ -125,7 +128,8 @@ local features = {
   facc_generate_planet_surfaces = require("scripts/planets/generate_planet_surfaces"),
   facc_create_full_armor    = require("scripts/armor/create_full_armor"),
   facc_add_robots           = require("scripts/logistic-network/add_robots"),
-  facc_regenerate_resources = require("scripts/planets/regenerate_resources")
+  facc_regenerate_resources = require("scripts/planets/regenerate_resources"),
+  facc_high_infinite_research_levels = require("scripts/cheats/high_infinite_research_levels"),
 }
 
 -- Legendary-only handlers
@@ -277,6 +281,7 @@ script.on_event(defines.events.on_gui_switch_state_changed, function(event)
   elseif elem.name == "facc_enemy_expansion"        then enemy_expansion.run(player, on)
   elseif elem.name == "facc_toggle_minable"         then toggle_minable.run(player, on)
   elseif elem.name == "facc_toggle_trains"          then toggle_trains.run(player, on)
+  elseif elem.name == "facc_ghost_on_death"         then enable_ghost_on_death.run(player, on)
   end
 end)
 

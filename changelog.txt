@@ -1,4 +1,14 @@
 ---------------------------------------------------------------------------------------------------
+Version: 3.4.0
+Date: 2025-07-21
+  Features:
+    - Added Infinite Research module (set research level to 100).
+    - Added Enable Ghosts for destroyed entities before unlocking construction robots module.
+  Gui:
+    - Added Tooltips for all modules.
+  Translation:
+    - Added translations for all new modules and tooltips.
+---------------------------------------------------------------------------------------------------
 Version: 3.3.1
 Date: 2025-07-17
   Gui:
