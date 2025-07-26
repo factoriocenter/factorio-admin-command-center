@@ -8,13 +8,39 @@ local permissions = require("scripts/utils/permissions")
 _G.is_allowed = permissions.is_allowed
 
 --------------------------------------------------------------------------------
+-- Helpers for resource regeneration
+--------------------------------------------------------------------------------
+-- Restore finite resources when infinite-resources is disabled
+local regenerate_finite   = require("scripts/planets/regenerate_resources")
+-- Top up infinite resources to exactly N× prototype normal amount
+local regenerate_infinite = require("scripts/startup-settings/regenerate_to_infinite_resources")
+
+-- Utility: top up infinite resources in a given area (used on chunk generation)
+local function top_up_area(surface, area)
+  -- Read multiplier setting at runtime (e.g., "5x" -> 5)
+  local mult_str   = settings.startup["facc-infinite-resources-multiplier"].value or "1x"
+  local multiplier = tonumber(mult_str:match("^(%d+)x$")) or 1
+
+  for _, resource in pairs(surface.find_entities_filtered{ area = area, type = "resource" }) do
+    if resource.prototype.infinite_resource then
+      -- set both initial and current amounts according to multiplier
+      local full_amount = resource.prototype.normal_resource_amount * multiplier
+      resource.initial_amount = full_amount
+      resource.amount         = full_amount
+    end
+  end
+end
+
+--------------------------------------------------------------------------------
 -- Remove legacy UI buttons on init/updates
 --------------------------------------------------------------------------------
 local function remove_old_button()
   for _, player in pairs(game.players) do
     for _, name in ipairs({ "facc_main_button", "factorio_admin_command_center_button" }) do
       local btn = player.gui.top[name]
-      if btn and btn.valid then btn.destroy() end
+      if btn and btn.valid then
+        btn.destroy()
+      end
     end
   end
 end
@@ -30,7 +56,7 @@ local function update_legendary_shortcut_availability()
 end
 
 --------------------------------------------------------------------------------
--- On first load
+-- On first load: remove old buttons and update shortcuts
 --------------------------------------------------------------------------------
 script.on_init(function()
   remove_old_button()
@@ -38,17 +64,54 @@ script.on_init(function()
 end)
 
 --------------------------------------------------------------------------------
--- Whenever mods change (e.g. Quality toggled) or mod is updated
+-- When configuration changes (mod update or startup setting change):
+-- 1) remove old buttons
+-- 2) update legendary upgrader shortcut
+-- 3) if infinite-resources was just disabled, regenerate all finite resources once
+-- 4) if infinite-resources is enabled, top up every existing surface to N× once
 --------------------------------------------------------------------------------
 script.on_configuration_changed(function(event)
   remove_old_button()
   update_legendary_shortcut_availability()
+
+  -- If infinite-resources was just disabled, restore finite resource values
+  if not settings.startup["facc-infinite-resources"].value then
+    for _, player in pairs(game.players) do
+      regenerate_finite.run(player)
+    end
+  end
+
+  -- If infinite-resources is enabled, top up every existing surface to N× once
+  if settings.startup["facc-infinite-resources"].value then
+    for _, surface in pairs(game.surfaces) do
+      regenerate_infinite.run_on_surface(surface)
+    end
+  end
 end)
 
 --------------------------------------------------------------------------------
--- Re-check whenever a player joins (covers save-load and multiplayer joins)
+-- Whenever a player joins (covers save-load and multiplayer joins)
 --------------------------------------------------------------------------------
 script.on_event(defines.events.on_player_joined_game, update_legendary_shortcut_availability)
+
+--------------------------------------------------------------------------------
+-- When a new chunk is generated: enforce infinite-resource top-up if setting is on
+--------------------------------------------------------------------------------
+script.on_event(defines.events.on_chunk_generated, function(event)
+  if settings.startup["facc-infinite-resources"].value then
+    top_up_area(event.surface, event.area)
+  end
+end)
+
+--------------------------------------------------------------------------------
+-- When a new surface is created: enforce infinite-resource top-up if setting is on
+--------------------------------------------------------------------------------
+script.on_event(defines.events.on_surface_created, function(event)
+  if settings.startup["facc-infinite-resources"].value then
+    local surf = game.surfaces[event.surface_index]
+    regenerate_infinite.run_on_surface(surf)
+  end
+end)
 
 --------------------------------------------------------------------------------
 -- Load core modules
@@ -61,13 +124,13 @@ for _, path in ipairs({
   "scripts/cheats/instant_research",
   "scripts/gui/console_gui",
   "scripts/events/gui_events",
-  "scripts/legendary_upgrader"
+  "scripts/legendary-upgrader/legendary_upgrader"
 }) do
   require(path)
 end
 
 --------------------------------------------------------------------------------
--- Shortcut handlers (Ctrl+. , Ctrl+Enter, toolbar buttons)
+-- Shortcut handlers (Ctrl+., Ctrl+Enter, toolbar buttons)
 --------------------------------------------------------------------------------
 local main_gui    = require("scripts/gui/main_gui")
 local console_gui = require("scripts/gui/console_gui")
@@ -75,7 +138,9 @@ local console_gui = require("scripts/gui/console_gui")
 -- Toggle admin GUI with Ctrl+.
 script.on_event("facc_toggle_gui", function(e)
   local player = game.get_player(e.player_index)
-  if player then main_gui.toggle_main_gui(player) end
+  if player then
+    main_gui.toggle_main_gui(player)
+  end
 end)
 
 -- Handle toolbar shortcuts

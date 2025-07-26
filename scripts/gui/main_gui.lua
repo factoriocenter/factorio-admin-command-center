@@ -10,6 +10,9 @@ local M = {}
 --------------------------------------------------------------------------------
 local quality_enabled   = script.active_mods["quality"]   ~= nil
 local space_age_enabled = script.active_mods["space-age"] ~= nil
+-- Disable “Increase Resources” when infinite resources is active
+local infinite_resources_enabled = settings.startup["facc-infinite-resources"]
+    and settings.startup["facc-infinite-resources"].value
 
 --------------------------------------------------------------------------------
 -- UI layout constants
@@ -138,7 +141,7 @@ local TABS = {
         name    = "facc_high_infinite_research_levels",
         caption = {"facc.high_infinite_research_levels"},
         tooltip = {"tooltip.high_infinite_research_levels"}
-      },      
+      },
       {
         name    = "facc_insert_coins",
         caption = {"facc.insert-coins"},
@@ -376,7 +379,7 @@ local TABS = {
 }
 
 --------------------------------------------------------------------------------
--- Persistent state schema (with version‐mismatch check)
+-- Persistent state schema (with version-mismatch check)
 --------------------------------------------------------------------------------
 function M.ensure_persistent_state()
   storage.facc_gui_state = storage.facc_gui_state or {}
@@ -508,7 +511,12 @@ local function add_function_block(parent, elem)
         style   = "item_and_count_select_confirm",
         tooltip = {"facc.confirm-button"}
       }
-      btn.enabled = enabled
+      -- Disable the “Increase Resources” button when infinite resources is active
+      if infinite_resources_enabled and (elem.name == "facc_increase_resources" or elem.name == "facc_regenerate_resources") then
+        btn.enabled = false
+      else
+        btn.enabled = enabled
+      end
     end
   end
 end
