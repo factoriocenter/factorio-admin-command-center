@@ -2,8 +2,8 @@
 Version: 3.5.0
 Date: 2025-07-26
   Features:
-    - Added Infinite Resources module.
-    - Added Infinite Resources Multiplier module.
+    - Added Infinite Resources option.
+    - Added Infinite Resources Multiplier option.
 ---------------------------------------------------------------------------------------------------
 Version: 3.4.0
 Date: 2025-07-21
