@@ -1,4 +1,11 @@
 ---------------------------------------------------------------------------------------------------
+Version: 3.5.1
+Date: 2025-07-27
+  Bugfixes:
+    - Ignore non-regenerable and non-autoplaceable ores.
+  Changes:
+    - Regenerate all resources on map load instead of on player spawn.
+---------------------------------------------------------------------------------------------------
 Version: 3.5.0
 Date: 2025-07-26
   Features:

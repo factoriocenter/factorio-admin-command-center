@@ -15,7 +15,9 @@ local regenerate_finite   = require("scripts/planets/regenerate_resources")
 -- Top up infinite resources to exactly N× prototype normal amount
 local regenerate_infinite = require("scripts/startup-settings/regenerate_to_infinite_resources")
 
+--------------------------------------------------------------------------------
 -- Utility: top up infinite resources in a given area (used on chunk generation)
+--------------------------------------------------------------------------------
 local function top_up_area(surface, area)
   -- Read multiplier setting at runtime (e.g., "5x" -> 5)
   local mult_str   = settings.startup["facc-infinite-resources-multiplier"].value or "1x"
@@ -67,17 +69,23 @@ end)
 -- When configuration changes (mod update or startup setting change):
 -- 1) remove old buttons
 -- 2) update legendary upgrader shortcut
--- 3) if infinite-resources was just disabled, regenerate all finite resources once
+-- 3) if infinite-resources was just disabled, restore finite resources on all surfaces
 -- 4) if infinite-resources is enabled, top up every existing surface to N× once
 --------------------------------------------------------------------------------
 script.on_configuration_changed(function(event)
   remove_old_button()
   update_legendary_shortcut_availability()
 
-  -- If infinite-resources was just disabled, restore finite resource values
+  -- If infinite-resources was just disabled, restore finite resources on all surfaces
   if not settings.startup["facc-infinite-resources"].value then
-    for _, player in pairs(game.players) do
-      regenerate_finite.run(player)
+    for _, surface in pairs(game.surfaces) do
+      -- dummy context to satisfy regenerate_finite.run
+      local ctx = {
+        surface = surface,
+        admin   = true,
+        print   = function() end
+      }
+      regenerate_finite.run(ctx)
     end
   end
 

@@ -18,6 +18,7 @@ local blacklist = {
 local function make_resource_infinite(resource)
   -- 1) Make infinite and zero depletion
   resource.infinite = true
+  resource.infinite_resource = true
   resource.infinite_depletion_amount = 0
 
   -- 2) Ensure minimum and normal percentages

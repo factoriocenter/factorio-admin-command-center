@@ -8,33 +8,34 @@ local M = {}
 
 --- Regenerates finite resource entities on the player's current surface.
 -- Destroys all finite resources, records their prototype names, and regenerates them.
--- Infinite resources remain unchanged.
--- @param player LuaPlayer The player invoking the command.
+-- Infinite resources remain untouched.
+-- @param player LuaPlayer — the player invoking the command
 function M.run(player)
   if not is_allowed(player) then
-    -- Player is not allowed to use this feature
     player.print({"facc.not-allowed"})
     return
   end
 
   local surface = player.surface
 
-  -- 1) Destroy all finite resources and collect their names for regeneration
+  -- 1) Destroy all finite resources and collect their names
   local to_regenerate = {}
-  for _, resource in ipairs(surface.find_entities_filtered{type = "resource"}) do
+  for _, resource in ipairs(surface.find_entities_filtered{ type = "resource" }) do
     if not resource.prototype.infinite_resource then
       to_regenerate[resource.name] = true
       resource.destroy()
     end
   end
 
-  -- 2) Regenerate each collected resource type by name
+  -- 2) Attempt to regenerate each collected resource type (pcall skips non-autoplacable)
   for resource_name in pairs(to_regenerate) do
-    surface.regenerate_entity(resource_name)
+    pcall(function()
+      surface.regenerate_entity(resource_name)
+    end)
   end
 
   -- 3) Refresh connections on all mining drills
-  for _, drill in ipairs(surface.find_entities_filtered{type = "mining-drill"}) do
+  for _, drill in ipairs(surface.find_entities_filtered{ type = "mining-drill" }) do
     drill.update_connections()
   end
 
