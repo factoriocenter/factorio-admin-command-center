@@ -1,0 +1,27 @@
+name: Update README year
+
+on:
+  schedule:
+    - cron: "0 0 1 1 *" # Runs once a year on January 1st at 00:00 UTC
+  workflow_dispatch: # Optional: allows manual trigger
+
+jobs:
+  update-readme:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Replace placeholder with current year
+        run: |
+          year=$(date +'%Y')
+          sed -i "s/CURRENT_YEAR/${year}/g" README.md
+
+      - name: Commit and push changes
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add README.md
+          git commit -m "Update README year to ${year}" || echo "No changes to commit"
+          git push

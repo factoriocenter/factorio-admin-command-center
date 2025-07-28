@@ -187,7 +187,7 @@ Contribute, report issues, or browse the code on GitHub:
 
 ## License
 
-[MIT](/LICENSE) © console.log(currentYear()); Factorio Center
+[MIT](/LICENSE) © CURRENT_YEAR Factorio Center
 
 ---
 
