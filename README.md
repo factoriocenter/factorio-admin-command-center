@@ -126,8 +126,8 @@ Ditch the console and unlock over 50 professional-grade tools through FACC’s s
 | Action                                     | Keybind / UI               |
 | ------------------------------------------ | -------------------------- |
 | Toggle Admin GUI                           | `Ctrl + .`                 |
-| Admin GUI Toolbar Shortcut                 | click the FACC icon        |
-| Legendary Upgrade Planner Toolbar Shortcut | click the FACC LUP icon    |
+| Admin GUI Toolbar Shortcut                 | Click the FACC icon        |
+| Legendary Upgrade Planner Toolbar Shortcut | Click the FACC LUP icon    |
 | Execute Lua Console Command                | `Ctrl + Enter`             |
 | Open/Close Lua Console Window              | Exec button in console GUI |
 
