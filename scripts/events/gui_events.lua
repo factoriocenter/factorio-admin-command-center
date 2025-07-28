@@ -235,6 +235,17 @@ script.on_event(defines.events.on_gui_value_changed, function(event)
     return
   end
 
+  -- Handle Set Crafting Speed as a true live slider
+  if elem.name == "slider_set_crafting_speed" then
+    local old = storage.facc_gui_state.sliders["slider_set_crafting_speed"] or 0
+    local new = elem.slider_value
+    set_crafting_speed.run(player, old, new)
+    storage.facc_gui_state.sliders["slider_set_crafting_speed"] = new
+    local box = elem.parent[elem.name .. "_value"]
+    if box and box.valid then box.text = tostring(new) end
+    return
+  end
+
   -- Default behavior for other sliders
   storage.facc_gui_state.sliders[elem.name] = elem.slider_value
   local box = elem.parent[elem.name .. "_value"]
@@ -246,9 +257,6 @@ script.on_event(defines.events.on_gui_value_changed, function(event)
     local speed = speeds[idx] or 1
     set_game_speed.run(player, speed)
     if box and box.valid then box.text = tostring(speed) end
-
-  elseif elem.name == "slider_set_crafting_speed" then
-    set_crafting_speed.run(player, elem.slider_value)
 
   elseif elem.name == "slider_set_mining_speed" then
     set_mining_speed.run(player, elem.slider_value)
