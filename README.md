@@ -187,7 +187,7 @@ Contribute, report issues, or browse the code on GitHub:
 
 ## License
 
-[MIT](/LICENSE) © CURRENT_YEAR Factorio Center
+[MIT](/LICENSE) © 2025 Factorio Center
 
 ---
 
