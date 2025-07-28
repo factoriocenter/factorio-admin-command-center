@@ -12,7 +12,6 @@ on:
 jobs:
   enforce-readme-year:
     runs-on: ubuntu-latest
-
     permissions:
       contents: write # allow commits via GITHUB_TOKEN
 
@@ -24,20 +23,27 @@ jobs:
         run: |
           current_year=$(date +'%Y')
 
-          # Extract exactly the 4-digit year between the HTML comment markers,
-          # even if on the same line.
-          extracted=$(grep -oP '(?<=<!--\s*change year start\s*-->)[[:space:]]*[0-9]{4}[[:space:]]*(?=<!--\s*change year end\s*-->)' README.md | tr -d '[:space:]')
+          # 1) Try to extract a same-line marker: <!-- change year start -->YYYY<!-- change year end -->
+          extracted=$(sed -n 's/.*<!-- change year start -->[[:space:]]*\([0-9]\{4\}\)[[:space:]]*<!-- change year end -->.*/\1/p' README.md)
+
+          # 2) Fallback: markers on separate lines
+          if [ -z "$extracted" ]; then
+            # grabs the line after <!-- change year start -->, then pulls 4 digits
+            extracted=$(awk '/<!-- change year start -->/{getline; print}' README.md | grep -Eo '[0-9]{4}')
+          fi
 
           echo "Found year between markers: $extracted"
           echo "Current system year:       $current_year"
 
-          # Only update if it's a valid 4-digit number and differs from today
           if [[ "$extracted" =~ ^[0-9]{4}$ ]] && [[ "$extracted" != "$current_year" ]]; then
             echo "Year differs. Updating to $current_year..."
-            
-            # In-place replace the old year with the current year
-            sed -E -i "s|(<!-- change year start -->)[[:space:]]*[0-9]{4}[[:space:]]*(<!-- change year end -->)|\1 ${current_year} \2|" README.md
-            
+
+            # A) Replace same-line marker
+            sed -i 's|\(<!-- change year start -->\)[[:space:]]*[0-9]\{4\}\([[:space:]]*<!-- change year end -->\)|\1 '"${current_year}"'\2|' README.md
+
+            # B) Replace multi-line marker (if you ever use that style)
+            sed -i '/<!-- change year start -->/{n;s/[0-9]\{4\}/'"$current_year"'/;}' README.md
+
             echo "YEAR_UPDATED=1" >> $GITHUB_ENV
           else
             echo "No update needed."
@@ -46,9 +52,9 @@ jobs:
 
       - name: Commit and push changes
         if: env.YEAR_UPDATED == '1'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           git add README.md
-          git commit -m "fix(readme): enforce year ${current_year}"
+          git commit -m "fix(readme): enforce year $current_year"
           git push
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # commits as github-actions[bot]
