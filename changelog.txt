@@ -2,7 +2,7 @@
 Version: 3.5.2
 Date: 2025-07-28
   Changes:
-    - Updated the Crafting Speed slider to increase the crafting speed instead of setting it directly.
+    - Updated the Adjust Crafting Speed slider to increase the crafting speed instead of setting it directly.
 ---------------------------------------------------------------------------------------------------
 Version: 3.5.1
 Date: 2025-07-27
