@@ -11,7 +11,7 @@ Ditch the console and unlock over 50 professional-grade tools through FACC’s s
 ## 🆕 Recent Additions
 
 - Version: `3.5.5`
-- 🛑 **Disable auto resource regeneration** (Mod Settings) - Prevents finite resources from regenerating when Infinite Resources settings option is toggled
+- 🛑 Added **Disable auto resource regeneration** (Mod Settings) - Prevents finite resources from regenerating when Infinite Resources settings option is toggled
 
 ---
 
