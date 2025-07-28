@@ -194,4 +194,31 @@ Contribute, report issues, or browse the code on GitHub:
 ## Contributors
 
 <!-- readme: contributors -start -->
+<table>
+	<tbody>
+		<tr>
+            <td align="center">
+                <a href="https://github.com/louanfontenele">
+                    <img src="https://avatars.githubusercontent.com/u/2886066?v=4" width="100;" alt="louanfontenele"/>
+                    <br />
+                    <sub><b>Louan Fontenele</b></sub>
+                </a>
+            </td>
+            <td align="center">
+                <a href="https://github.com/bot">
+                    <img src="https://avatars.githubusercontent.com/u/58210622?v=4" width="100;" alt="bot"/>
+                    <br />
+                    <sub><b>bot</b></sub>
+                </a>
+            </td>
+            <td align="center">
+                <a href="https://github.com/lsalazarm99">
+                    <img src="https://avatars.githubusercontent.com/u/42286051?v=4" width="100;" alt="lsalazarm99"/>
+                    <br />
+                    <sub><b>Leonardo Salazar</b></sub>
+                </a>
+            </td>
+		</tr>
+	<tbody>
+</table>
 <!-- readme: contributors -end -->
