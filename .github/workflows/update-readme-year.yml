@@ -1,19 +1,20 @@
 name: Enforce Current Year in README
 
+# Trigger once a year (Jan 1), on any README.md change, or manually
 on:
   schedule:
-    - cron: "0 0 1 1 *" # Yearly trigger on January 1st
+    - cron: "0 0 1 1 *"
   push:
     paths:
-      - README.md # When README.md is modified
-  workflow_dispatch: # Manual trigger
+      - README.md
+  workflow_dispatch:
 
 jobs:
   enforce-readme-year:
     runs-on: ubuntu-latest
 
     permissions:
-      contents: write # Required to push changes with GITHUB_TOKEN
+      contents: write # allow commits via GITHUB_TOKEN
 
     steps:
       - name: Checkout repository
@@ -23,35 +24,20 @@ jobs:
         run: |
           current_year=$(date +'%Y')
 
-          # Extract the text between the HTML comment markers
-          extracted=$(awk '/<!-- change year start -->/{flag=1; next}
-                            /<!-- change year end -->/{flag=0}
-                            flag' README.md | tr -d '[:space:]')
+          # Extract exactly the 4-digit year between the HTML comment markers,
+          # even if on the same line.
+          extracted=$(grep -oP '(?<=<!--\s*change year start\s*-->)[[:space:]]*[0-9]{4}[[:space:]]*(?=<!--\s*change year end\s*-->)' README.md | tr -d '[:space:]')
 
           echo "Found year between markers: $extracted"
-          echo "Current system year: $current_year"
+          echo "Current system year:       $current_year"
 
-          # If a valid year is found and it's less than current_year, update it
-          if [[ "$extracted" =~ ^20[0-9]{2}$ ]] && [[ "$extracted" -lt "$current_year" ]]; then
-            echo "Year is outdated. Updating to $current_year..."
-
-            # Use awk to replace the year between markers
-            awk -v year="$current_year" '
-              BEGIN {inside=0}
-              /<!-- change year start -->/ {
-                print
-                print year
-                inside=1
-                next
-              }
-              /<!-- change year end -->/ {
-                inside=0
-                print
-                next
-              }
-              !inside {print}
-            ' README.md > README.tmp && mv README.tmp README.md
-
+          # Only update if it's a valid 4-digit number and differs from today
+          if [[ "$extracted" =~ ^[0-9]{4}$ ]] && [[ "$extracted" != "$current_year" ]]; then
+            echo "Year differs. Updating to $current_year..."
+            
+            # In-place replace the old year with the current year
+            sed -E -i "s|(<!-- change year start -->)[[:space:]]*[0-9]{4}[[:space:]]*(<!-- change year end -->)|\1 ${current_year} \2|" README.md
+            
             echo "YEAR_UPDATED=1" >> $GITHUB_ENV
           else
             echo "No update needed."
@@ -62,7 +48,7 @@ jobs:
         if: env.YEAR_UPDATED == '1'
         run: |
           git add README.md
-          git commit -m "fix(readme): update year to ${current_year}"
+          git commit -m "fix(readme): enforce year ${current_year}"
           git push
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # Committed by github-actions[bot]
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # commits as github-actions[bot]
