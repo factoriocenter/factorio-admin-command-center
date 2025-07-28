@@ -1,20 +1,19 @@
 name: Enforce Current Year in README
 
-# Triggered once a year (Jan 1st), on any README change, or manually
 on:
   schedule:
-    - cron: "0 0 1 1 *"        # Yearly trigger on January 1st
+    - cron: "0 0 1 1 *" # Yearly trigger on January 1st
   push:
     paths:
-      - README.md             # Any time the README is modified
-  workflow_dispatch:         # Allow manual execution from GitHub UI
+      - README.md # When README.md is modified
+  workflow_dispatch: # Manual trigger
 
 jobs:
   enforce-readme-year:
     runs-on: ubuntu-latest
 
     permissions:
-      contents: write         # Required for committing changes via GITHUB_TOKEN
+      contents: write # Required to push changes with GITHUB_TOKEN
 
     steps:
       - name: Checkout repository
@@ -24,20 +23,34 @@ jobs:
         run: |
           current_year=$(date +'%Y')
 
-          # Extract the text between the special HTML comment markers
-          extracted=$(awk '/<!-- change year start -->/{flag=1; next} /<!-- change year end -->/{flag=0} flag' README.md | tr -d '[:space:]')
+          # Extract the text between the HTML comment markers
+          extracted=$(awk '/<!-- change year start -->/{flag=1; next}
+                            /<!-- change year end -->/{flag=0}
+                            flag' README.md | tr -d '[:space:]')
 
           echo "Found year between markers: $extracted"
           echo "Current system year: $current_year"
 
-          # Validate and compare the extracted year
+          # If a valid year is found and it's less than current_year, update it
           if [[ "$extracted" =~ ^20[0-9]{2}$ ]] && [[ "$extracted" -lt "$current_year" ]]; then
             echo "Year is outdated. Updating to $current_year..."
 
-            # Replace the content between the markers
-            sed -i "/<!-- change year start -->/,/<!-- change year end -->/c\\<!-- change year start -->\\
-$current_year\\
-<!-- change year end -->" README.md
+            # Use awk to replace the year between markers
+            awk -v year="$current_year" '
+              BEGIN {inside=0}
+              /<!-- change year start -->/ {
+                print
+                print year
+                inside=1
+                next
+              }
+              /<!-- change year end -->/ {
+                inside=0
+                print
+                next
+              }
+              !inside {print}
+            ' README.md > README.tmp && mv README.tmp README.md
 
             echo "YEAR_UPDATED=1" >> $GITHUB_ENV
           else
@@ -52,4 +65,4 @@ $current_year\\
           git commit -m "fix(readme): update year to ${current_year}"
           git push
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Uses github-actions[bot] for commit
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # Committed by github-actions[bot]
