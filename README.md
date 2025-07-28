@@ -193,10 +193,10 @@ Contribute, report issues, or browse the code on GitHub:
 
 ## Contributors
 
-<!-- readme: contributors -start -->
+<!-- readme: contributors,bot/- -start -->
 <table>
-	<tbody>
-		<tr>
+ <tbody>
+  <tr>
             <td align="center">
                 <a href="https://github.com/louanfontenele">
                     <img src="https://avatars.githubusercontent.com/u/2886066?v=4" width="100;" alt="louanfontenele"/>
@@ -218,7 +218,7 @@ Contribute, report issues, or browse the code on GitHub:
                     <sub><b>Leonardo Salazar</b></sub>
                 </a>
             </td>
-		</tr>
-	<tbody>
+  </tr>
+ <tbody>
 </table>
-<!-- readme: contributors -end -->
+<!-- readme: contributors,bot/- -end -->
