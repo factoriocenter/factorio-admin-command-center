@@ -10,7 +10,8 @@ Ditch the console and unlock over 50 professional-grade tools through FACC’s s
 
 ## 🆕 Recent Additions
 
-- 🌌 **Infinite Resources** & **Multiplier** (1×/2×/5×/10×/20×/50×): make all resource patches infinite and top them up at your chosen multiplier
+- Version: `3.5.5`
+- 🛑 **Disable auto resource regeneration** (Mod Settings) - Prevents finite resources from regenerating when Infinite Resources settings option is toggled
 
 ---
 
@@ -109,13 +110,14 @@ Ditch the console and unlock over 50 professional-grade tools through FACC’s s
 
 ## ⚙️ Mod Settings
 
-| Setting                         | Description                                                                   |
-| ------------------------------- | ----------------------------------------------------------------------------- |
-| `Show Cheat Tools tab`          | Show the “Cheat Tools” tab in the crafting GUI                                |
-| `Enable achievement overrides`  | Bypass built-in achievements so you can still earn them on modded saves       |
-| `Show internal names`           | Override each prototype’s name with its internal ID and category/type         |
-| `Infinite Resources`            | Make **all** resource patches infinite (like Satisfactory)                    |
-| `Infinite Resources Multiplier` | Choose the spawn multiplier for infinite resources (1× = 100%, … 50× = 5000%) |
+| Setting                              | Description                                                                    |
+| ------------------------------------ | ------------------------------------------------------------------------------ |
+| `Show Cheat Tools tab`               | Show the “Cheat Tools” tab in the crafting GUI                                 |
+| `Enable achievement overrides`       | Bypass built-in achievements so you can still earn them on modded saves        |
+| `Show internal names`                | Override each prototype’s name with its internal ID and category/type          |
+| `Infinite Resources`                 | Make **all** resource patches infinite (like Satisfactory)                     |
+| `Infinite Resources Multiplier`      | Choose the spawn multiplier for infinite resources (1× = 100%, … 50× = 5000%)  |
+| `Disable auto resource regeneration` | Prevents finite resources from regenerating when Infinite Resources is toggled |
 
 ---
 
@@ -195,8 +197,8 @@ Contribute, report issues, or browse the code on GitHub:
 
 <!-- readme: contributors,bot/- -start -->
 <table>
-	<tbody>
-		<tr>
+ <tbody>
+  <tr>
             <td align="center">
                 <a href="https://github.com/louanfontenele">
                     <img src="https://avatars.githubusercontent.com/u/2886066?v=4" width="100;" alt="louanfontenele"/>
@@ -211,7 +213,7 @@ Contribute, report issues, or browse the code on GitHub:
                     <sub><b>Leonardo Salazar</b></sub>
                 </a>
             </td>
-		</tr>
-	<tbody>
+  </tr>
+ <tbody>
 </table>
 <!-- readme: contributors,bot/- -end -->
