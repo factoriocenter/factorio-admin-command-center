@@ -2,7 +2,7 @@ name: Update README year
 
 on:
   schedule:
-    - cron: "0 0 1 1 *" # Once a year, Jan 1st
+    - cron: "0 0 1 1 *"
   workflow_dispatch:
 
 jobs:
@@ -13,8 +13,10 @@ jobs:
       GITHUB_TOKEN: ${{ secrets.GH_PAT }}
 
     steps:
-      - name: Checkout repository
+      - name: Checkout repository (without credentials)
         uses: actions/checkout@v3
+        with:
+          persist-credentials: false # <- isso é crucial
 
       - name: Replace placeholder with current year
         run: |
@@ -26,6 +28,7 @@ jobs:
         run: |
           git config user.name "Auto Bot"
           git config user.email "bot@users.noreply.github.com"
+          git remote set-url origin https://x-access-token:${GITHUB_TOKEN}@github.com/${{ github.repository }}
           git add README.md
           git commit -m "Update README year to $YEAR" || echo "No changes"
-          git push https://x-access-token:${GITHUB_TOKEN}@github.com/${{ github.repository }} HEAD:main
+          git push origin HEAD:main
