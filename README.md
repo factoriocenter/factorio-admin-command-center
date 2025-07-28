@@ -187,7 +187,7 @@ Contribute, report issues, or browse the code on GitHub:
 
 ## License
 
-[MIT](/LICENSE) © 2035 Factorio Center
+[MIT](/LICENSE) © <!-- change year start -->2035<!-- change year end --> Factorio Center
 
 ---
 
