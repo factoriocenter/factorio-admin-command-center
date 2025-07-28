@@ -192,3 +192,6 @@ Contribute, report issues, or browse the code on GitHub:
 ---
 
 ## Contributors
+
+<!-- readme: contributors -start -->
+<!-- readme: contributors -end -->
