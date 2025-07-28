@@ -69,30 +69,32 @@ end)
 -- When configuration changes (mod update or startup setting change):
 -- 1) remove old buttons
 -- 2) update legendary upgrader shortcut
--- 3) if infinite-resources was just disabled, restore finite resources on all surfaces
--- 4) if infinite-resources is enabled, top up every existing surface to N× once
+-- 3) automatically regenerate resources if user did NOT disable it
 --------------------------------------------------------------------------------
 script.on_configuration_changed(function(event)
   remove_old_button()
   update_legendary_shortcut_availability()
 
-  -- If infinite-resources was just disabled, restore finite resources on all surfaces
-  if not settings.startup["facc-infinite-resources"].value then
-    for _, surface in pairs(game.surfaces) do
-      -- dummy context to satisfy regenerate_finite.run
-      local ctx = {
-        surface = surface,
-        admin   = true,
-        print   = function() end
-      }
-      regenerate_finite.run(ctx)
+  -- Skip auto-regeneration if the user has activated the new setting
+  if not settings.startup["facc-disable-auto-resource-regeneration"].value then
+    -- If infinite-resources was just disabled, restore finite resources on all surfaces
+    if not settings.startup["facc-infinite-resources"].value then
+      for _, surface in pairs(game.surfaces) do
+        -- dummy context to satisfy regenerate_finite.run
+        local ctx = {
+          surface = surface,
+          admin   = true,
+          print   = function() end
+        }
+        regenerate_finite.run(ctx)
+      end
     end
-  end
 
-  -- If infinite-resources is enabled, top up every existing surface to N× once
-  if settings.startup["facc-infinite-resources"].value then
-    for _, surface in pairs(game.surfaces) do
-      regenerate_infinite.run_on_surface(surface)
+    -- If infinite-resources is enabled, top up every existing surface to N× once
+    if settings.startup["facc-infinite-resources"].value then
+      for _, surface in pairs(game.surfaces) do
+        regenerate_infinite.run_on_surface(surface)
+      end
     end
   end
 end)

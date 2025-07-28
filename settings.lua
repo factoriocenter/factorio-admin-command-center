@@ -52,5 +52,16 @@ data:extend({
     per_user = false,
     localised_name = {"mod-setting-name.facc-infinite-resources-multiplier"},
     localised_description = {"mod-setting-description.facc-infinite-resources-multiplier"}
+  },
+  {
+    -- Disable automatic resource regeneration when infinite-resources setting changes
+    type = "bool-setting",
+    name = "facc-disable-auto-resource-regeneration",
+    setting_type = "startup",
+    default_value = false,
+    order = "f",
+    per_user = false,
+    localised_name = {"mod-setting-name.facc-disable-auto-resource-regeneration"},
+    localised_description = {"mod-setting-description.facc-disable-auto-resource-regeneration"}
   }
 })
