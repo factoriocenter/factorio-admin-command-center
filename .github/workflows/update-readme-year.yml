@@ -23,12 +23,11 @@ jobs:
         run: |
           current_year=$(date +'%Y')
 
-          # 1) Try to extract a same-line marker: <!-- change year start -->YYYY<!-- change year end -->
+          # 1) Try same-line marker: <!-- change year start -->YYYY<!-- change year end -->
           extracted=$(sed -n 's/.*<!-- change year start -->[[:space:]]*\([0-9]\{4\}\)[[:space:]]*<!-- change year end -->.*/\1/p' README.md)
 
           # 2) Fallback: markers on separate lines
           if [ -z "$extracted" ]; then
-            # grabs the line after <!-- change year start -->, then pulls 4 digits
             extracted=$(awk '/<!-- change year start -->/{getline; print}' README.md | grep -Eo '[0-9]{4}')
           fi
 
@@ -38,10 +37,10 @@ jobs:
           if [[ "$extracted" =~ ^[0-9]{4}$ ]] && [[ "$extracted" != "$current_year" ]]; then
             echo "Year differs. Updating to $current_year..."
 
-            # A) Replace same-line marker
+            # Replace same-line style
             sed -i 's|\(<!-- change year start -->\)[[:space:]]*[0-9]\{4\}\([[:space:]]*<!-- change year end -->\)|\1 '"${current_year}"'\2|' README.md
 
-            # B) Replace multi-line marker (if you ever use that style)
+            # Replace multi-line style
             sed -i '/<!-- change year start -->/{n;s/[0-9]\{4\}/'"$current_year"'/;}' README.md
 
             echo "YEAR_UPDATED=1" >> $GITHUB_ENV
@@ -55,6 +54,13 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
+          # Configure the official Actions bot identity:
+          git config user.name  "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          # Recompute for an accurate commit message
+          current_year=$(date +'%Y')
+
           git add README.md
           git commit -m "fix(readme): enforce year $current_year"
           git push
