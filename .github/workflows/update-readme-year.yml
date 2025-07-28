@@ -1,34 +1,50 @@
-name: Update README year
+name: Enforce Current Year in README
 
 on:
   schedule:
-    - cron: "0 0 1 1 *"
-  workflow_dispatch:
+    - cron: "0 0 1 1 *" # Once a year
+  push:
+    paths:
+      - README.md # On any change to README
+  workflow_dispatch: # Allow manual trigger
 
 jobs:
-  update-readme:
+  enforce-readme-year:
     runs-on: ubuntu-latest
 
     env:
       GITHUB_TOKEN: ${{ secrets.GH_PAT }}
 
     steps:
-      - name: Checkout repository (without credentials)
+      - name: Checkout repository
         uses: actions/checkout@v3
         with:
-          persist-credentials: false # <- isso é crucial
+          persist-credentials: false # Avoid using github-actions[bot]
 
-      - name: Replace placeholder with current year
+      - name: Check and update year
         run: |
-          year=$(date +'%Y')
-          sed -i "s/CURRENT_YEAR/${year}/g" README.md
-          echo "YEAR=$year" >> $GITHUB_ENV
+          current_year=$(date +'%Y')
+          file_year=$(grep -oP '\b20[0-9]{2}\b' README.md | sort -nr | head -n1 || echo "0000")
+
+          echo "Detected year in README: $file_year"
+          echo "Current system year: $current_year"
+
+          # Verifica se o ano no arquivo é menor que o atual
+          if [[ "$file_year" =~ ^20[0-9]{2}$ ]] && [[ "$file_year" -lt "$current_year" ]]; then
+            echo "Year in README is outdated. Replacing $file_year with $current_year"
+            sed -i "s/\b$file_year\b/$current_year/g" README.md
+            echo "YEAR_UPDATED=1" >> $GITHUB_ENV
+          else
+            echo "No update needed."
+            echo "YEAR_UPDATED=0" >> $GITHUB_ENV
+          fi
 
       - name: Commit and push changes
+        if: env.YEAR_UPDATED == '1'
         run: |
           git config user.name "Auto Bot"
           git config user.email "bot@users.noreply.github.com"
           git remote set-url origin https://x-access-token:${GITHUB_TOKEN}@github.com/${{ github.repository }}
           git add README.md
-          git commit -m "Update README year to $YEAR" || echo "No changes"
+          git commit -m "Fix README year to ${current_year}"
           git push origin HEAD:main
