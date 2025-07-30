@@ -11,7 +11,7 @@ Ditch the console and unlock over 50 professional-grade tools through FACC’s s
 ## 🆕 Recent Additions
 
 - Version: `3.5.6`
-- - Check the changelogs [/changelog.txt]
+- - Check the [changelogs](/changelog.txt)
 
 ---
 
