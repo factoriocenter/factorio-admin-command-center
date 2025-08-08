@@ -1,0 +1,32 @@
+name: issue-welcome
+
+on:
+  issues:
+    types: [opened]
+
+permissions:
+  issues: write
+
+jobs:
+  welcome:
+    name: Post welcome comment
+    runs-on: ubuntu-latest
+    steps:
+      - name: Post welcome comment once
+        uses: peter-evans/create-or-update-comment@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          issue-number: ${{ github.event.issue.number }}
+          comment-identifier: facc_issue_welcome_v3
+          edit-mode: replace
+          body: |
+            <!-- facc_issue_welcome_v3 -->
+            This is an automated message from the **Factorio Admin Command Center (facc)** bot.
+
+            Thanks for opening an issue! **@louanfontenele** will reply as soon as possible (timezone **GMT-3, Brazil**).
+            In the meantime, please describe the problem, and if needed, **edit** this issue to add as much detail as possible.
+            If you are using other **mods**, please **list which ones** you are using.
+
+            **Language policy:** Issues are welcome in **English** or **Portuguese (pt-BR)**.
+
+            **P.S.:** Just to clarify — this project was created to work **only** with the **Vanilla game and its official DLCs** (such as *Space Age* and its standalone content). While in theory it shouldn’t conflict with others, it was designed and tested to run **without any additional mods installed**. The maintainer will still do their best to support and help if you’re using mods, but please keep in mind that support is limited to what’s within reach and the scope of the original design.
