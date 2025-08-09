@@ -21,7 +21,7 @@ jobs:
           edit-mode: replace
           body: |
             <!-- facc_issue_welcome_v3 -->
-            This is an automated message from the **Factorio Admin Command Center (facc)** bot.
+            This is an automated message from the **Factorio Admin Command Center (FACC)** bot.
 
             Thanks for opening an issue! **@louanfontenele** will reply as soon as possible (timezone **GMT-3, Brazil**).
             In the meantime, please describe the problem, and if needed, **edit** this issue to add as much detail as possible.
