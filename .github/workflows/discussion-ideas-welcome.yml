@@ -1,0 +1,58 @@
+name: discussion-ideas-welcome
+
+on:
+  discussion:
+    types: [created]
+
+permissions:
+  discussions: write
+
+jobs:
+  welcome:
+    if: ${{ github.event.discussion.category && github.event.discussion.category.slug == 'ideas' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Post welcome comment once
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          OWNER: ${{ github.repository_owner }}
+          REPO: ${{ github.event.repository.name }}
+          DISCUSSION_NUMBER: ${{ github.event.discussion.number }}
+          MARKER: "<!-- facc_discussion_ideas_welcome_v1 -->"
+        run: |
+          set -euo pipefail
+
+          # Check if we've already posted (marker present)
+          if gh api "repos/$OWNER/$REPO/discussions/$DISCUSSION_NUMBER/comments" --paginate \
+            | jq -e --arg m "$MARKER" '
+                (if type=="array" then . else [.] end)
+                | any(.[]?.body? // "" | contains($m))
+              ' >/dev/null; then
+            echo "Welcome comment already exists. Skipping."
+            exit 0
+          fi
+
+          # Build the comment body
+          body=$(cat <<'EOF'
+          <!-- facc_discussion_ideas_welcome_v1 -->
+          This is an automated message from the **Factorio Admin Command Center (facc)** bot.
+
+          **Category note:** This category is for **new feature ideas** or **improvements to existing features** only. If you want to **report a bug**, please open an **Issue** instead.
+
+          Thanks for starting an **Ideas** discussion! **@louanfontenele** will reply as soon as possible (timezone **GMT-3, Brazil**).
+
+          To help evaluate your idea, please include (or edit the post to add):
+          - The problem or use-case your idea solves.
+          - The proposed behavior/UX (what should happen, where, when).
+          - Where this fits in facc (admin actions, monitoring, chat, permissions, etc.).
+          - Factorio version and facc version.
+          - Context: Singleplayer / Multiplayer (hosted or dedicated).
+
+          **Language policy:** Discussions are welcome in **English** or **Portuguese (pt-BR)**.
+
+          **P.S.:** Just to clarify — this project was created to work **only** with the **Vanilla game and its official DLCs** (such as *Space Age* and its standalone content). While in theory it shouldn’t conflict with others, it was designed and tested to run **without any additional mods installed**. The maintainer will still do their best to consider ideas that involve other mods, but please keep in mind that support is limited to what’s within reach and the scope of the original design.
+          EOF
+          )
+
+          # Post the comment
+          gh api -X POST "repos/$OWNER/$REPO/discussions/$DISCUSSION_NUMBER/comments" -f body="$body"
