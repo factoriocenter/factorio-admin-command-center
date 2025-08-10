@@ -9,6 +9,7 @@ permissions:
 
 jobs:
   welcome:
+    # Run only for discussions created in the "ideas" category
     if: ${{ github.event.discussion.category && github.event.discussion.category.slug == 'ideas' }}
     runs-on: ubuntu-latest
     steps:
@@ -17,42 +18,62 @@ jobs:
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
-            // Unique marker to ensure a single comment per discussion
             const marker = '<!-- facc_discussion_ideas_welcome_v1 -->';
-            const { owner, repo } = context.repo;
-            const discussion_number = context.payload.discussion.number;
+            const owner = context.repo.owner;
+            const repo = context.repo.repo;
+            const number = context.payload.discussion.number;
 
-            // Fetch existing comments; skip if our marker is present
-            const { data: comments } = await github.request(
-              'GET /repos/{owner}/{repo}/discussions/{discussion_number}/comments',
-              { owner, repo, discussion_number, per_page: 100 }
-            );
-
-            if (Array.isArray(comments) && comments.some(c => typeof c.body === 'string' && c.body.includes(marker))) {
-              core.info('Welcome comment already exists for this discussion. Skipping.');
+            // 1) Get discussion node id and recent comments (GraphQL)
+            const query = `
+              query($owner:String!, $repo:String!, $number:Int!) {
+                repository(owner:$owner, name:$repo) {
+                  discussion(number:$number) {
+                    id
+                    comments(first:50) {
+                      nodes { id body }
+                    }
+                  }
+                }
+              }
+            `;
+            const qres = await github.graphql(query, { owner, repo, number });
+            const discussion = qres?.repository?.discussion;
+            if (!discussion?.id) {
+              core.setFailed('Could not resolve discussion via GraphQL.');
               return;
             }
 
+            // 2) Skip if we've already posted (marker present)
+            if (discussion.comments.nodes.some(c => typeof c.body === 'string' && c.body.includes(marker))) {
+              core.info('Welcome comment already exists. Skipping.');
+              return;
+            }
+
+            // 3) Compose the message
             const body = `${marker}
-              This is an automated message from the **Factorio Admin Command Center (FACC)** bot.
+            This is an automated message from the **Factorio Admin Command Center (FACC)** bot.
 
-              **Category note:** This category is for **new feature ideas** or **improvements to existing features** only. If you want to **report a bug**, please open an **Issue** instead.
+            **Category note:** This category is for **new feature ideas** or **improvements to existing features** only. If you want to **report a bug**, please open an **Issue** instead.
 
-              Thanks for starting an **Ideas** discussion! **@louanfontenele** will reply as soon as possible (timezone **GMT-3, Brazil**).
+            Thanks for starting an **Ideas** discussion! **@louanfontenele** will reply as soon as possible (timezone **GMT-3, Brazil**).
 
-              To help evaluate your idea, please include (or edit the post to add):
-              - The problem or use-case your idea solves.
-              - The proposed behavior/UX (what should happen, where, when).
-              - Where this fits in FACC (admin actions, monitoring, chat, permissions, etc.).
-              - Factorio version and FACC version.
-              - Context: Singleplayer / Multiplayer (hosted or dedicated).
+            To help evaluate your idea, please include (or edit the post to add):
+            - The problem or use-case your idea solves.
+            - The proposed behavior/UX (what should happen, where, when).
+            - Where this fits in FACC (admin actions, monitoring, chat, permissions, etc.).
+            - Factorio version and FACC version.
+            - Context: Singleplayer / Multiplayer (hosted or dedicated).
 
-              **Language policy:** Discussions are welcome in **English** or **Portuguese (pt-BR)**.
+            **Language policy:** Discussions are welcome in **English** or **Portuguese (pt-BR)**.
 
-              **P.S.:** Just to clarify — this project was created to work **only** with the **Vanilla game and its official DLCs** (such as *Space Age* and its standalone content). While in theory it shouldn’t conflict with others, it was designed and tested to run **without any additional mods installed**. The maintainer will still do their best to consider ideas that involve other mods, but please keep in mind that support is limited to what’s within reach and the scope of the original design.`;
+            **P.S.:** Just to clarify — this project was created to work **only** with the **Vanilla game and its official DLCs** (such as *Space Age* and its standalone content). While in theory it shouldn’t conflict with others, it was designed and tested to run **without any additional mods installed**. The maintainer will still do their best to consider ideas that involve other mods, but please keep in mind that support is limited to what’s within reach and the scope of the original design.`;
 
-            // Create the comment
-            await github.request(
-              'POST /repos/{owner}/{repo}/discussions/{discussion_number}/comments',
-              { owner, repo, discussion_number, body }
-            );
+            // 4) Add comment via GraphQL
+            const mutation = `
+              mutation($discussionId:ID!, $body:String!) {
+                addDiscussionComment(input:{discussionId:$discussionId, body:$body}) {
+                  comment { id }
+                }
+              }
+            `;
+            await github.graphql(mutation, { discussionId: discussion.id, body });
