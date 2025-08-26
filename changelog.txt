@@ -1,4 +1,17 @@
 ---------------------------------------------------------------------------------------------------
+Version: 3.5.8
+Date: 2025-08-26
+  Features:
+    - Split “Infinite Resources Multiplier” into two settings: one for SOLID resources and one for FLUID resources.
+      Works with vanilla categories (basic-solid, hard-solid, basic-fluid) and most modded categories.
+  Changes:
+    - Smarter detection for modded resources: applies the Fluid multiplier if the category name contains “fluid” or if the resource behaves as a fluid; otherwise applies the Solid multiplier.
+    - Infinite-resource top-ups on chunk generation and on new surfaces now respect the correct (Solid/Fluid) multiplier.
+    - Autoplace richness for infinite resources now uses the corresponding Solid/Fluid multiplier.
+    - Defaults keep previous behavior (both set to 1×).
+  Translation:
+    - Added EN and pt-BR names/descriptions for the new Fluid multiplier setting and Solid multiplier setting.
+---------------------------------------------------------------------------------------------------
 Version: 3.5.7
 Date: 2025-07-31
   Bugfixes:

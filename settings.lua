@@ -42,17 +42,32 @@ data:extend({
     localised_name = {"mod-setting-name.facc-infinite-resources"},
     localised_description = {"mod-setting-description.facc-infinite-resources"}
   },
+
+  -- NEW: Separate multipliers for solid and fluid resources
   {
     type = "string-setting",
-    name = "facc-infinite-resources-multiplier",
+    name = "facc-infinite-resources-multiplier-solid",
     setting_type = "startup",
     default_value = "1x",
     allowed_values = {"1x", "2x", "5x", "10x", "20x", "50x"},
-    order = "e",
+    order = "e1",
     per_user = false,
-    localised_name = {"mod-setting-name.facc-infinite-resources-multiplier"},
-    localised_description = {"mod-setting-description.facc-infinite-resources-multiplier"}
+    localised_name = {"mod-setting-name.facc-infinite-resources-multiplier-solid"},
+    localised_description = {"mod-setting-description.facc-infinite-resources-multiplier-solid"}
   },
+  {
+    type = "string-setting",
+    name = "facc-infinite-resources-multiplier-fluid",
+    setting_type = "startup",
+    default_value = "1x",
+    allowed_values = {"1x", "2x", "5x", "10x", "20x", "50x"},
+    order = "e2",
+    per_user = false,
+    localised_name = {"mod-setting-name.facc-infinite-resources-multiplier-fluid"},
+    localised_description = {"mod-setting-description.facc-infinite-resources-multiplier-fluid"}
+  },
+
+  -- Backwards-compat control: keep the automation toggle
   {
     -- Disable automatic resource regeneration when infinite-resources setting changes
     type = "bool-setting",
@@ -65,3 +80,8 @@ data:extend({
     localised_description = {"mod-setting-description.facc-disable-auto-resource-regeneration"}
   }
 })
+
+-- NOTE:
+-- We intentionally did not re-declare the legacy single multiplier
+-- "facc-infinite-resources-multiplier". Existing saves that still carry it
+-- will be read at runtime/data stage (as a fallback) if present in the save.

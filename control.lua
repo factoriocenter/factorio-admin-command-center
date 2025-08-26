@@ -16,19 +16,78 @@ local regenerate_finite   = require("scripts/planets/regenerate_resources")
 local regenerate_infinite = require("scripts/startup-settings/regenerate_to_infinite_resources")
 
 --------------------------------------------------------------------------------
+-- Utility: parse "Nx" and read (solid, fluid) multipliers with legacy fallback
+--------------------------------------------------------------------------------
+--- Parse "Nx" into a number (default 1).
+-- @param s string|nil
+-- @return number
+local function parse_x(s)
+  if type(s) ~= "string" then return 1 end
+  local n = tonumber(s:match("^(%d+)x$"))
+  return n or 1
+end
+
+--- Read both multipliers (solid, fluid). If legacy single setting exists, use it as fallback.
+-- @return number mult_solid, number mult_fluid
+local function read_multipliers_pair()
+  local legacy = settings.startup["facc-infinite-resources-multiplier"]
+                 and settings.startup["facc-infinite-resources-multiplier"].value
+                 or nil
+
+  local solid_str = (settings.startup["facc-infinite-resources-multiplier-solid"]
+                    and settings.startup["facc-infinite-resources-multiplier-solid"].value)
+                    or legacy or "1x"
+
+  local fluid_str = (settings.startup["facc-infinite-resources-multiplier-fluid"]
+                    and settings.startup["facc-infinite-resources-multiplier-fluid"].value)
+                    or legacy or "1x"
+
+  return parse_x(solid_str), parse_x(fluid_str)
+end
+
+--- Check whether a resource entity behaves like a "fluid resource".
+-- Heuristics:
+--   1) resource_category/category contains "fluid"
+--   2) mineable products include a fluid
+-- @param res LuaEntity (type="resource")
+-- @return boolean
+local function is_fluid_resource_entity(res)
+  local proto = res and res.prototype
+  if not proto then return false end
+
+  local cat = proto.resource_category or proto.category or "basic-solid"
+  if type(cat) == "string" and string.find(cat, "fluid", 1, true) then
+    return true
+  end
+
+  local mp = proto.mineable_properties
+  if mp and mp.products then
+    for _, p in pairs(mp.products) do
+      if p and p.type == "fluid" then
+        return true
+      end
+    end
+  end
+
+  return false
+end
+
+--------------------------------------------------------------------------------
 -- Utility: top up infinite resources in a given area (used on chunk generation)
 --------------------------------------------------------------------------------
 local function top_up_area(surface, area)
-  -- Read multiplier setting at runtime (e.g., "5x" -> 5)
-  local mult_str   = settings.startup["facc-infinite-resources-multiplier"].value or "1x"
-  local multiplier = tonumber(mult_str:match("^(%d+)x$")) or 1
+  -- Read multipliers at runtime, with legacy fallback
+  local mult_solid, mult_fluid = read_multipliers_pair()
 
   for _, resource in pairs(surface.find_entities_filtered{ area = area, type = "resource" }) do
     if resource.prototype.infinite_resource then
-      -- set both initial and current amounts according to multiplier
-      local full_amount = resource.prototype.normal_resource_amount * multiplier
-      resource.initial_amount = full_amount
-      resource.amount         = full_amount
+      local normal = resource.prototype.normal_resource_amount
+      if normal and normal > 0 then
+        local m = is_fluid_resource_entity(resource) and mult_fluid or mult_solid
+        local full_amount = normal * m
+        resource.initial_amount = full_amount
+        resource.amount         = full_amount
+      end
     end
   end
 end
