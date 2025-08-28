@@ -63,6 +63,30 @@ local TABS = {
         tooltip = {"tooltip.ghost-on-death"},
         switch  = true
       },
+            {
+        name    = "facc_instant_blueprint_building",
+        caption = {"facc.instant-blueprint-building"},
+        tooltip = {"tooltip.instant-blueprint-building"},
+        switch  = true
+      },
+      {
+        name    = "facc_instant_deconstruction",
+        caption = {"facc.instant-deconstruction"},
+        tooltip = {"tooltip.instant-deconstruction"},
+        switch  = true
+      },
+      -- {
+      --   name    = "facc_instant_upgrading",
+      --   caption = {"facc.instant-upgrading"},
+      --   tooltip = {"tooltip.instant-upgrading"},
+      --   switch  = true
+      -- },
+      {
+        name    = "facc_instant_rail_planner",
+        caption = {"facc.instant-rail-planner"},
+        tooltip = {"tooltip.instant-rail-planner"},
+        switch  = true
+      },
       {
         name    = "facc_build_all_ghosts",
         caption = {"facc.build-all-ghosts"},
@@ -78,7 +102,7 @@ local TABS = {
         caption = {"facc.convert-to-legendary"},
         tooltip = {"tooltip.convert-to-legendary"},
         slider  = { name="slider_convert_to_legendary", min=1, max=150, default=75 }
-      }
+      },
     }
   },
   character = {

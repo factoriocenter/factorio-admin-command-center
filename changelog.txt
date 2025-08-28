@@ -1,4 +1,15 @@
 ---------------------------------------------------------------------------------------------------
+Version: 3.6.0
+Date: 2025-08-27
+  Features:
+    - Instant Blueprint Building – place a blueprint and it appears right away.
+    - Instant Deconstruction – anything you mark for removal disappears instantly.
+    - Instant Rail Planner – rails from the planner are built instantly.
+  Gui:
+    - Added simple on/off switches with clear tooltips for the new features.
+  Translation:
+    - Added English and Brazilian Portuguese text for the new options.
+---------------------------------------------------------------------------------------------------
 Version: 3.5.8
 Date: 2025-08-26
   Features:

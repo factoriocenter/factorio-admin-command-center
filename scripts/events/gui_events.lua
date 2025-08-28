@@ -104,6 +104,10 @@ local FACC_SWITCHES = {
   facc_toggle_minable=true,
   facc_toggle_trains=true,
   facc_ghost_on_death = true,
+  facc_instant_blueprint_building = true,
+  facc_instant_deconstruction     = true,
+  facc_instant_upgrading          = true,
+  facc_instant_rail_planner       = true,
 }
 
 -- Base feature handlers
@@ -291,6 +295,7 @@ script.on_event(defines.events.on_gui_switch_state_changed, function(event)
   elseif elem.name == "facc_toggle_trains"          then toggle_trains.run(player, on)
   elseif elem.name == "facc_ghost_on_death"         then enable_ghost_on_death.run(player, on)
   end
+  -- The new 3.6.0 switches don't need immediate side-effects; the dispatcher reads them live.
 end)
 
 -- On-tick for the two automations
