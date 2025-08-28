@@ -59,7 +59,7 @@ script.on_event(defines.events.on_robot_built_entity, function(e)
 end)
 
 --------------------------------------------------------------------------------
--- Marked for deconstruction: instant removal
+-- Marked for deconstruction: instant removal (entities)
 --------------------------------------------------------------------------------
 script.on_event(defines.events.on_marked_for_deconstruction, function(e)
   if not allowed(e.player_index) then return end
@@ -70,7 +70,20 @@ script.on_event(defines.events.on_marked_for_deconstruction, function(e)
 end)
 
 --------------------------------------------------------------------------------
--- Marked for upgrade: instant upgrade (with 2.0.60 fallback)
+-- NEW: Player deconstruction selection (tiles) → instant revert
+-- We use the area-based event to handle tile deconstruction marks because
+-- tiles do not fire on_marked_for_deconstruction like entities do.
+--------------------------------------------------------------------------------
+script.on_event(defines.events.on_player_deconstructed_area, function(e)
+  if not allowed(e.player_index) then return end
+  ensure_state()
+  if is_on("facc_instant_deconstruction") then
+    instant_decon.on_player_deconstructed_area(e)
+  end
+end)
+
+--------------------------------------------------------------------------------
+-- Marked for upgrade: instant upgrade
 --------------------------------------------------------------------------------
 script.on_event(defines.events.on_marked_for_upgrade, function(e)
   if not allowed(e.player_index) then return end

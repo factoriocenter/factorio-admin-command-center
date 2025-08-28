@@ -1,4 +1,9 @@
 ---------------------------------------------------------------------------------------------------
+Version: 3.6.1
+Date: 2025-08-28
+  Bugfixes:
+    - Instant Deconstruction now correctly removes tiles marked with the Deconstruction Planner (e.g., concrete, refined concrete, stone brick, landfill).
+---------------------------------------------------------------------------------------------------
 Version: 3.6.0
 Date: 2025-08-27
   Features:
