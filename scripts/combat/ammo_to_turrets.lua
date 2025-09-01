@@ -2,7 +2,7 @@
 -- Inserts appropriate ammo into empty turrets:
 --   • gun-turret       → uranium-rounds-magazine (100)
 --   • artillery-turret → artillery-shell (5)
---   • rocket-turret    → explosive-rocket (100) [Space Age only]
+--   • rocket-turret    → rocket (100) [Space Age only]
 --   • railgun-turret   → railgun-ammo (10) [Space Age only]
 
 local M = {}
@@ -45,7 +45,7 @@ function M.run(player)
       if turret.valid then
         local inv = turret.get_inventory(defines.inventory.turret_ammo)
         if inv and inv.is_empty() then
-          inv.insert{name = "explosive-rocket", count = 100}
+          inv.insert{name = "rocket", count = 100}
         end
       end
     end
