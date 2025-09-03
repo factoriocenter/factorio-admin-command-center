@@ -12,19 +12,29 @@ local INV_IDS = {
 }
 
 -- ========= Inventory copy =========
-
 local function move_inventory(from_char, to_char, inv_id)
   local src = from_char and from_char.valid and from_char.get_inventory(inv_id)
   local dst = to_char   and to_char.valid   and to_char.get_inventory(inv_id)
   if not (src and dst) then return end
-  for i = 1, #src do
+  local n = math.min(#src, #dst)
+  for i = 1, n do
     local s = src[i]
     if s and s.valid_for_read and s.count > 0 then
-      local inserted = dst.insert(s) -- insert full stack when possible
-      if inserted >= s.count then
+      local d = dst[i]
+      local ok_set, set_res = pcall(function() return d.set_stack(s) end)
+      if ok_set and set_res then
         s.clear()
       else
-        s.count = s.count - inserted
+        local ok_swap, swapped = pcall(function() return d.swap_stack(s) end)
+        if ok_swap and swapped then
+        else
+          local inserted = dst.insert(s)
+          if inserted >= s.count then
+            s.clear()
+          else
+            s.count = s.count - inserted
+          end
+        end
       end
     end
   end
