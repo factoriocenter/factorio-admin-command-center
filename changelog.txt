@@ -1,4 +1,16 @@
 ---------------------------------------------------------------------------------------------------
+Version: 3.6.2
+Date: 2025-08-29
+  Bugfixes:
+    - Fixed Instant Blueprint for Orbital Bases.
+    - Fixed Instant Blueprint for Modules.
+    - Fixed Instant Deconstruction to work properly with tiles.
+  Changes:
+    - Changed Explosive Rockets to Rockets for Insert Ammo.
+    - Changed Build Ghost feature to build ghosts with modules.
+    - Moved Deconstruction Mark feature to Blueprints tab.
+    - Moved Repair and Rebuild feature to Blueprints tab.
+---------------------------------------------------------------------------------------------------
 Version: 3.6.1
 Date: 2025-08-28
   Bugfixes:

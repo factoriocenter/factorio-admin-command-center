@@ -1,11 +1,14 @@
 -- scripts/events/build_events.lua
--- Single dispatcher: registers events once and forwards to per-feature modules.
--- Works on 2.0.60 (stable) and 2.0.65+ (experimental). Uses e.entity or e.created_entity.
+-- Single dispatcher: registers each Factorio event exactly once and forwards to
+-- per-feature modules. Tested on 2.0.60 (stable) and 2.0.65+ (experimental).
+-- Always use e.entity or e.created_entity (depending on event source).
 
 local instant_bp_build = require("scripts/blueprints/instant_blueprint_building")
 local instant_rail     = require("scripts/blueprints/instant_rail_planner")
 local instant_decon    = require("scripts/blueprints/instant_deconstruction")
 local instant_upgrade  = require("scripts/blueprints/instant_upgrading")
+local clean_pollution  = require("scripts/environment/clean_pollution")
+local instant_research = require("scripts/cheats/instant_research")
 
 local function ensure_state()
   storage.facc_gui_state = storage.facc_gui_state or { sliders = {}, switches = {}, is_open = false }
@@ -33,17 +36,23 @@ script.on_event(defines.events.on_built_entity, function(e)
   if not (ent and ent.valid) then return end
 
   -- Optional: fill electric buffers if you expose a switch for this feature
-  if is_on("facc_fill_electric_buffers_on_build") then
-    fill_buffers.on_built_entity(e)
+  if is_on("facc_fill_electric_buffers_on_build") and fill_buffers and fill_buffers.on_built_entity then
+    pcall(function() fill_buffers.on_built_entity(e) end)
   end
 
-  -- Instant blueprint building / rail planner (only acts on ghosts)
-  if ent.type == "entity-ghost" or ent.type == "tile-ghost" then
+  -- Blueprint building pipeline:
+  -- Includes item-request-proxy so modules/fuel are inserted immediately.
+  if ent.type == "entity-ghost" or ent.type == "tile-ghost" or ent.type == "item-request-proxy" then
     if is_on("facc_instant_blueprint_building") then
       instant_bp_build.on_built_entity(e)
-    elseif is_on("facc_instant_rail_planner") then
-      -- Only rails when the general blueprint switch is OFF
+      return
+    end
+
+    -- If general instant blueprint is OFF but rail-only switch is ON,
+    -- allow the rail-only fast revive path for entity-ghosts of rails.
+    if ent.type == "entity-ghost" and is_on("facc_instant_rail_planner") then
       instant_rail.on_built_entity(e)
+      return
     end
   end
 end)
@@ -53,13 +62,13 @@ end)
 --------------------------------------------------------------------------------
 script.on_event(defines.events.on_robot_built_entity, function(e)
   ensure_state()
-  if is_on("facc_fill_electric_buffers_on_build") then
-    fill_buffers.on_robot_built_entity(e)
+  if is_on("facc_fill_electric_buffers_on_build") and fill_buffers and fill_buffers.on_robot_built_entity then
+    pcall(function() fill_buffers.on_robot_built_entity(e) end)
   end
 end)
 
 --------------------------------------------------------------------------------
--- Marked for deconstruction: instant removal (entities)
+-- Marked for deconstruction: instant removal (entities) → processed on tick
 --------------------------------------------------------------------------------
 script.on_event(defines.events.on_marked_for_deconstruction, function(e)
   if not allowed(e.player_index) then return end
@@ -70,9 +79,7 @@ script.on_event(defines.events.on_marked_for_deconstruction, function(e)
 end)
 
 --------------------------------------------------------------------------------
--- NEW: Player deconstruction selection (tiles) → instant revert
--- We use the area-based event to handle tile deconstruction marks because
--- tiles do not fire on_marked_for_deconstruction like entities do.
+-- Player deconstruction selection (tiles) → selection defines whether tiles are allowed
 --------------------------------------------------------------------------------
 script.on_event(defines.events.on_player_deconstructed_area, function(e)
   if not allowed(e.player_index) then return end
@@ -90,5 +97,37 @@ script.on_event(defines.events.on_marked_for_upgrade, function(e)
   ensure_state()
   if is_on("facc_instant_upgrading") then
     instant_upgrade.on_marked_for_upgrade(e)
+  end
+end)
+
+--------------------------------------------------------------------------------
+-- On-tick: central worker hub (ONLY this file registers on_tick)
+--------------------------------------------------------------------------------
+script.on_event(defines.events.on_tick, function(event)
+  ensure_state()
+  local s = storage.facc_gui_state
+
+  -- 1) Instant Blueprint Building worker (needs to run every tick)
+  if s.switches["facc_instant_blueprint_building"] and instant_bp_build.on_tick then
+    instant_bp_build.on_tick(event)
+  end
+
+  -- 2) Instant Deconstruction queue (builds-before-tiles is guaranteed inside the module)
+  if s.switches["facc_instant_deconstruction"] and instant_decon.on_tick then
+    instant_decon.on_tick(event)
+  end
+
+  -- 3) Existing automations
+  if s.switches["facc_auto_clean_pollution"] then
+    local secs = s.sliders["slider_auto_clean_pollution"] or 60
+    if secs >= 1 and (event.tick % (secs * 60) == 0) then
+      for _,p in pairs(game.players) do clean_pollution.run(p) end
+    end
+  end
+  if s.switches["facc_auto_instant_research"] then
+    local secs = s.sliders["slider_auto_instant_research"] or 1
+    if secs >= 1 and (event.tick % (secs * 60) == 0) then
+      for _,p in pairs(game.players) do instant_research.run(p) end
+    end
   end
 end)

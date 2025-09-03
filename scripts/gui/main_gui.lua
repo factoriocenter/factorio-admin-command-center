@@ -93,6 +93,16 @@ local TABS = {
         tooltip = {"tooltip.build-all-ghosts"}
       },
       {
+        name    = "facc_repair_rebuild",
+        caption = {"facc.repair-rebuild"},
+        tooltip = {"tooltip.repair-rebuild"}
+      },
+      {
+        name    = "facc_remove_decon",
+        caption = {"facc.remove-decon"},
+        tooltip = {"tooltip.remove-decon"}
+      },
+      {
         name    = "facc_upgrade_blueprints",
         caption = {"facc.upgrade-blueprints"},
         tooltip = {"tooltip.upgrade-blueprints"}
@@ -264,19 +274,9 @@ local TABS = {
         tooltip = {"tooltip.remove-pollution"}
       },
       {
-        name    = "facc_repair_rebuild",
-        caption = {"facc.repair-rebuild"},
-        tooltip = {"tooltip.repair-rebuild"}
-      },
-      {
         name    = "facc_hide_map",
         caption = {"facc.hide-map"},
         tooltip = {"tooltip.hide-map"}
-      },
-      {
-        name    = "facc_remove_decon",
-        caption = {"facc.remove-decon"},
-        tooltip = {"tooltip.remove-decon"}
       },
       {
         name    = "facc_remove_ground_items",

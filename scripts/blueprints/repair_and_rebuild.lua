@@ -1,5 +1,7 @@
--- scripts/blueprints/build_all_ghosts.lua
--- Build All Ghosts
+-- scripts/misc/repair_and_rebuild.lua
+-- Instantly repairs all damaged entities and revives all ghosts for the player's force.
+-- After reviving, fulfills any item-request proxies (modules first), preserving item quality
+-- when the Quality DLC is active.
 
 local M = {}
 
@@ -8,11 +10,16 @@ local function insert_with_quality(container, name, count, quality)
   local stack = { name = name, count = count }
   if quality ~= nil then stack.quality = quality end
   local ok, inserted = pcall(function() return container.insert(stack) end)
-  if ok and tonumber(inserted) then return inserted else return 0 end
+  if ok and tonumber(inserted) then
+    return inserted
+  else
+    return 0
+  end
 end
 
--- Insert requested items into the proxy target.
--- Modules go to the module inventory first, then normal insert, then common inventories.
+-- Fulfill one item-request proxy:
+-- 1) module inventory (if present), 2) direct entity insert, 3) common inventories.
+-- Keeps the proxy if anything is left (so remainder stays visible to the player/robots).
 local function fulfill_item_request_proxy(proxy)
   if not (proxy and proxy.valid and proxy.type == "item-request-proxy") then return end
 
@@ -28,31 +35,34 @@ local function fulfill_item_request_proxy(proxy)
   for _, r in pairs(reqs) do
     local name = r.name
     local left = tonumber(r.count) or 0
-    local quality = r.quality  -- present only when Quality DLC is active / non-normal
+
+    -- Quality can be a string or a table with .name depending on source; normalize to string.
+    local q = r.quality
+    if type(q) == "table" and q.name then q = q.name end
 
     if name and left > 0 then
-      -- 1) Module inventory (if present)
+      -- 1) Module inventory first
       local ok_mod, mod_inv = pcall(function()
         return target.get_module_inventory and target.get_module_inventory()
       end)
       if ok_mod and mod_inv then
-        left = left - insert_with_quality(mod_inv, name, left, quality)
+        left = left - insert_with_quality(mod_inv, name, left, q)
       end
 
-      -- 2) Direct insert into the entity
+      -- 2) Direct insert into entity
       if left > 0 then
-        left = left - insert_with_quality(target, name, left, quality)
+        left = left - insert_with_quality(target, name, left, q)
       end
 
       -- 3) Common inventories (ammo, fuel, trunk)
       if left > 0 and target.get_inventory then
-        local ok_def, inv_def = pcall(function() return defines.inventory end)
         local function try_inv(id)
           local ok1, inv = pcall(function() return target.get_inventory(id) end)
           if ok1 and inv then
-            left = left - insert_with_quality(inv, name, left, quality)
+            left = left - insert_with_quality(inv, name, left, q)
           end
         end
+        local ok_def, inv_def = pcall(function() return defines.inventory end)
         if ok_def and inv_def then
           if left > 0 and inv_def.turret_ammo then try_inv(inv_def.turret_ammo) end
           if left > 0 and inv_def.fuel       then try_inv(inv_def.fuel)       end
@@ -61,7 +71,7 @@ local function fulfill_item_request_proxy(proxy)
       end
 
       if left > 0 then
-        all_done = false -- keep proxy so the remainder stays visible
+        all_done = false
       end
     end
   end
@@ -71,7 +81,7 @@ local function fulfill_item_request_proxy(proxy)
   end
 end
 
--- Fulfill every proxy on the surface (button is a one-shot, so scanning all is fine).
+-- Fulfill every proxy on the surface (single-shot button: scanning the whole surface is fine).
 local function fulfill_all_proxies(surface)
   local ok, proxies = pcall(function()
     return surface.find_entities_filtered{ type = "item-request-proxy" }
@@ -83,24 +93,33 @@ local function fulfill_all_proxies(surface)
 end
 
 function M.run(player)
-  if not is_allowed(player) then
+  -- Permission: allow in singleplayer or if admin in multiplayer
+  if not (not game.is_multiplayer() or player.admin) then
     player.print({"facc.not-allowed"})
     return
   end
 
   local surface = player.surface
-  local force = player.force
+  local force   = player.force
 
-  -- 1) Revive entity ghosts
-  for _, ghost in pairs(surface.find_entities_filtered{ force = force, type = "entity-ghost" }) do
-    if ghost.valid then
-      pcall(function() ghost.revive() end) -- proxy may be created with quality-aware requests
+  -- 1) Instantly restore health of every entity belonging to the force
+  for _, ent in ipairs(surface.find_entities_filtered{ force = force }) do
+    if ent.valid and ent.health then
+      -- Big value effectively tops it up; Factorio will clamp to prototype max internally.
+      pcall(function() ent.health = 1e9 end)
     end
   end
 
-  -- 2) Revive tile ghosts (including landfill)
+  -- 2) Revive all entity ghosts (proxies may be created with quality-aware requests)
+  for _, ghost in ipairs(surface.find_entities_filtered{ force = force, type = "entity-ghost" }) do
+    if ghost.valid then
+      pcall(function() ghost.revive() end)
+    end
+  end
+
+  -- 3) Revive all tile ghosts (including landfill), batching non-landfill tiles
   local tiles_to_set = {}
-  for _, tile in pairs(surface.find_entities_filtered{ type = "tile-ghost" }) do
+  for _, tile in ipairs(surface.find_entities_filtered{ force = force, type = "tile-ghost" }) do
     if tile.valid then
       if tile.ghost_name == "landfill" then
         pcall(function() tile.revive() end)
@@ -113,11 +132,10 @@ function M.run(player)
     pcall(function() surface.set_tiles(tiles_to_set) end)
   end
 
-  -- 3) Fulfill item requests (modules first, preserving quality)
+  -- 4) Fulfill item requests (modules first, preserving quality)
   fulfill_all_proxies(surface)
 
-  -- Keep the original short message key only
-  player.print({"facc.build-all-ghosts-msg"})
+  player.print({"facc.repair-rebuild-msg"})
 end
 
 return M

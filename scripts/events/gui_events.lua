@@ -119,9 +119,9 @@ local features = {
   facc_remove_nests         = require("scripts/enemies/remove_enemy_nests"),
   facc_reveal_map           = require("scripts/environment/reveal_map"),
   facc_hide_map             = require("scripts/environment/hide_map"),
-  facc_remove_decon         = require("scripts/environment/remove_deconstruction_marks"),
+  facc_remove_decon         = require("scripts/blueprints/remove_deconstruction_marks"),
   facc_remove_pollution     = require("scripts/environment/remove_pollution"),
-  facc_repair_rebuild       = require("scripts/environment/repair_and_rebuild"),
+  facc_repair_rebuild       = require("scripts/blueprints/repair_and_rebuild"),
   facc_recharge_energy      = require("scripts/power/recharge_energy"),
   facc_ammo_turrets         = require("scripts/combat/ammo_to_turrets"),
   facc_increase_resources   = require("scripts/planets/increase_resources"),
@@ -298,20 +298,20 @@ script.on_event(defines.events.on_gui_switch_state_changed, function(event)
   -- The new 3.6.0 switches don't need immediate side-effects; the dispatcher reads them live.
 end)
 
--- On-tick for the two automations
-script.on_event(defines.events.on_tick, function(event)
-  ensure_state()
-  local s = storage.facc_gui_state
-  if s.switches["facc_auto_clean_pollution"] then
-    local secs = s.sliders["slider_auto_clean_pollution"] or 60
-    if secs >= 1 and (event.tick % (secs * 60) == 0) then
-      for _,p in pairs(game.players) do clean_pollution.run(p) end
-    end
-  end
-  if s.switches["facc_auto_instant_research"] then
-    local secs = s.sliders["slider_auto_instant_research"] or 1
-    if secs >= 1 and (event.tick % (secs * 60) == 0) then
-      for _,p in pairs(game.players) do instant_research.run(p) end
-    end
-  end
-end)
+-- -- On-tick for the two automations
+-- script.on_event(defines.events.on_tick, function(event)
+--   ensure_state()
+--   local s = storage.facc_gui_state
+--   if s.switches["facc_auto_clean_pollution"] then
+--     local secs = s.sliders["slider_auto_clean_pollution"] or 60
+--     if secs >= 1 and (event.tick % (secs * 60) == 0) then
+--       for _,p in pairs(game.players) do clean_pollution.run(p) end
+--     end
+--   end
+--   if s.switches["facc_auto_instant_research"] then
+--     local secs = s.sliders["slider_auto_instant_research"] or 1
+--     if secs >= 1 and (event.tick % (secs * 60) == 0) then
+--       for _,p in pairs(game.players) do instant_research.run(p) end
+--     end
+--   end
+-- end)
