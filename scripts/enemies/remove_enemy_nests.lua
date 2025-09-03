@@ -1,4 +1,4 @@
--- scripts/map/remove_enemy_nests.lua
+-- scripts/enemies/remove_enemy_nests.lua
 -- This module removes all enemy structures (spawners and worms) within a radius from the player.
 -- The radius value is defined by the user through the GUI slider.
 

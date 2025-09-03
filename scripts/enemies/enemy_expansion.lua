@@ -1,4 +1,4 @@
--- scripts/automations/enemy_expansion.lua
+-- scripts/enemies/enemy_expansion.lua
 -- Toggle enemy expansion (biter nest growth)
 -- Switch ON: disable expansion; Switch OFF: enable expansion (default)
 

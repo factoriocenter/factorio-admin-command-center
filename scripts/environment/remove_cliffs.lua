@@ -1,4 +1,4 @@
--- scripts/map/remove_cliffs.lua
+-- scripts/environment/remove_cliffs.lua
 -- This module removes cliff entities in a radius around the player.
 -- The radius is provided by the GUI slider and confirmed via a green button.
 

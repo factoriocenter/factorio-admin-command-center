@@ -1,4 +1,4 @@
--- scripts/unlocks/unlock_all_recipes.lua
+-- scripts/cheats/unlock_all_recipes.lua
 -- This module enables all available recipes for the player's force.
 
 local M = {}

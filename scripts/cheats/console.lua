@@ -1,4 +1,4 @@
--- scripts/utility/console.lua
+-- scripts/cheats/console.lua
 -- This module provides a function to execute arbitrary Lua code from the global command string.
 -- It is used by the GUI console interface to run admin-level commands.
 

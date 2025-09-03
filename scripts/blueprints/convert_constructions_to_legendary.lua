@@ -1,4 +1,4 @@
--- scripts/map/convert_constructions_to_legendary.lua
+-- scripts/blueprints/convert_constructions_to_legendary.lua
 -- This module upgrades all eligible constructions in an area around the player
 -- to legendary quality using a temporary upgrade planner and ghost revival.
 -- Enhanced: temporarily research construction robotics if not researched.

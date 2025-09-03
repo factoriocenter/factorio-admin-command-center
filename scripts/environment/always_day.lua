@@ -1,4 +1,4 @@
--- scripts/automations/always_day.lua
+-- scripts/environment/always_day.lua
 -- Toggle eternal day on the player's current surface
 
 local M = {}

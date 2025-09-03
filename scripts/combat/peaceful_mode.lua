@@ -1,4 +1,4 @@
--- scripts/automations/peaceful_mode.lua
+-- scripts/combat/peaceful_mode.lua
 -- Toggle peaceful mode (no biter attacks unless provoked)
 
 local M = {}

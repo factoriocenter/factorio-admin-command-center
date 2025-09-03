@@ -1,4 +1,4 @@
--- scripts/automations/indestructible_builds.lua
+-- scripts/combat/indestructible_builds.lua
 -- Toggle destructibility of all existing entities belonging to the player’s force.
 -- When the switch is ON (enabled = true), all existing entities become indestructible (destructible = false).
 -- When the switch is OFF (enabled = false), all those entities revert to normal (destructible = true).

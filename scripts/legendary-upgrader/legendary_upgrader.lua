@@ -1,4 +1,4 @@
--- scripts/legendary_upgrader.lua
+-- scripts/legendary-upgrader/legendary_upgrader.lua
 -- Legendary Upgrader tool: handles area selection to upgrade entities to legendary quality.
 
 local TOOL_NAME = "facc_legendary_upgrader"

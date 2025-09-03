@@ -1,4 +1,4 @@
--- scripts/map/remove_pollution.lua
+-- scripts/environment/remove_pollution.lua
 -- This module removes all pollution from the player's current surface.
 
 local M = {}

@@ -1,4 +1,4 @@
--- File: scripts/cheats/set_game_speed.lua
+-- scripts/cheats/set_game_speed.lua
 -- Allows admins to set the global game speed via slider.
 -- @param player LuaPlayer — the invoking player
 -- @param speed number     — desired game speed (clamped 0.25..64)

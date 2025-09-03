@@ -1,4 +1,4 @@
--- scripts/misc/repair_and_rebuild.lua
+-- scripts/blueprints/repair_and_rebuild.lua
 -- Instantly repairs all damaged entities and revives all ghosts for the player's force.
 -- After reviving, fulfills any item-request proxies (modules first), preserving item quality
 -- when the Quality DLC is active.

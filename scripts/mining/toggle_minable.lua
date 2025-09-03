@@ -1,4 +1,4 @@
--- scripts/automations/toggle_minable.lua
+-- scripts/mining/toggle_minable.lua
 -- Toggles all existing entities on the current surface between minable/non-minable.
 
 local M = {}

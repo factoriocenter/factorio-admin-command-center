@@ -1,4 +1,4 @@
--- scripts/unlocks/unlock_all_technologies.lua
+-- scripts/cheats/unlock_all_technologies.lua
 -- This module completes all technologies for the player's force instantly.
 
 local M = {}

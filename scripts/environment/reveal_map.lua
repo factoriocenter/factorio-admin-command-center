@@ -1,4 +1,4 @@
--- scripts/map/reveal_map.lua
+-- scripts/environment/reveal_map.lua
 -- This module reveals a portion of the map centered on the player,
 -- based on a radius defined by the GUI slider.
 

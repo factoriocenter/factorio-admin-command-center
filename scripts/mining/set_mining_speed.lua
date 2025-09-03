@@ -1,4 +1,4 @@
--- File: scripts/mining/set_mining_speed.lua
+-- scripts/mining/set_mining_speed.lua
 -- Allows admins to set manual mining speed modifier via slider.
 -- @param player LuaPlayer      — the invoking player
 -- @param modifier number       — mining speed modifier (0..1000)

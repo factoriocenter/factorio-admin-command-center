@@ -1,4 +1,4 @@
--- scripts/automations/cheat_mode.lua
+-- scripts/cheats/cheat_mode.lua
 -- Toggle player cheat mode on or off
 
 local M = {}

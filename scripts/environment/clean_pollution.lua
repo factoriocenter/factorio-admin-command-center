@@ -1,4 +1,4 @@
--- scripts/automations/clean_pollution.lua
+-- scripts/environment/clean_pollution.lua
 -- Clean Pollution automation: clears all pollution from the current surface
 
 local M = {}

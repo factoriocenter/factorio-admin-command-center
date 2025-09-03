@@ -1,4 +1,4 @@
--- scripts/misc/ammo_to_turrets.lua
+-- scripts/combat/ammo_to_turrets.lua
 -- Inserts appropriate ammo into empty turrets:
 --   • gun-turret       → uranium-rounds-magazine (100)
 --   • artillery-turret → artillery-shell (5)

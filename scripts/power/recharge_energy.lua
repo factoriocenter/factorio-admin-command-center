@@ -1,4 +1,4 @@
--- scripts/misc/recharge_energy.lua
+-- scripts/power/recharge_energy.lua
 -- This module recharges:
 --   • electric entities (machines, accumulators, etc.) of the player's force
 --   • the player's personal equipment grid

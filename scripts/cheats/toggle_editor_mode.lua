@@ -1,4 +1,4 @@
--- scripts/character/toggle_editor_mode.lua
+-- scripts/cheats/toggle_editor_mode.lua
 -- Toggle Editor Mode module: toggles the map editor for the player.
 -- Only available in single-player or for admins in multiplayer.
 

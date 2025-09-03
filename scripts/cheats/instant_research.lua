@@ -1,4 +1,4 @@
--- scripts/misc/instant_research.lua
+-- scripts/cheats/instant_research.lua
 -- Instant Research module: instantly completes any ongoing research when executed.
 
 local M = {}

@@ -1,4 +1,4 @@
--- scripts/misc/increase_resources.lua
+-- scripts/planets/increase_resources.lua
 -- This module sets the amount of all resource entities on the surface
 -- to the maximum possible value (2^32 - 1).
 

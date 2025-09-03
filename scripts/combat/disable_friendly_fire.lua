@@ -1,4 +1,4 @@
--- scripts/automations/disable_friendly_fire.lua
+-- scripts/combat/disable_friendly_fire.lua
 -- Toggle friendly fire for the player's force
 
 local M = {}

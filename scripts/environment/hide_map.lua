@@ -1,4 +1,4 @@
--- scripts/map/hide_map.lua
+-- scripts/environment/hide_map.lua
 -- This module uncharts all revealed chunks from the player's force perspective,
 -- effectively hiding the entire map.
 

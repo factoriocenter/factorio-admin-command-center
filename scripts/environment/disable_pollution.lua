@@ -1,4 +1,4 @@
--- scripts/automations/disable_pollution.lua
+-- scripts/environment/disable_pollution.lua
 -- Clear all existing pollution and toggle pollution generation
 
 local M = {}
