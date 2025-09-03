@@ -301,21 +301,3 @@ script.on_event(defines.events.on_gui_switch_state_changed, function(event)
   end
   -- The new 3.6.0 switches don't need immediate side-effects; the dispatcher reads them live.
 end)
-
--- -- On-tick for the two automations
--- script.on_event(defines.events.on_tick, function(event)
---   ensure_state()
---   local s = storage.facc_gui_state
---   if s.switches["facc_auto_clean_pollution"] then
---     local secs = s.sliders["slider_auto_clean_pollution"] or 60
---     if secs >= 1 and (event.tick % (secs * 60) == 0) then
---       for _,p in pairs(game.players) do clean_pollution.run(p) end
---     end
---   end
---   if s.switches["facc_auto_instant_research"] then
---     local secs = s.sliders["slider_auto_instant_research"] or 1
---     if secs >= 1 and (event.tick % (secs * 60) == 0) then
---       for _,p in pairs(game.players) do instant_research.run(p) end
---     end
---   end
--- end)
