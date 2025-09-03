@@ -125,6 +125,12 @@ local TABS = {
         switch  = true
       },
       {
+        name    = "facc_invincible_player",
+        caption = {"facc.invincible-player"},
+        tooltip = {"tooltip.invincible-player"},
+        switch  = true
+      },
+      {
         name    = "facc_delete_ownerless",
         caption = {"facc.delete-ownerless"},
         tooltip = {"tooltip.delete-ownerless"}

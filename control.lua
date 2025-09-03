@@ -16,6 +16,11 @@ local regenerate_finite   = require("scripts/planets/regenerate_resources")
 local regenerate_infinite = require("scripts/startup-settings/regenerate_to_infinite_resources")
 
 --------------------------------------------------------------------------------
+-- NEW: Invincible player switch module (reapply on join/respawn)
+--------------------------------------------------------------------------------
+local invincible_player = require("scripts/character/invincible_player")
+
+--------------------------------------------------------------------------------
 -- Utility: parse "Nx" and read (solid, fluid) multipliers with legacy fallback
 --------------------------------------------------------------------------------
 --- Parse "Nx" into a number (default 1).
@@ -160,8 +165,21 @@ end)
 
 --------------------------------------------------------------------------------
 -- Whenever a player joins (covers save-load and multiplayer joins)
+-- Also reapply the saved invincibility state for that player.
 --------------------------------------------------------------------------------
-script.on_event(defines.events.on_player_joined_game, update_legendary_shortcut_availability)
+script.on_event(defines.events.on_player_joined_game, function(e)
+  update_legendary_shortcut_availability()
+  local p = game.get_player(e.player_index)
+  if p then invincible_player.apply_saved(p) end
+end)
+
+--------------------------------------------------------------------------------
+-- Reapply invincibility on respawn (if previously enabled via switch)
+--------------------------------------------------------------------------------
+script.on_event(defines.events.on_player_respawned, function(e)
+  local p = game.get_player(e.player_index)
+  if p then invincible_player.apply_saved(p) end
+end)
 
 --------------------------------------------------------------------------------
 -- When a new chunk is generated: enforce infinite-resource top-up if setting is on

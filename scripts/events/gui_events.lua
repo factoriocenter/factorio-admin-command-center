@@ -23,7 +23,7 @@ local toggle_trains          = require("scripts/trains/toggle_trains")
 local long_reach             = require("scripts/character/long_reach")
 local ammo_damage_boost      = require("scripts/combat/ammo_damage_boost")
 local turret_damage_boost    = require("scripts/combat/turret_damage_boost")
-local enable_ghost_on_death   = require("scripts/blueprints/enable_ghost_on_death")
+local enable_ghost_on_death  = require("scripts/blueprints/enable_ghost_on_death")
 
 -- new auto-run slider handlers
 local set_game_speed         = require("scripts/cheats/set_game_speed")
@@ -32,7 +32,10 @@ local set_mining_speed       = require("scripts/mining/set_mining_speed")
 local run_faster             = require("scripts/character/run_faster")
 local increase_robot_speed   = require("scripts/logistic-network/increase_robot_speed")
 
-local ghost_toggle         = require("scripts/character/toggle_ghost_character")
+local ghost_toggle           = require("scripts/character/toggle_ghost_character")
+
+-- NEW: Invincible player switch
+local invincible_player      = require("scripts/character/invincible_player")
 
 local ensure_state = main_gui.ensure_persistent_state
 
@@ -111,6 +114,8 @@ local FACC_SWITCHES = {
   facc_instant_upgrading          = true,
   facc_instant_rail_planner       = true,
   facc_ghost_mode = true,
+  -- NEW: invincible player switch
+  facc_invincible_player = true,
 }
 
 -- Base feature handlers
@@ -209,7 +214,7 @@ script.on_event(defines.events.on_gui_value_changed, function(event)
     return
   end
 
-    -- Live‐slider: Long Reach
+  -- Live‐slider: Long Reach
   if elem.name == "slider_long_reach" then
     local old = storage.facc_gui_state.sliders["slider_long_reach"] or 0
     local new = elem.slider_value
@@ -297,7 +302,9 @@ script.on_event(defines.events.on_gui_switch_state_changed, function(event)
   elseif elem.name == "facc_toggle_minable"         then toggle_minable.run(player, on)
   elseif elem.name == "facc_toggle_trains"          then toggle_trains.run(player, on)
   elseif elem.name == "facc_ghost_on_death"         then enable_ghost_on_death.run(player, on)
-  elseif elem.name == "facc_ghost_mode"           then ghost_toggle.run(player, on)
+  elseif elem.name == "facc_ghost_mode"             then ghost_toggle.run(player, on)
+  -- NEW: invincible player switch
+  elseif elem.name == "facc_invincible_player"      then invincible_player.run(player, on)
   end
-  -- The new 3.6.0 switches don't need immediate side-effects; the dispatcher reads them live.
+  -- 3.6.0 switches: dispatcher reads state live.
 end)
