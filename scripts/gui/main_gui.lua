@@ -119,6 +119,12 @@ local TABS = {
     label    = {"facc.tab-character"},
     elements = {
       {
+        name    = "facc_ghost_mode",
+        caption = {"facc.ghost-mode"},
+        tooltip = {"tooltip.ghost-mode"},
+        switch  = true
+      },
+      {
         name    = "facc_delete_ownerless",
         caption = {"facc.delete-ownerless"},
         tooltip = {"tooltip.delete-ownerless"}

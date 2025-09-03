@@ -32,6 +32,8 @@ local set_mining_speed       = require("scripts/mining/set_mining_speed")
 local run_faster             = require("scripts/character/run_faster")
 local increase_robot_speed   = require("scripts/logistic-network/increase_robot_speed")
 
+local ghost_toggle         = require("scripts/character/toggle_ghost_character")
+
 local ensure_state = main_gui.ensure_persistent_state
 
 -- Whitelists of FACC GUI element names
@@ -108,6 +110,7 @@ local FACC_SWITCHES = {
   facc_instant_deconstruction     = true,
   facc_instant_upgrading          = true,
   facc_instant_rail_planner       = true,
+  facc_ghost_mode = true,
 }
 
 -- Base feature handlers
@@ -294,6 +297,7 @@ script.on_event(defines.events.on_gui_switch_state_changed, function(event)
   elseif elem.name == "facc_toggle_minable"         then toggle_minable.run(player, on)
   elseif elem.name == "facc_toggle_trains"          then toggle_trains.run(player, on)
   elseif elem.name == "facc_ghost_on_death"         then enable_ghost_on_death.run(player, on)
+  elseif elem.name == "facc_ghost_mode"           then ghost_toggle.run(player, on)
   end
   -- The new 3.6.0 switches don't need immediate side-effects; the dispatcher reads them live.
 end)
