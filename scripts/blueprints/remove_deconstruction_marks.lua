@@ -1,4 +1,4 @@
--- scripts/map/remove_deconstruction_marks.lua
+-- scripts/blueprints/remove_deconstruction_marks.lua
 -- This module deletes all entities on the surface that are marked for deconstruction.
 -- Useful for clearing pending removal tasks in bulk.
 
