@@ -1,10 +1,5 @@
 -- scripts/blueprints/instant_blueprint_building.lua
 -- Instant Blueprint Building
---
--- IMPORTANT: This module does NOT register on_tick by itself.
--- The central dispatcher (scripts/events/build_events.lua) is the ONLY file
--- that calls script.on_event(defines.events.on_tick, ...). This module exposes
--- M.on_tick(event) so the dispatcher can call it each tick.
 
 local M = {}
 

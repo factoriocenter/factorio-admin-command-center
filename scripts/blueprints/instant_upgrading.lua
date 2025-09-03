@@ -1,7 +1,5 @@
 -- scripts/blueprints/instant_upgrading.lua
 -- Instant upgrading (Factorio >= 2.0.65 only, where LuaEntity.apply_upgrade exists).
--- This module exports a single handler that is invoked by build_events.lua
--- when the "facc_instant_upgrading" switch is ON.
 
 local M = {}
 

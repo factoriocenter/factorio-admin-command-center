@@ -35,11 +35,6 @@ script.on_event(defines.events.on_built_entity, function(e)
   local ent = e.entity or e.created_entity
   if not (ent and ent.valid) then return end
 
-  -- Optional: fill electric buffers if you expose a switch for this feature
-  if is_on("facc_fill_electric_buffers_on_build") and fill_buffers and fill_buffers.on_built_entity then
-    pcall(function() fill_buffers.on_built_entity(e) end)
-  end
-
   -- Blueprint building pipeline:
   -- Includes item-request-proxy so modules/fuel are inserted immediately.
   if ent.type == "entity-ghost" or ent.type == "tile-ghost" or ent.type == "item-request-proxy" then
@@ -54,16 +49,6 @@ script.on_event(defines.events.on_built_entity, function(e)
       instant_rail.on_built_entity(e)
       return
     end
-  end
-end)
-
---------------------------------------------------------------------------------
--- Robot-built entities: only electric buffer fill (no player_index on this event)
---------------------------------------------------------------------------------
-script.on_event(defines.events.on_robot_built_entity, function(e)
-  ensure_state()
-  if is_on("facc_fill_electric_buffers_on_build") and fill_buffers and fill_buffers.on_robot_built_entity then
-    pcall(function() fill_buffers.on_robot_built_entity(e) end)
   end
 end)
 

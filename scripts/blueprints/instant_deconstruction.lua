@@ -1,18 +1,6 @@
 -- scripts/blueprints/instant_deconstruction.lua
--- Instant Deconstruction with "entities before tiles" priority.
---
--- Rules:
--- • If the player's selection contains ANY entity ("build"), DO NOT touch tiles.
--- • If the selection contains tiles only, then restore those tiles (hidden_tile).
---
--- How it works:
--- • on_player_deconstructed_area: records the selection preference (allow_tiles).
--- • on_marked_for_deconstruction: for each deconstructible-tile-proxy, checks
---   the player's most recent selection preference; if allow_tiles=false, it
---   CANCELS the proxy (unmarks the tile) and leaves the floor untouched; if true,
---   it queues the tile for restoration.
--- • A worker on on_tick processes the queue: destroys entities and restores
---   allowed tiles in batches (set_tiles(..., true, true, true, true)).
+-- Instant Deconstruction
+
 
 local M = {}
 
