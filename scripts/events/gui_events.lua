@@ -1,6 +1,7 @@
 -- scripts/events/gui_events.lua
 -- GUI event dispatcher for FACC.
 -- Handles clicks, slider changes, switch toggles and on-tick loops.
+-- Fix: in the switch handler call `ghost_toggle.run(...)` (some builds had `.toggle(...)`, which is nil).
 
 local main_gui               = require("scripts/gui/main_gui")
 local console_gui            = require("scripts/gui/console_gui")
@@ -25,17 +26,18 @@ local ammo_damage_boost      = require("scripts/combat/ammo_damage_boost")
 local turret_damage_boost    = require("scripts/combat/turret_damage_boost")
 local enable_ghost_on_death  = require("scripts/blueprints/enable_ghost_on_death")
 
--- new auto-run slider handlers
+-- live auto-run sliders
 local set_game_speed         = require("scripts/cheats/set_game_speed")
 local set_crafting_speed     = require("scripts/manufacturing/set_crafting_speed")
 local set_mining_speed       = require("scripts/mining/set_mining_speed")
 local run_faster             = require("scripts/character/run_faster")
 local increase_robot_speed   = require("scripts/logistic-network/increase_robot_speed")
 
+-- Character features
 local ghost_toggle           = require("scripts/character/toggle_ghost_character")
-
--- NEW: Invincible player switch
 local invincible_player      = require("scripts/character/invincible_player")
+
+local instant_request  = require("scripts/logistic-network/instant_request")
 
 local ensure_state = main_gui.ensure_persistent_state
 
@@ -114,11 +116,11 @@ local FACC_SWITCHES = {
   facc_instant_upgrading          = true,
   facc_instant_rail_planner       = true,
   facc_ghost_mode = true,
-  -- NEW: invincible player switch
   facc_invincible_player = true,
+  facc_instant_request = true,
 }
 
--- Base feature handlers
+-- Button handlers
 local features = {
   facc_toggle_editor        = require("scripts/cheats/toggle_editor_mode"),
   facc_delete_ownerless     = require("scripts/character/delete_ownerless_characters"),
@@ -144,7 +146,7 @@ local features = {
   facc_high_infinite_research_levels = require("scripts/cheats/high_infinite_research_levels"),
 }
 
--- Legendary-only handlers
+-- Legendary-only handlers (Quality DLC)
 local quality_enabled   = script.active_mods["quality"]    ~= nil
 local space_age_enabled = script.active_mods["space-age"] ~= nil
 
@@ -154,7 +156,7 @@ if quality_enabled then
   features.facc_convert_to_legendary = require("scripts/blueprints/convert_constructions_to_legendary")
 end
 
--- Click dispatcher (FACC-only buttons)
+-- Click dispatcher (FACC buttons only)
 script.on_event(defines.events.on_gui_click, function(event)
   local player, element = game.get_player(event.player_index), event.element
   if not (player and element and element.valid) then return end
@@ -172,7 +174,7 @@ script.on_event(defines.events.on_gui_click, function(event)
   if name == "facc_console_exec"  then console_gui.exec_console_command(player); return end
   if name == "facc_console_close" then console_gui.toggle_console_gui(player); return end
 
-  -- Standard feature buttons
+  -- Feature buttons with optional radius argument
   local handler = features[name]
   if handler then
     local sliders = storage.facc_gui_state.sliders
@@ -196,14 +198,14 @@ script.on_event(defines.events.on_gui_click, function(event)
   end
 end)
 
--- Slider change handler (auto-run for FACC-only sliders)
+-- Slider change handler (live behavior where applicable)
 script.on_event(defines.events.on_gui_value_changed, function(event)
   local elem = event.element
   if not (elem and elem.valid and elem.type == "slider" and FACC_SLIDERS[elem.name]) then return end
   ensure_state()
   local player = game.get_player(event.player_index)
 
-  -- Handle Increase Robot Speed as a true live slider
+  -- Live slider: Increase Robot Speed
   if elem.name == "slider_increase_robot_speed" then
     local old = storage.facc_gui_state.sliders["slider_increase_robot_speed"] or 0
     local new = elem.slider_value
@@ -214,7 +216,7 @@ script.on_event(defines.events.on_gui_value_changed, function(event)
     return
   end
 
-  -- Live‐slider: Long Reach
+  -- Live slider: Long Reach
   if elem.name == "slider_long_reach" then
     local old = storage.facc_gui_state.sliders["slider_long_reach"] or 0
     local new = elem.slider_value
@@ -225,7 +227,7 @@ script.on_event(defines.events.on_gui_value_changed, function(event)
     return
   end
 
-  -- Live‐slider: Ammo Damage Boost
+  -- Live slider: Ammo Damage Boost
   if elem.name == "slider_ammo_damage_boost" then
     local old = storage.facc_gui_state.sliders["slider_ammo_damage_boost"] or 0
     local new = elem.slider_value
@@ -236,7 +238,7 @@ script.on_event(defines.events.on_gui_value_changed, function(event)
     return
   end
 
-  -- Live‐slider: Turret Damage Boost
+  -- Live slider: Turret Damage Boost
   if elem.name == "slider_turret_damage_boost" then
     local old = storage.facc_gui_state.sliders["slider_turret_damage_boost"] or 0
     local new = elem.slider_value
@@ -247,7 +249,7 @@ script.on_event(defines.events.on_gui_value_changed, function(event)
     return
   end
 
-  -- Handle Set Crafting Speed as a true live slider
+  -- Live slider: Crafting Speed
   if elem.name == "slider_set_crafting_speed" then
     local old = storage.facc_gui_state.sliders["slider_set_crafting_speed"] or 0
     local new = elem.slider_value
@@ -258,7 +260,7 @@ script.on_event(defines.events.on_gui_value_changed, function(event)
     return
   end
 
-  -- Default behavior for other sliders
+  -- Default persistence + side effects
   storage.facc_gui_state.sliders[elem.name] = elem.slider_value
   local box = elem.parent[elem.name .. "_value"]
   if box and box.valid then box.text = tostring(elem.slider_value) end
@@ -281,7 +283,7 @@ script.on_event(defines.events.on_gui_value_changed, function(event)
   end
 end)
 
--- Switch toggle handler (FACC-only switches)
+-- Switch toggle handler (FACC switches only)
 script.on_event(defines.events.on_gui_switch_state_changed, function(event)
   local elem   = event.element
   local player = game.get_player(event.player_index)
@@ -302,9 +304,9 @@ script.on_event(defines.events.on_gui_switch_state_changed, function(event)
   elseif elem.name == "facc_toggle_minable"         then toggle_minable.run(player, on)
   elseif elem.name == "facc_toggle_trains"          then toggle_trains.run(player, on)
   elseif elem.name == "facc_ghost_on_death"         then enable_ghost_on_death.run(player, on)
-  elseif elem.name == "facc_ghost_mode"             then ghost_toggle.run(player, on)
-  -- NEW: invincible player switch
+  elseif elem.name == "facc_ghost_mode"             then ghost_toggle.run(player, on)  -- ← FIX: use `.run`, not `.toggle`
   elseif elem.name == "facc_invincible_player"      then invincible_player.run(player, on)
+  elseif elem.name == "facc_instant_request"        then instant_request.toggle_player(player, on)
   end
-  -- 3.6.0 switches: dispatcher reads state live.
+  -- The event dispatcher reads the switch state live; no additional work needed here.
 end)

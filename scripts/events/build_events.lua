@@ -9,6 +9,7 @@ local instant_decon    = require("scripts/blueprints/instant_deconstruction")
 local instant_upgrade  = require("scripts/blueprints/instant_upgrading")
 local clean_pollution  = require("scripts/environment/clean_pollution")
 local instant_research = require("scripts/cheats/instant_research")
+local instant_request  = require("scripts/logistic-network/instant_request") -- NEW: per-player instant request
 
 local function ensure_state()
   storage.facc_gui_state = storage.facc_gui_state or { sliders = {}, switches = {}, is_open = false }
@@ -114,5 +115,26 @@ script.on_event(defines.events.on_tick, function(event)
     if secs >= 1 and (event.tick % (secs * 60) == 0) then
       for _,p in pairs(game.players) do instant_research.run(p) end
     end
+  end
+
+  -- 4) NEW: Instant Request per-player worker
+  if s.switches["facc_instant_request"] and instant_request.on_tick then
+    instant_request.on_tick(event)
+  end
+end)
+
+-- PERSONAL LOGISTICS: slot changed → fulfill that slot (per-player)
+script.on_event(defines.events.on_entity_logistic_slot_changed, function(e)
+  ensure_state()
+  if storage.facc_gui_state.switches["facc_instant_request"] and instant_request.on_entity_logistic_slot_changed then
+    instant_request.on_entity_logistic_slot_changed(e)
+  end
+end)
+
+-- PERSONAL LOGISTICS: main inventory changed → resync all active requests (per-player)
+script.on_event(defines.events.on_player_main_inventory_changed, function(e)
+  ensure_state()
+  if storage.facc_gui_state.switches["facc_instant_request"] and instant_request.on_player_main_inventory_changed then
+    instant_request.on_player_main_inventory_changed(e)
   end
 end)

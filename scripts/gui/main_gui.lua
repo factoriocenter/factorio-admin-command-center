@@ -320,6 +320,12 @@ local TABS = {
     label    = {"facc.tab-logistic-network"},
     elements = {
       {
+        name    = "facc_instant_request",
+        caption = {"facc.instant-request"},
+        tooltip = {"tooltip.instant-request"},
+        switch  = true
+      }, 
+      {
         name    = "facc_add_robots",
         caption = {"facc.add-robots"},
         tooltip = {"tooltip.add-robots"}
