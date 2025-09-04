@@ -1,12 +1,8 @@
 # Set the root project directory
-$projectRoot = Split-Path -Parent $MyInvocation.MyCommand.Definition
+$projectRoot    = Split-Path -Parent $MyInvocation.MyCommand.Definition
 $rootFolderName = Split-Path $projectRoot -Leaf
 
-# Gather all files and directories under the project
-$allFiles = Get-ChildItem -Path $projectRoot -Recurse -File
-$allDirs  = Get-ChildItem -Path $projectRoot -Recurse -Directory
-
-# Ask the user where to save the output
+# Ask the user where to save the output (mantido)
 $choice = Read-Host "Do you want to save the output in the current folder (Y), the parent folder (N), or a custom path (C)? [Y/N/C]"
 switch ($choice.ToUpper()) {
     "Y" { $saveBase = $projectRoot; break }
@@ -23,6 +19,63 @@ switch ($choice.ToUpper()) {
 
 # Create the output directory named after the project root
 $outputDir = Join-Path $saveBase "extraction_$rootFolderName"
+
+# --- Folder blacklist (edit here; names or patterns relative to root) ---
+# Examples:
+# 'node_modules' → excludes any folder named node_modules
+# 'dist' → excludes any dist
+# 'docs/*' → excludes everything inside docs (immediate level only)
+# 'extraction_*' → avoids capturing old exports
+# '.git' → excludes the entire .git folder
+$folderBlacklist = @(
+    '.git',
+    '.github',
+    'node_modules',
+    'dist',
+    'build',
+    '.next',
+    '.cache',
+    'extraction_*'
+)
+
+# Function to test if a path is blacklisted
+function Test-BlacklistedPath {
+    param(
+        [Parameter(Mandatory)][string]$FullPath,
+        [Parameter(Mandatory)][string[]]$Patterns,
+        [Parameter(Mandatory)][string]$Root,
+        [string]$OutputDir
+    )
+
+    # Never export the output folder (if it is inside the project)
+    if ($OutputDir -and $FullPath.StartsWith($OutputDir, [StringComparison]::OrdinalIgnoreCase)) {
+        return $true
+    }
+
+    # Path relative to root, normalized to '/'
+    $rel = $FullPath.Substring($Root.Length).TrimStart('\','/')
+    $rel = $rel -replace '\\','/'
+
+    foreach ($p in $Patterns) {
+        if ([string]::IsNullOrWhiteSpace($p)) { continue }
+        $p = $p.Trim().Replace('\','/')
+
+        # If it contains a wildcard, use -like in the relative path.
+        if ($p -match '[\*\?\[]') {
+            $likePattern = $p
+            if ($rel -like $likePattern) { return $true }
+            if (("/" + $rel) -like ("*/" + $likePattern.TrimStart('/'))) { return $true }
+        }
+        else {
+            # Exact segment match (case-insensitive)
+            $segRegex = "(^|/)$([regex]::Escape($p))(/|$)"
+            if ($rel -match $segRegex) { return $true }
+        }
+    }
+    return $false
+}
+
+# Create output folder after setting everything
 New-Item -ItemType Directory -Path $outputDir -Force | Out-Null
 
 # Define the Markdown output file
@@ -37,49 +90,54 @@ if (Test-Path $outputFile) {
 $languageMap = @{
     '.php'   = $true; 
     '.js'    = $true;  
-    '.ts'   = $true;
+    '.ts'    = $true;
     '.jsx'   = $true; 
     '.tsx'   = $true; 
-    '.html' = $true;
+    '.html'  = $true;
     '.css'   = $true; 
     '.json'  = $true; 
-    '.xml'  = $true;
+    '.xml'   = $true;
     '.md'    = $false; 
     '.py'    = $true; 
-    '.sh'   = $false;
+    '.sh'    = $false;
     '.c'     = $true; 
     '.cpp'   = $true; 
-    '.cs'   = $true;
+    '.cs'    = $true;
     '.java'  = $true; 
     '.go'    = $true; 
-    '.rb'   = $true;
+    '.rb'    = $true;
     '.rs'    = $true; 
     '.swift' = $true; 
-    '.kt'   = $true;
+    '.kt'    = $true;
     '.scala' = $true; 
     '.lua'   = $true; 
-    '.yml'  = $true;
+    '.yml'   = $true;
     '.yaml'  = $true; 
     '.ini'   = $true; 
-    '.toml' = $true;
+    '.toml'  = $true;
     '.env'   = $false; 
-    '.txt'  = $false; 
-    '.bat'  = $true;
+    '.txt'   = $false; 
+    '.bat'   = $true;
     '.conf'  = $false; 
-    '.cfg'  = $false;  
-    '.gitignore' = $false;
-    '.gitattributes' = $false;
+    '.cfg'   = $false;  
+    '.gitignore'      = $false;
+    '.gitattributes'  = $false;
 }
 
 # Files without extensions that should always be included
-# $alwaysAllow = @(
-#     'Dockerfile', 'Makefile', '.gitignore', '.prettierrc',
-#     '.editorconfig', '.gitattributes', '.eslintrc', '.babelrc'
-# )
 $alwaysAllow = @(
     'Dockerfile', 'Makefile', '.prettierrc',
     '.editorconfig', '.eslintrc', '.babelrc'
 )
+
+# --- Enumerar e FILTRAR (respeitando a blacklist) ---
+$allDirs = Get-ChildItem -Path $projectRoot -Recurse -Directory | Where-Object {
+    -not (Test-BlacklistedPath -FullPath $_.FullName -Patterns $folderBlacklist -Root $projectRoot -OutputDir $outputDir)
+}
+
+$allFiles = Get-ChildItem -Path $projectRoot -Recurse -File | Where-Object {
+    -not (Test-BlacklistedPath -FullPath $_.FullName -Patterns $folderBlacklist -Root $projectRoot -OutputDir $outputDir)
+}
 
 # Process each file and append its content in fenced code blocks
 foreach ($file in $allFiles) {
@@ -94,7 +152,6 @@ foreach ($file in $allFiles) {
     try { $content = Get-Content -Path $file.FullName -Raw } catch { $content = "[ERROR READING FILE]" }
 
     Add-Content -Path $outputFile -Value "### $name"
-    # Always use generic fenced code block
     Add-Content -Path $outputFile -Value '```'
     Add-Content -Path $outputFile -Value $content
     Add-Content -Path $outputFile -Value '```'
@@ -104,8 +161,8 @@ foreach ($file in $allFiles) {
 # Append a styled summary section
 Add-Content -Path $outputFile -Value '## 📝 Processing Summary'
 Add-Content -Path $outputFile -Value ''
-Add-Content -Path $outputFile -Value "- 📁 Directories processed: $($allDirs.Count)"
-Add-Content -Path $outputFile -Value "- 📄 Files processed: $($allFiles.Count)"
+Add-Content -Path $outputFile -Value "- 📁 Directories processed (after blacklist): $($allDirs.Count)"
+Add-Content -Path $outputFile -Value "- 📄 Files processed (after blacklist): $($allFiles.Count)"
 Add-Content -Path $outputFile -Value ''
 
 # List of Directories with root folder prefix
