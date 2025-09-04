@@ -324,7 +324,13 @@ local TABS = {
         caption = {"facc.instant-request"},
         tooltip = {"tooltip.instant-request"},
         switch  = true
-      }, 
+      },
+      -- {
+      --   name    = "facc_instant_trash",
+      --   caption = {"facc.instant-trash"},
+      --   tooltip = {"tooltip.instant-trash"},
+      --   switch  = true
+      -- },
       {
         name    = "facc_add_robots",
         caption = {"facc.add-robots"},
