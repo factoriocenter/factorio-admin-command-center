@@ -35,7 +35,8 @@ $folderBlacklist = @(
     'build',
     '.next',
     '.cache',
-    'extraction_*'
+    'extraction_*',
+    'graphics'
 )
 
 # Function to test if a path is blacklisted
