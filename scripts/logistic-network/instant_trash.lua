@@ -1,5 +1,5 @@
 -- scripts/logistic-network/instant_trash.lua
--- Instant Trash (player + entities with trash slots)
+-- Instant Trash
 
 local M = {}
 
@@ -58,29 +58,39 @@ local function is_supported_entity(ent)
     local mode = ent.prototype and ent.prototype.logistic_mode
     return mode == "requester" or mode == "buffer"
   end
-  if t == "spider-vehicle" then return true end  -- spidertron
+  if t == "spider-vehicle" then return true end       -- spidertron
   if t == "car" and ent.name == "tank" then return true end
+  if t == "rocket-silo" then return true end          -- NEW: rocket silo
   -- (characters are handled via player path; we don't include them in the entity list)
   return false
 end
 
--- Refresh list with requester/buffer chests, spidertron and tank
+-- Refresh list with requester/buffer chests, spidertron, tank, rocket silo
 local function refresh_entity_list()
   local new_list = {}
   for _, s in pairs(game.surfaces) do
+    -- Chests (requester/buffer)
     for _, chest in pairs(s.find_entities_filtered{force="player", type="logistic-container"}) do
       if is_supported_entity(chest) and chest.unit_number then
         new_list[#new_list+1] = chest.unit_number
       end
     end
+    -- Spidertron
     for _, sp in pairs(s.find_entities_filtered{force="player", type="spider-vehicle"}) do
       if is_supported_entity(sp) and sp.unit_number then
         new_list[#new_list+1] = sp.unit_number
       end
     end
+    -- Tank
     for _, car in pairs(s.find_entities_filtered{force="player", type="car", name="tank"}) do
       if is_supported_entity(car) and car.unit_number then
         new_list[#new_list+1] = car.unit_number
+      end
+    end
+    -- Rocket silo
+    for _, silo in pairs(s.find_entities_filtered{force="player", type="rocket-silo"}) do
+      if is_supported_entity(silo) and silo.unit_number then
+        new_list[#new_list+1] = silo.unit_number
       end
     end
   end
@@ -124,10 +134,13 @@ local function get_trash_inventory(owner)
   if owner.type == "logistic-container" then
     inv_id = defines.inventory and defines.inventory.logistic_container_trash
   elseif owner.type == "spider-vehicle" then
-    inv_id = (defines.inventory and (defines.inventory.spider_trash or defines.inventory.spider_vehicle_trash))
+    inv_id = defines.inventory and (defines.inventory.spider_trash or defines.inventory.spider_vehicle_trash)
   elseif owner.type == "car" then
-    -- Factorio 2.0 may expose car_trash; if not, this remains nil (no trash inv).
+    -- If the build exposes car_trash, use it. Otherwise, no trash inventory for cars.
     inv_id = defines.inventory and defines.inventory.car_trash
+  elseif owner.type == "rocket-silo" then
+    -- NEW: rocket silo trash inventory (if present in this Factorio build)
+    inv_id = defines.inventory and (defines.inventory.rocket_silo_trash or defines.inventory.rocket_silo_trash_inventory)
   elseif owner.type == "character" then
     inv_id = defines.inventory and defines.inventory.character_trash
   end
@@ -180,6 +193,9 @@ local function get_requester_point_generic(owner)
   elseif owner.type == "car" then
     -- Treat tank as a logistic container member for requester point purposes.
     index = defines.logistic_member_index.logistic_container
+  elseif owner.type == "rocket-silo" then
+    -- Rocket silo normally doesn't expose a requester point; skip trimming filters.
+    return nil
   else
     return nil
   end
@@ -332,7 +348,7 @@ local function handle_entity(ent)
   if not (ent and ent.valid and is_supported_entity(ent)) then return end
   if not any_player_enabled() then return end
   trim_excess_from_filters(ent)
-  purge_owner_trash(ent)  -- << key part: clear logistic_container_trash / spider_trash / car_trash
+  purge_owner_trash(ent)  -- clears logistic_container_trash / spider_trash / car_trash / rocket_silo_trash (when available)
 end
 
 -- Validate a player candidate
