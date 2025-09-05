@@ -7,9 +7,9 @@ local M = {}
 -- Storage keys
 -- --------------------------------------------------------------------------------
 
-local ENABLED_KEY = "facc_instant_request_enabled"   -- boolean (global toggle)
+local ENABLED_KEY = "facc_instant_request_enabled"      -- boolean (global toggle)
 local ENTITY_LIST_KEY = "facc_instant_request_entities" -- array of unit_numbers
-local RR_INDEX_KEY = "facc_instant_request_rr_index" -- round-robin index
+local RR_INDEX_KEY = "facc_instant_request_rr_index"    -- round-robin index
 
 -- --------------------------------------------------------------------------------
 -- Storage helpers
@@ -40,7 +40,7 @@ end
 
 --- Returns true if the entity is one we can instantly fulfill requests for.
 --- Includes characters, spider vehicles, vanilla tank, requester/buffer chests,
---- and the Space Platform Hub (type "space-platform-hub").
+--- the Space Platform Hub ("space-platform-hub") and the Cargo Landing Pad ("cargo-landing-pad").
 local function is_supported_entity(ent)
   if not (ent and ent.valid and ent.force and ent.force.name == "player") then return false end
   local t = ent.type
@@ -53,6 +53,8 @@ local function is_supported_entity(ent)
   end
   -- Space Age: Space Platform Hub
   if t == "space-platform-hub" then return true end
+  -- Space Age: Cargo Landing Pad
+  if t == "cargo-landing-pad" then return true end
   return false
 end
 
@@ -118,8 +120,8 @@ end
 
 --- Returns the requester logistic point for the entity, or nil if none/disabled.
 --- This is resilient to API differences:
---- * For known types we attempt a specific logistic_member_index.
---- * If the API returns multiple points (e.g. Space Platform Hub), we pick the requester by mode.
+--- * For known types we attempt a specific logistic_member_index when available.
+--- * If the API returns multiple points (e.g. Space Platform Hub / Cargo Landing Pad), we pick the requester by mode.
 local function get_requester_point(ent)
   if not (ent and ent.valid) then return nil end
 
@@ -135,10 +137,16 @@ local function get_requester_point(ent)
     -- Tank exposes a logistic container-like requester.
     index = defines.logistic_member_index.logistic_container
   elseif ent.type == "space-platform-hub" then
-    -- Newer builds may expose a specific index for the hub; if not present, pass nil.
+    -- Use specific index if present; otherwise pass nil to get a list we can filter by mode.
     index = (defines and defines.logistic_member_index and
             (defines.logistic_member_index.space_platform_hub
               or defines.logistic_member_index.space_platform_hub_requester))
+            or nil
+  elseif ent.type == "cargo-landing-pad" then
+    -- Cargo Landing Pad may expose its own index in newer builds; if not, nil to retrieve all points.
+    index = (defines and defines.logistic_member_index and
+            (defines.logistic_member_index.cargo_landing_pad
+              or defines.logistic_member_index.cargo_landing_pad_requester))
             or nil
   end
 
@@ -307,7 +315,7 @@ function M.toggle_player(player, enable)
   end
 end
 
---- Handler for when a logistic slot changes on an entity that exposes sections (e.g., chests, hub).
+--- Handler for when a logistic slot changes on an entity that exposes sections (e.g., chests, hub, landing pad).
 --- If the section is active and we have a filter at e.slot_index, fulfills just that filter.
 function M.on_entity_logistic_slot_changed(e)
   if not is_enabled() then return end
