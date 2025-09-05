@@ -39,7 +39,7 @@ local function is_supported_entity(ent)
   if t == "character" then return true end
   if t == "spider-vehicle" then return true end
   if t == "car" and ent.name == "tank" then return true end
-  if t == "container" then
+  if t == "logistic-container" then
     local mode = ent.prototype.logistic_mode
     return mode == "requester" or mode == "buffer"
   end
@@ -87,7 +87,7 @@ local function get_requester_point(ent)
   local index
   if ent.type == "character" then
     index = defines.logistic_member_index.character_requester
-  elseif ent.type == "container" then
+  elseif ent.type == "logistic-container" then
     index = defines.logistic_member_index.logistic_container
   elseif ent.type == "spider-vehicle" then
     index = defines.logistic_member_index.spidertron_requester
