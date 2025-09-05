@@ -35,32 +35,117 @@ local function get_entity_list()
 end
 
 -- --------------------------------------------------------------------------------
--- Entity management
+-- Logistic capability probing (core of auto-detection)
 -- --------------------------------------------------------------------------------
 
---- Returns true if the entity is one we can instantly fulfill requests for.
---- Includes characters, spider vehicles, vanilla tank, requester/buffer chests,
---- the Space Platform Hub ("space-platform-hub") and the Cargo Landing Pad ("cargo-landing-pad").
-local function is_supported_entity(ent)
-  if not (ent and ent.valid and ent.force and ent.force.name == "player") then return false end
-  local t = ent.type
-  if t == "character" then return true end
-  if t == "spider-vehicle" then return true end
-  if t == "car" and ent.name == "tank" then return true end
-  if t == "logistic-container" then
-    local mode = ent.prototype and ent.prototype.logistic_mode
-    return mode == "requester" or mode == "buffer"
+--- Normalizes a get_logistic_point(nil or index) result into a flat array of points.
+local function to_point_array(val)
+  if not val then return {} end
+  local points = {}
+  local function push(p)
+    if p then
+      local ok_valid, v = pcall(function() return p.valid end)
+      if not ok_valid or v ~= false then table.insert(points, p) end
+    end
   end
-  -- Space Age: Space Platform Hub
-  if t == "space-platform-hub" then return true end
-  -- Space Age: Cargo Landing Pad
-  if t == "cargo-landing-pad" then return true end
-  return false
+
+  -- If it's a single LuaLogisticPoint
+  local ok_obj, objname = pcall(function() return val.object_name end)
+  if ok_obj and objname == "LuaLogisticPoint" then
+    push(val)
+    return points
+  end
+
+  -- If it's a table of points
+  if type(val) == "table" then
+    for _, p in pairs(val) do push(p) end
+    return points
+  end
+
+  return points
 end
 
---- Adds an entity (by unit_number) to the tracked list (idempotent).
+--- Returns true if a logistic point is requester-like (requester or buffer) and enabled.
+local function is_requester_like_enabled(point)
+  if not point then return false end
+  local ok_en, en = pcall(function() return point.enabled end)
+  if ok_en and en == false then return false end
+  local ok_mode, mode = pcall(function() return point.mode end)
+  if not ok_mode then return false end
+  return mode == defines.logistic_mode.requester or mode == defines.logistic_mode.buffer
+end
+
+--- Picks the "best" requester-like point: prefer requester; if none, fallback to buffer.
+local function pick_best_requester_like_point(points)
+  local buffer_fallback = nil
+  for _, p in ipairs(points) do
+    local ok_mode, mode = pcall(function() return p.mode end)
+    if ok_mode then
+      if mode == defines.logistic_mode.requester and is_requester_like_enabled(p) then
+        return p
+      elseif mode == defines.logistic_mode.buffer and is_requester_like_enabled(p) then
+        buffer_fallback = buffer_fallback or p
+      end
+    end
+  end
+  return buffer_fallback
+end
+
+--- Probes an entity for requester-like capability and returns the chosen point or nil.
+local function probe_requester_point(ent)
+  if not (ent and ent.valid) then return nil end
+
+  -- Best-effort: passing nil returns all logistic points for entities that have them.
+  -- (On legacy cases, an explicit index may be required; we first try nil to cover future entities.)
+  local ok_all, raw_all = pcall(function() return ent.get_logistic_point(nil) end)
+  if ok_all and raw_all then
+    local pts = to_point_array(raw_all)
+    local chosen = pick_best_requester_like_point(pts)
+    if chosen then return chosen end
+  end
+
+  -- Fallback pass: try known indices when available; if they don't exist, calls are safe via pcall.
+  local indices = defines and defines.logistic_member_index or {}
+  local try = {
+    indices.character_requester,
+    indices.spidertron_requester,
+    indices.logistic_container,
+    indices.space_platform_hub,
+    indices.space_platform_hub_requester,
+    indices.cargo_landing_pad,
+    indices.cargo_landing_pad_requester
+  }
+  for _, idx in ipairs(try) do
+    if idx ~= nil then
+      local ok_one, raw = pcall(function() return ent.get_logistic_point(idx) end)
+      if ok_one and raw then
+        local pts = to_point_array(raw)
+        local chosen = pick_best_requester_like_point(pts)
+        if chosen then return chosen end
+      end
+    end
+  end
+
+  return nil
+end
+
+--- Returns true if the entity supports requester-like logistics (current or future).
+local function entity_is_auto_supported(ent)
+  if not (ent and ent.valid and ent.force and ent.force.name == "player") then return false end
+  -- Must have a unit_number to be trackable.
+  if not ent.unit_number then return false end
+  -- Consider supported if we can probe a requester-like point (even if no active filters right now).
+  return probe_requester_point(ent) ~= nil
+end
+
+-- --------------------------------------------------------------------------------
+-- Entity tracking
+-- --------------------------------------------------------------------------------
+
+--- Adds an entity (by unit_number) to the tracked list (idempotent) if it is supported.
 local function add_entity(ent)
   if not (ent and ent.valid and ent.unit_number) then return end
+  if not entity_is_auto_supported(ent) then return end
   local list = get_entity_list()
   for _, un in ipairs(list) do
     if un == ent.unit_number then return end
@@ -81,12 +166,13 @@ local function remove_entity(ent)
   end
 end
 
---- Rebuilds the tracked entity list by scanning all surfaces for supported entities.
+--- Rebuilds the tracked entity list by scanning all surfaces for auto-supported entities.
 local function refresh_entity_list()
   local new_list = {}
   for _, s in pairs(game.surfaces) do
+    -- We fetch all entities for the player force, then probe; this runs only on enable or manual refresh.
     for _, ent in pairs(s.find_entities_filtered{force = "player"}) do
-      if is_supported_entity(ent) then
+      if entity_is_auto_supported(ent) then
         table.insert(new_list, ent.unit_number)
       end
     end
@@ -95,78 +181,11 @@ local function refresh_entity_list()
 end
 
 -- --------------------------------------------------------------------------------
--- Low-level helpers (safe accessors)
+-- Sections & filters helpers
 -- --------------------------------------------------------------------------------
 
---- Internal helper: normalize a get_logistic_point() return value into a single requester point.
---- Accepts either a LuaLogisticPoint or a table (list) of points.
-local function pick_requester_point(val)
-  -- Case 1: single point object
-  local ok_obj, objname = pcall(function() return val.object_name end)
-  if ok_obj and objname == "LuaLogisticPoint" then
-    return val
-  end
-  -- Case 2: a table/array of points; pick the one with requester mode
-  if type(val) == "table" then
-    for _, p in pairs(val) do
-      local ok_mode, mode = pcall(function() return p.mode end)
-      if ok_mode and mode == defines.logistic_mode.requester then
-        return p
-      end
-    end
-  end
-  return nil
-end
-
---- Returns the requester logistic point for the entity, or nil if none/disabled.
---- This is resilient to API differences:
---- * For known types we attempt a specific logistic_member_index when available.
---- * If the API returns multiple points (e.g. Space Platform Hub / Cargo Landing Pad), we pick the requester by mode.
-local function get_requester_point(ent)
-  if not (ent and ent.valid) then return nil end
-
-  -- Select a likely member index for types that expose one.
-  local index
-  if ent.type == "character" then
-    index = defines.logistic_member_index.character_requester
-  elseif ent.type == "logistic-container" then
-    index = defines.logistic_member_index.logistic_container
-  elseif ent.type == "spider-vehicle" then
-    index = defines.logistic_member_index.spidertron_requester
-  elseif ent.type == "car" then
-    -- Tank exposes a logistic container-like requester.
-    index = defines.logistic_member_index.logistic_container
-  elseif ent.type == "space-platform-hub" then
-    -- Use specific index if present; otherwise pass nil to get a list we can filter by mode.
-    index = (defines and defines.logistic_member_index and
-            (defines.logistic_member_index.space_platform_hub
-              or defines.logistic_member_index.space_platform_hub_requester))
-            or nil
-  elseif ent.type == "cargo-landing-pad" then
-    -- Cargo Landing Pad may expose its own index in newer builds; if not, nil to retrieve all points.
-    index = (defines and defines.logistic_member_index and
-            (defines.logistic_member_index.cargo_landing_pad
-              or defines.logistic_member_index.cargo_landing_pad_requester))
-            or nil
-  end
-
-  -- Fetch raw point(s)
-  local ok_raw, raw = pcall(function() return ent.get_logistic_point(index) end)
-  if not (ok_raw and raw) then return nil end
-
-  -- Normalize to a single requester point
-  local lp = pick_requester_point(raw)
-  if not lp then return nil end
-
-  -- Ignore if disabled
-  local ok_en, en = pcall(function() return lp.enabled end)
-  if ok_en and en == false then return nil end
-
-  return lp
-end
-
 --- Iterates over active sections of a logistic point and invokes cb(section).
---- Tries multiple strategies to handle API variants (sections list, sections_count, get_section).
+--- Supports both 'sections' array and (sections_count + get_section(i)), then blind probing as fallback.
 local function iter_active_sections(lp, cb)
   if not lp then return end
 
@@ -281,9 +300,9 @@ local function fulfill_filter(ent, filter)
   end
 end
 
---- Fulfills all active requests for an entity's requester logistic point.
+--- Fulfills all active requests for an entity's requester-like logistic point.
 local function fulfill_all_active_requests(ent)
-  local lp = get_requester_point(ent)
+  local lp = probe_requester_point(ent)
   if not lp then return end
   iter_active_sections(lp, function(section)
     iter_filters(section, function(filter)
@@ -315,12 +334,14 @@ function M.toggle_player(player, enable)
   end
 end
 
---- Handler for when a logistic slot changes on an entity that exposes sections (e.g., chests, hub, landing pad).
+--- Handler for when a logistic slot changes on an entity that exposes sections.
 --- If the section is active and we have a filter at e.slot_index, fulfills just that filter.
 function M.on_entity_logistic_slot_changed(e)
   if not is_enabled() then return end
   local ent = e and e.entity
-  if not (ent and ent.valid and ent.force and ent.force.name == "player" and is_supported_entity(ent)) then return end
+  if not (ent and ent.valid and ent.force and ent.force.name == "player") then return end
+  -- Only service entities we consider supported (cheap probe via requester point).
+  if not entity_is_auto_supported(ent) then return end
 
   local sec = e.section
   local ok_act, active = pcall(function() return sec.active end)
@@ -354,11 +375,17 @@ function M.on_tick(_e)
   while attempts < #list do
     local un = list[i]
     local ent = game.get_entity_by_unit_number(un)
-    if ent and ent.valid and is_supported_entity(ent) then
-      fulfill_all_active_requests(ent)
-      i = i + 1
-      if i > #list then i = 1 end
-      break
+    if ent and ent.valid then
+      if entity_is_auto_supported(ent) then
+        fulfill_all_active_requests(ent)
+        i = i + 1
+        if i > #list then i = 1 end
+        break
+      else
+        -- Entity no longer exposes requester-like points; drop it.
+        table.remove(list, i)
+        if i > #list then i = 1 end
+      end
     else
       table.remove(list, i)
       if i > #list then i = 1 end
@@ -382,9 +409,7 @@ script.on_event(
   function(e)
     if not is_enabled() then return end
     local ent = e.created_entity or e.entity
-    if is_supported_entity(ent) then
-      add_entity(ent)
-    end
+    add_entity(ent)
   end
 )
 
