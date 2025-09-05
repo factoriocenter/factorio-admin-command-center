@@ -75,12 +75,12 @@ local TABS = {
         tooltip = {"tooltip.instant-deconstruction"},
         switch  = true
       },
-      -- {
-      --   name    = "facc_instant_upgrading",
-      --   caption = {"facc.instant-upgrading"},
-      --   tooltip = {"tooltip.instant-upgrading"},
-      --   switch  = true
-      -- },
+      {
+        name    = "facc_instant_upgrading",
+        caption = {"facc.instant-upgrading"},
+        tooltip = {"tooltip.instant-upgrading"},
+        switch  = true
+    },
       {
         name    = "facc_instant_rail_planner",
         caption = {"facc.instant-rail-planner"},
