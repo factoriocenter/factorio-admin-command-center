@@ -1,7 +1,5 @@
 -- scripts/logistic-network/instant_request.lua
--- Instant Request: Fulfills logistic requests immediately for supported entities.
--- Supports characters, requester/buffer chests, spidertrons, and tanks (if applicable).
--- Global toggle: when enabled, monitors slot changes and fulfills requests.
+-- Instant Request.
 local M = {}
 
 -- --------------------------------------------------------------------------------

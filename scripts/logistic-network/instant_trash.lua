@@ -1,29 +1,5 @@
 -- scripts/logistic-network/instant_trash.lua
--- Instant Trash (per-player + entity support)
---
--- Player behavior (unchanged):
---   * When enabled for a player, anything placed into their character trash
---     inventory is deleted immediately (hard-delete).
---   * If the player has logistic request filters with a "max" (max_count),
---     any excess above that max is moved to trash and then deleted.
---
--- NEW: Entity behavior (requester/buffer chests, spidertron, tank):
---   * When at least one player has Instant Trash enabled, supported entities
---     are scanned in a round-robin and their logistic filters are enforced.
---     Any item counts above each filter's "max"/"max_count" are removed from
---     the entity's inventories (deleted directly; no spill).
---
--- Notes:
---   * We avoid registering our own script.on_event here to keep compatibility
---     with a central dispatcher. This module works purely with functions
---     exposed to the dispatcher AND with a periodic background scan/refresh.
---   * Safe with Factorio 2.0.66 APIs: requester points may expose either
---     compiled filters (lp.filters) or sections/slots with .value/.max.
---
--- Performance:
---   * Round-robin both across players and across entities.
---   * Entity list is refreshed periodically (REFRESH_INTERVAL_TICKS).
---   * All heavy calls are guarded behind simple early-exit checks.
+-- Instant Trash (player + entities with trash slots)
 
 local M = {}
 
@@ -32,17 +8,16 @@ local M = {}
 -- ------------------------------------------------------------------------------
 local PER_TICK_PLAYERS       = 10     -- how many players to process per tick
 local PER_TICK_ENTITIES      = 15     -- how many entities to process per tick
-local REFRESH_INTERVAL_TICKS = 60*20  -- rebuild the entity list every 20s
+local REFRESH_INTERVAL_TICKS = 60*20  -- entity list refresh every 20 seconds
 
 -- ------------------------------------------------------------------------------
 -- Storage keys
 -- ------------------------------------------------------------------------------
 local ENABLED_PLAYERS_KEY   = "facc_instant_trash_enabled_players" -- map[player_index]=true|false
-local RR_PLAYER_IDX_KEY     = "facc_instant_trash_rr_player_index" -- round-robin index across players
-
-local ENTITY_LIST_KEY       = "facc_instant_trash_entities"        -- array of unit_numbers
-local RR_ENTITY_IDX_KEY     = "facc_instant_trash_rr_entity_index" -- round-robin index across entities
-local LAST_REFRESH_TICK_KEY = "facc_instant_trash_last_refresh"    -- last tick we refreshed the entity list
+local RR_PLAYER_IDX_KEY     = "facc_instant_trash_rr_player_index"
+local ENTITY_LIST_KEY       = "facc_instant_trash_entities"        -- {unit_number,...}
+local RR_ENTITY_IDX_KEY     = "facc_instant_trash_rr_entity_index"
+local LAST_REFRESH_TICK_KEY = "facc_instant_trash_last_refresh"
 
 -- ------------------------------------------------------------------------------
 -- Storage helpers
@@ -85,36 +60,27 @@ local function is_supported_entity(ent)
   end
   if t == "spider-vehicle" then return true end  -- spidertron
   if t == "car" and ent.name == "tank" then return true end
-  if t == "character" then return true end
+  -- (characters are handled via player path; we don't include them in the entity list)
   return false
 end
 
--- Keep a compact list of unit_numbers for supported entities
+-- Refresh list with requester/buffer chests, spidertron and tank
 local function refresh_entity_list()
   local new_list = {}
   for _, s in pairs(game.surfaces) do
-    -- Chests (requester/buffer)
     for _, chest in pairs(s.find_entities_filtered{force="player", type="logistic-container"}) do
       if is_supported_entity(chest) and chest.unit_number then
         new_list[#new_list+1] = chest.unit_number
       end
     end
-    -- Spidertron
     for _, sp in pairs(s.find_entities_filtered{force="player", type="spider-vehicle"}) do
       if is_supported_entity(sp) and sp.unit_number then
         new_list[#new_list+1] = sp.unit_number
       end
     end
-    -- Tank
     for _, car in pairs(s.find_entities_filtered{force="player", type="car", name="tank"}) do
       if is_supported_entity(car) and car.unit_number then
         new_list[#new_list+1] = car.unit_number
-      end
-    end
-    -- Characters (optional; useful if you want to enforce max on non-local players)
-    for _, ch in pairs(s.find_entities_filtered{force="player", type="character"}) do
-      if is_supported_entity(ch) and ch.unit_number then
-        new_list[#new_list+1] = ch.unit_number
       end
     end
   end
@@ -123,7 +89,7 @@ local function refresh_entity_list()
   storage[LAST_REFRESH_TICK_KEY] = game.tick
 end
 
--- Optional hooks (if your central dispatcher forwards build/destroy events)
+-- Optional: allow external dispatcher to push adds/removes
 function M.on_entity_created(e)
   local ent = (e and (e.created_entity or e.entity)) or nil
   if not (ent and ent.valid and ent.unit_number) then return end
@@ -143,21 +109,43 @@ function M.on_entity_removed(e)
 end
 
 -- ------------------------------------------------------------------------------
--- Utilities (players)
+-- Trash inventories (player & entities)
 -- ------------------------------------------------------------------------------
-local function get_trash_inv(player)
-  if not (player and player.valid and player.character and player.character.valid) then return nil end
-  return player.get_inventory(defines.inventory.character_trash)
+local function get_trash_inventory(owner)
+  -- Player
+  if owner.is_player and owner:is_player() then
+    local ok, inv = pcall(function() return owner.get_inventory(defines.inventory.character_trash) end)
+    if ok and inv then return inv end
+    return nil
+  end
+
+  -- Entities (guard each enum; it may not exist in the running Factorio build)
+  local inv_id = nil
+  if owner.type == "logistic-container" then
+    inv_id = defines.inventory and defines.inventory.logistic_container_trash
+  elseif owner.type == "spider-vehicle" then
+    inv_id = (defines.inventory and (defines.inventory.spider_trash or defines.inventory.spider_vehicle_trash))
+  elseif owner.type == "car" then
+    -- Factorio 2.0 may expose car_trash; if not, this remains nil (no trash inv).
+    inv_id = defines.inventory and defines.inventory.car_trash
+  elseif owner.type == "character" then
+    inv_id = defines.inventory and defines.inventory.character_trash
+  end
+
+  if not inv_id then return nil end
+  local ok, inv = pcall(function() return owner.get_inventory(inv_id) end)
+  if ok and inv then return inv end
+  return nil
 end
 
-local function purge_trash_now(player)
-  local trash = get_trash_inv(player)
-  if not trash or trash.is_empty() then return end
-  -- Hard delete: clearing the trash inventory destroys items.
-  trash.clear()
+local function purge_owner_trash(owner)
+  local inv = get_trash_inventory(owner)
+  if inv and not inv.is_empty() then inv.clear() end
 end
 
--- Normalize quality: string or table {name=...} -> string or nil
+-- ------------------------------------------------------------------------------
+-- Quality helpers
+-- ------------------------------------------------------------------------------
 local function as_quality_name(q)
   if not q then return nil end
   if type(q) == "string" then return q end
@@ -171,8 +159,8 @@ end
 local function get_requester_point_generic(owner)
   if not (owner and owner.valid) then return nil end
 
-  -- Player: simpler API
-  if owner.is_player() then
+  -- Player
+  if owner.is_player and owner:is_player() then
     if not (owner.character and owner.character.valid) then return nil end
     local ok, lp = pcall(function() return owner.get_requester_point() end)
     if not (ok and lp) then return nil end
@@ -181,7 +169,7 @@ local function get_requester_point_generic(owner)
     return lp
   end
 
-  -- Entity: we must choose a logistic_member_index
+  -- Entity
   local index
   if owner.type == "character" then
     index = defines.logistic_member_index.character_requester
@@ -190,7 +178,8 @@ local function get_requester_point_generic(owner)
   elseif owner.type == "spider-vehicle" then
     index = defines.logistic_member_index.spidertron_requester
   elseif owner.type == "car" then
-    index = defines.logistic_member_index.logistic_container -- for tank
+    -- Treat tank as a logistic container member for requester point purposes.
+    index = defines.logistic_member_index.logistic_container
   else
     return nil
   end
@@ -246,14 +235,15 @@ end
 local function parse_filter(filter_like)
   -- CompiledLogisticFilter shape
   if filter_like.name then
+    local max_count = filter_like.max_count or filter_like.count -- fallback
     return {
       name      = filter_like.name,
       quality   = as_quality_name(filter_like.quality),
-      count     = filter_like.count,      -- requested
-      max_count = filter_like.max_count,  -- cap
+      count     = filter_like.count,
+      max_count = max_count,
     }
   end
-  -- Section slot shape (slot.value + slot.max / slot.count)
+  -- Section slot shape
   local ok_v, value = pcall(function() return filter_like.value end)
   local name = ok_v and value and value.type == "item" and value.name or nil
   if not name then return nil end
@@ -267,28 +257,16 @@ local function parse_filter(filter_like)
   local ok_cnt, cnt = pcall(function() return filter_like.count end)
   local count = (ok_cnt and type(cnt) == "number") and cnt or nil
 
+  if max_count == nil and count ~= nil then
+    max_count = count
+  end
+
   return { name = name, quality = quality, count = count, max_count = max_count }
 end
 
 -- ------------------------------------------------------------------------------
 -- Trimming logic (player/entity)
 -- ------------------------------------------------------------------------------
-local function remove_excess(owner, item_name, quality, excess)
-  if excess <= 0 then return end
-  -- For entities, remove_item() deletes directly.
-  -- For players, we prefer to route via trash (keeps behavior consistent),
-  -- but removing directly is also fine. We'll keep the player path explicit.
-  if owner.is_player and owner:is_player() then
-    local removed = owner.remove_item({ name = item_name, count = excess, quality = quality })
-    if removed > 0 then
-      local trash = owner.get_inventory(defines.inventory.character_trash)
-      if trash then trash.insert({ name = item_name, count = removed, quality = quality }) end
-    end
-  else
-    owner.remove_item({ name = item_name, count = excess, quality = quality })
-  end
-end
-
 local function total_count(owner, item_name, quality)
   local stack = {name = item_name}
   if quality then stack.quality = quality end
@@ -296,7 +274,21 @@ local function total_count(owner, item_name, quality)
   return (ok and tonumber(n)) or 0
 end
 
--- Enforce "max_count" across all active filters for a given owner (player or entity)
+local function remove_excess(owner, item_name, quality, excess)
+  if excess <= 0 then return end
+  -- Player path: route via trash to keep behavior consistent, then purge.
+  if owner.is_player and owner:is_player() then
+    local removed = owner.remove_item({ name = item_name, count = excess, quality = quality })
+    if removed > 0 then
+      local trash = get_trash_inventory(owner)
+      if trash then trash.insert({ name = item_name, count = removed, quality = quality }) end
+    end
+  else
+    -- Entities: removing deletes directly.
+    owner.remove_item({ name = item_name, count = excess, quality = quality })
+  end
+end
+
 local function trim_excess_from_filters(owner)
   local lp = get_requester_point_generic(owner)
   if not lp then return end
@@ -309,9 +301,7 @@ local function trim_excess_from_filters(owner)
       if pf and pf.max_count then
         local have = total_count(owner, pf.name, pf.quality)
         local excess = have - pf.max_count
-        if excess > 0 then
-          remove_excess(owner, pf.name, pf.quality, excess)
-        end
+        if excess > 0 then remove_excess(owner, pf.name, pf.quality, excess) end
       end
     end
     return
@@ -324,78 +314,67 @@ local function trim_excess_from_filters(owner)
       if pf and pf.max_count then
         local have = total_count(owner, pf.name, pf.quality)
         local excess = have - pf.max_count
-        if excess > 0 then
-          remove_excess(owner, pf.name, pf.quality, excess)
-        end
+        if excess > 0 then remove_excess(owner, pf.name, pf.quality, excess) end
       end
     end)
   end)
 end
 
--- One unified pass for a player: trim max caps and purge trash.
+-- Player pass: trim + purge trash now
 local function handle_player(player)
   if not is_player_enabled(player) then return end
   trim_excess_from_filters(player)
-  -- Make sure anything thrown into trash is destroyed immediately.
-  local trash = get_trash_inv(player)
-  if trash and not trash.is_empty() then trash.clear() end
+  purge_owner_trash(player)
 end
 
--- One pass for an entity (only when any player has feature enabled)
+-- Entity pass: trim + purge entity trash now
 local function handle_entity(ent)
   if not (ent and ent.valid and is_supported_entity(ent)) then return end
   if not any_player_enabled() then return end
   trim_excess_from_filters(ent)
+  purge_owner_trash(ent)  -- << key part: clear logistic_container_trash / spider_trash / car_trash
 end
 
--- Validate a player candidate for instant trash.
+-- Validate a player candidate
 local function valid_candidate(player)
-  return player
-     and player.valid
-     and player.connected
-     and player.character
+  return player and player.valid and player.connected and player.character
 end
 
 -- ------------------------------------------------------------------------------
 -- Public API
 -- ------------------------------------------------------------------------------
-
--- Per-player toggle (invoked from GUI switch)
 function M.toggle_player(player, enable)
   ensure_storage()
   if not (player and player.valid) then return end
   storage[ENABLED_PLAYERS_KEY][player.index] = (enable == true)
   if enable then
+    refresh_entity_list()
     player.print({"facc.instant-trash-enabled"})
   else
     player.print({"facc.instant-trash-disabled"})
   end
 end
 
--- Inventory change events (player): purge now + respect filter max caps
+-- Player inventory changes
 function M.on_player_main_inventory_changed(e)
   local player = e and e.player_index and game.get_player(e.player_index) or nil
   if valid_candidate(player) then handle_player(player) end
 end
-
 function M.on_player_ammo_inventory_changed(e)
   local player = e and e.player_index and game.get_player(e.player_index) or nil
   if valid_candidate(player) then handle_player(player) end
 end
-
 function M.on_player_cursor_stack_changed(e)
   local player = e and e.player_index and game.get_player(e.player_index) or nil
   if valid_candidate(player) then handle_player(player) end
 end
 
--- Logistic slot changed (player or entity): re-trim and (for players) purge
+-- Logistic slot changed (player or entity)
 function M.on_entity_logistic_slot_changed(e)
-  -- Player path
   if e and e.player_index ~= nil then
     local player = game.get_player(e.player_index)
     if valid_candidate(player) then handle_player(player) end
   end
-  -- Entity path
   local ent = e and e.entity
   if ent and ent.valid and is_supported_entity(ent) then
     handle_entity(ent)
@@ -406,17 +385,16 @@ end
 function M.on_tick(_e)
   ensure_storage()
 
-  -- Periodic entity list refresh (only if feature is globally "armed")
+  -- Periodic entity list refresh
   if any_player_enabled() and (game.tick - storage[LAST_REFRESH_TICK_KEY] >= REFRESH_INTERVAL_TICKS) then
     refresh_entity_list()
   end
 
-  -- Players round-robin
+  -- Players RR
   local players = game.connected_players
   if #players > 0 then
     local i = storage[RR_PLAYER_IDX_KEY]
     if i > #players then i = 1 end
-
     local processed = 0
     while processed < PER_TICK_PLAYERS and processed < #players do
       local p = players[i]
@@ -430,15 +408,15 @@ function M.on_tick(_e)
     storage[RR_PLAYER_IDX_KEY] = i
   end
 
-  -- Entities round-robin (only when at least one player enabled)
+  -- Entities RR (only if any player enabled)
   if any_player_enabled() then
     local list = get_entity_list()
     if #list > 0 then
       local i = storage[RR_ENTITY_IDX_KEY]
       if i > #list then i = 1 end
-
       local processed = 0
-      while processed < PER_TICK_ENTITIES and processed < #list do
+      local max_loop = #list
+      while processed < PER_TICK_ENTITIES and processed < max_loop do
         local un = list[i]
         local ent = game.get_entity_by_unit_number(un)
         if ent and ent.valid and is_supported_entity(ent) then
@@ -451,7 +429,6 @@ function M.on_tick(_e)
         end
         processed = processed + 1
       end
-
       storage[RR_ENTITY_IDX_KEY] = i
     end
   end
