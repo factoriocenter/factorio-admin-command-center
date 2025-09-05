@@ -18,6 +18,7 @@ local RR_PLAYER_IDX_KEY     = "facc_instant_trash_rr_player_index"
 local ENTITY_LIST_KEY       = "facc_instant_trash_entities"        -- {unit_number,...}
 local RR_ENTITY_IDX_KEY     = "facc_instant_trash_rr_entity_index"
 local LAST_REFRESH_TICK_KEY = "facc_instant_trash_last_refresh"
+local INV_IDS_KEY           = "facc_instant_trash_inventory_ids"  -- cached resolved inventory ids
 
 -- ------------------------------------------------------------------------------
 -- Storage helpers
@@ -28,6 +29,7 @@ local function ensure_storage()
   storage[ENTITY_LIST_KEY]       = storage[ENTITY_LIST_KEY]       or {}
   storage[RR_ENTITY_IDX_KEY]     = storage[RR_ENTITY_IDX_KEY]     or 1
   storage[LAST_REFRESH_TICK_KEY] = storage[LAST_REFRESH_TICK_KEY] or 0
+  storage[INV_IDS_KEY]           = storage[INV_IDS_KEY]           or { probed = false }
 end
 
 local function is_player_enabled(player)
@@ -49,6 +51,29 @@ local function get_entity_list()
 end
 
 -- ------------------------------------------------------------------------------
+-- Inventory id probing (robust across builds)
+-- ------------------------------------------------------------------------------
+local function ensure_inventory_ids()
+  ensure_storage()
+  local ids = storage[INV_IDS_KEY]
+  if ids.probed then return ids end
+
+  -- Resolve inventory IDs in a best-effort way. Some builds rename or omit these.
+  if defines.inventory then
+    ids.character_trash          = defines.inventory.character_trash
+    ids.logistic_container_trash = defines.inventory.logistic_container_trash
+    ids.spider_trash             = defines.inventory.spider_trash or defines.inventory.spider_vehicle_trash
+    ids.car_trash                = defines.inventory.car_trash
+    -- Rocket silo trash: try the common keys (both guarded)
+    ids.rocket_silo_trash        = defines.inventory.rocket_silo_trash
+                                  or defines.inventory.rocket_silo_trash_inventory
+  end
+
+  ids.probed = true
+  return ids
+end
+
+-- ------------------------------------------------------------------------------
 -- Support detection (entities)
 -- ------------------------------------------------------------------------------
 local function is_supported_entity(ent)
@@ -60,7 +85,7 @@ local function is_supported_entity(ent)
   end
   if t == "spider-vehicle" then return true end       -- spidertron
   if t == "car" and ent.name == "tank" then return true end
-  if t == "rocket-silo" then return true end          -- NEW: rocket silo
+  if t == "rocket-silo" then return true end          -- rocket silo
   -- (characters are handled via player path; we don't include them in the entity list)
   return false
 end
@@ -122,27 +147,28 @@ end
 -- Trash inventories (player & entities)
 -- ------------------------------------------------------------------------------
 local function get_trash_inventory(owner)
+  local ids = ensure_inventory_ids()
+
   -- Player
   if owner.is_player and owner:is_player() then
-    local ok, inv = pcall(function() return owner.get_inventory(defines.inventory.character_trash) end)
+    local ok, inv = pcall(function() return owner.get_inventory(ids.character_trash) end)
     if ok and inv then return inv end
     return nil
   end
 
-  -- Entities (guard each enum; it may not exist in the running Factorio build)
+  -- Entities (guard each id; id may be nil on some builds)
   local inv_id = nil
   if owner.type == "logistic-container" then
-    inv_id = defines.inventory and defines.inventory.logistic_container_trash
+    inv_id = ids.logistic_container_trash
   elseif owner.type == "spider-vehicle" then
-    inv_id = defines.inventory and (defines.inventory.spider_trash or defines.inventory.spider_vehicle_trash)
+    inv_id = ids.spider_trash
   elseif owner.type == "car" then
-    -- If the build exposes car_trash, use it. Otherwise, no trash inventory for cars.
-    inv_id = defines.inventory and defines.inventory.car_trash
+    inv_id = ids.car_trash
   elseif owner.type == "rocket-silo" then
-    -- NEW: rocket silo trash inventory (if present in this Factorio build)
-    inv_id = defines.inventory and (defines.inventory.rocket_silo_trash or defines.inventory.rocket_silo_trash_inventory)
+    -- Rocket silo trash inventory (resolved via ensure_inventory_ids)
+    inv_id = ids.rocket_silo_trash
   elseif owner.type == "character" then
-    inv_id = defines.inventory and defines.inventory.character_trash
+    inv_id = ids.character_trash
   end
 
   if not inv_id then return nil end
@@ -194,7 +220,7 @@ local function get_requester_point_generic(owner)
     -- Treat tank as a logistic container member for requester point purposes.
     index = defines.logistic_member_index.logistic_container
   elseif owner.type == "rocket-silo" then
-    -- Rocket silo normally doesn't expose a requester point; skip trimming filters.
+    -- Rocket silo typically does not expose a requester point -> skip (trash purge still happens).
     return nil
   else
     return nil
@@ -347,8 +373,10 @@ end
 local function handle_entity(ent)
   if not (ent and ent.valid and is_supported_entity(ent)) then return end
   if not any_player_enabled() then return end
+  -- Rocket silo usually has no requester point; trim_excess_from_filters() will no-op,
+  -- but purge_owner_trash() WILL clear its trash inventory when available.
   trim_excess_from_filters(ent)
-  purge_owner_trash(ent)  -- clears logistic_container_trash / spider_trash / car_trash / rocket_silo_trash (when available)
+  purge_owner_trash(ent)  -- includes rocket_silo_trash when available
 end
 
 -- Validate a player candidate
