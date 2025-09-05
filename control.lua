@@ -212,7 +212,6 @@ for _, path in ipairs({
   "scripts/gui/console_gui",
   "scripts/events/gui_events",
   "scripts/legendary-upgrader/legendary_upgrader",
-  -- NEW (3.6.0): central event dispatcher for instant features
   "scripts/events/build_events"
 }) do
   require(path)

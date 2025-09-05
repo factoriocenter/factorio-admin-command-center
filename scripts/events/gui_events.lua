@@ -1,7 +1,16 @@
 -- scripts/events/gui_events.lua
 -- GUI event dispatcher for FACC.
--- Handles clicks, slider changes, switch toggles and on-tick loops.
--- Fix: in the switch handler call `ghost_toggle.run(...)` (some builds had `.toggle(...)`, which is nil).
+-- Centralizes click, slider, and switch handling. This file intentionally
+-- contains no per-feature game logic; it only persists GUI state and calls
+-- each feature's public API.
+--
+-- Notable details:
+--  - Switch "facc_ghost_mode" calls ghost_toggle.run(...) (some builds used
+--    a .toggle(...) function that didn't exist).
+--  - Sliders that have immediate gameplay effects call their respective
+--    `apply`/`run` functions live on value change and then persist the value.
+--  - All access to `storage.facc_gui_state` goes through `ensure_state()` so
+--    this module is resilient across reloads/saves.
 
 local main_gui               = require("scripts/gui/main_gui")
 local console_gui            = require("scripts/gui/console_gui")
@@ -37,11 +46,14 @@ local increase_robot_speed   = require("scripts/logistic-network/increase_robot_
 local ghost_toggle           = require("scripts/character/toggle_ghost_character")
 local invincible_player      = require("scripts/character/invincible_player")
 
-local instant_request  = require("scripts/logistic-network/instant_request")
+-- Logistics helpers
+local instant_request        = require("scripts/logistic-network/instant_request")
+local instant_trash          = require("scripts/logistic-network/instant_trash")
 
+-- Persist/read GUI state (owned by main_gui to keep a single source of truth)
 local ensure_state = main_gui.ensure_persistent_state
 
--- Whitelists of FACC GUI element names
+-- Whitelists of FACC GUI element names to avoid catching unrelated UI clicks
 local FACC_BUTTONS = {
   -- Main and console buttons
   facc_main_button=true,
@@ -72,7 +84,7 @@ local FACC_BUTTONS = {
   facc_add_robots=true,
   facc_regenerate_resources=true,
   facc_high_infinite_research_levels = true,
-  -- Legendary features
+  -- Legendary features (Quality DLC)
   facc_convert_inventory=true,
   facc_upgrade_blueprints=true,
   facc_convert_to_legendary=true,
@@ -118,9 +130,10 @@ local FACC_SWITCHES = {
   facc_ghost_mode = true,
   facc_invincible_player = true,
   facc_instant_request = true,
+  facc_instant_trash = true,
 }
 
--- Button handlers
+-- Button handlers (each module must expose .run(player[, ...]))
 local features = {
   facc_toggle_editor        = require("scripts/cheats/toggle_editor_mode"),
   facc_delete_ownerless     = require("scripts/character/delete_ownerless_characters"),
@@ -146,7 +159,7 @@ local features = {
   facc_high_infinite_research_levels = require("scripts/cheats/high_infinite_research_levels"),
 }
 
--- Legendary-only handlers (Quality DLC)
+-- Legendary-only handlers (Quality DLC gated)
 local quality_enabled   = script.active_mods["quality"]    ~= nil
 local space_age_enabled = script.active_mods["space-age"] ~= nil
 
@@ -156,14 +169,14 @@ if quality_enabled then
   features.facc_convert_to_legendary = require("scripts/blueprints/convert_constructions_to_legendary")
 end
 
--- Click dispatcher (FACC buttons only)
+-- GUI click dispatcher (whitelisted FACC buttons only)
 script.on_event(defines.events.on_gui_click, function(event)
   local player, element = game.get_player(event.player_index), event.element
   if not (player and element and element.valid) then return end
   local name = element.name
   if not FACC_BUTTONS[name] then return end
 
-  -- Toggle main GUI
+  -- Main GUI toggle
   if name == "facc_main_button" or name == "facc_close_main_gui" then
     main_gui.toggle_main_gui(player)
     return
@@ -190,7 +203,7 @@ script.on_event(defines.events.on_gui_click, function(event)
     return
   end
 
-  -- Platform Distance confirm button
+  -- Platform distance confirm button
   if name == "facc_set_platform_distance" then
     local raw = storage.facc_gui_state.sliders["slider_platform_distance"] or 0.99
     set_platform_distance.run(player, raw)
@@ -198,14 +211,14 @@ script.on_event(defines.events.on_gui_click, function(event)
   end
 end)
 
--- Slider change handler (live behavior where applicable)
+-- Slider change handler (applies live behavior where applicable)
 script.on_event(defines.events.on_gui_value_changed, function(event)
   local elem = event.element
   if not (elem and elem.valid and elem.type == "slider" and FACC_SLIDERS[elem.name]) then return end
   ensure_state()
   local player = game.get_player(event.player_index)
 
-  -- Live slider: Increase Robot Speed
+  -- Live slider: Increase Robot Speed (applies delta immediately)
   if elem.name == "slider_increase_robot_speed" then
     local old = storage.facc_gui_state.sliders["slider_increase_robot_speed"] or 0
     local new = elem.slider_value
@@ -260,7 +273,7 @@ script.on_event(defines.events.on_gui_value_changed, function(event)
     return
   end
 
-  -- Default persistence + side effects
+  -- Default persistence + generic side effects
   storage.facc_gui_state.sliders[elem.name] = elem.slider_value
   local box = elem.parent[elem.name .. "_value"]
   if box and box.valid then box.text = tostring(elem.slider_value) end
@@ -283,7 +296,7 @@ script.on_event(defines.events.on_gui_value_changed, function(event)
   end
 end)
 
--- Switch toggle handler (FACC switches only)
+-- Switch toggle handler (whitelisted FACC switches only)
 script.on_event(defines.events.on_gui_switch_state_changed, function(event)
   local elem   = event.element
   local player = game.get_player(event.player_index)
@@ -292,6 +305,7 @@ script.on_event(defines.events.on_gui_switch_state_changed, function(event)
   local on = (elem.switch_state == "right")
   storage.facc_gui_state.switches[elem.name] = on
 
+  -- Toggle features. Modules must accept (player, boolean) or apply to all players where noted.
   if     elem.name == "facc_auto_clean_pollution"   then for _,p in pairs(game.players) do clean_pollution.run(p) end
   elseif elem.name == "facc_auto_instant_research"  then for _,p in pairs(game.players) do instant_research.run(p) end
   elseif elem.name == "facc_cheat_mode"             then cheat_mode.run(player, on)
@@ -304,9 +318,10 @@ script.on_event(defines.events.on_gui_switch_state_changed, function(event)
   elseif elem.name == "facc_toggle_minable"         then toggle_minable.run(player, on)
   elseif elem.name == "facc_toggle_trains"          then toggle_trains.run(player, on)
   elseif elem.name == "facc_ghost_on_death"         then enable_ghost_on_death.run(player, on)
-  elseif elem.name == "facc_ghost_mode"             then ghost_toggle.run(player, on)  -- ← FIX: use `.run`, not `.toggle`
+  elseif elem.name == "facc_ghost_mode"             then ghost_toggle.run(player, on)  -- FIX: use `.run`, not `.toggle`
   elseif elem.name == "facc_invincible_player"      then invincible_player.run(player, on)
   elseif elem.name == "facc_instant_request"        then instant_request.toggle_player(player, on)
+  elseif elem.name == "facc_instant_trash"          then instant_trash.toggle_player(player, on) -- per-player enable
   end
-  -- The event dispatcher reads the switch state live; no additional work needed here.
+  -- No further work is needed here; state is read live by the dispatcher/module.
 end)
