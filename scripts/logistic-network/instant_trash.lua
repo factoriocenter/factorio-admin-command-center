@@ -67,6 +67,14 @@ local function ensure_inventory_ids()
     -- Rocket silo trash: try the common keys (both guarded)
     ids.rocket_silo_trash        = defines.inventory.rocket_silo_trash
                                   or defines.inventory.rocket_silo_trash_inventory
+    ids.cargo_landing_pad_trash  = defines.inventory.cargo_landing_pad_trash
+
+    ids.character_main           = defines.inventory.character_main
+    ids.chest                    = defines.inventory.chest
+    ids.spider_trunk             = defines.inventory.spider_trunk
+    ids.car_trunk                = defines.inventory.car_trunk
+    ids.rocket_silo_rocket       = defines.inventory.rocket_silo_rocket
+    ids.cargo_landing_pad_main   = defines.inventory.cargo_landing_pad_main
   end
 
   ids.probed = true
@@ -86,11 +94,12 @@ local function is_supported_entity(ent)
   if t == "spider-vehicle" then return true end       -- spidertron
   if t == "car" and ent.name == "tank" then return true end
   if t == "rocket-silo" then return true end          -- rocket silo
+  if t == "cargo-landing-pad" then return true end    -- cargo landing pad
   -- (characters are handled via player path; we don't include them in the entity list)
   return false
 end
 
--- Refresh list with requester/buffer chests, spidertron, tank, rocket silo
+-- Refresh list with requester/buffer chests, spidertron, tank, rocket silo, cargo landing pad
 local function refresh_entity_list()
   local new_list = {}
   for _, s in pairs(game.surfaces) do
@@ -116,6 +125,12 @@ local function refresh_entity_list()
     for _, silo in pairs(s.find_entities_filtered{force="player", type="rocket-silo"}) do
       if is_supported_entity(silo) and silo.unit_number then
         new_list[#new_list+1] = silo.unit_number
+      end
+    end
+    -- Cargo landing pad
+    for _, pad in pairs(s.find_entities_filtered{force="player", type="cargo-landing-pad"}) do
+      if is_supported_entity(pad) and pad.unit_number then
+        new_list[#new_list+1] = pad.unit_number
       end
     end
   end
@@ -165,10 +180,43 @@ local function get_trash_inventory(owner)
   elseif owner.type == "car" then
     inv_id = ids.car_trash
   elseif owner.type == "rocket-silo" then
-    -- Rocket silo trash inventory (resolved via ensure_inventory_ids)
     inv_id = ids.rocket_silo_trash
+  elseif owner.type == "cargo-landing-pad" then
+    inv_id = ids.cargo_landing_pad_trash
   elseif owner.type == "character" then
     inv_id = ids.character_trash
+  end
+
+  if not inv_id then return nil end
+  local ok, inv = pcall(function() return owner.get_inventory(inv_id) end)
+  if ok and inv then return inv end
+  return nil
+end
+
+local function get_main_inventory(owner)
+  local ids = ensure_inventory_ids()
+
+  -- Player
+  if owner.is_player and owner:is_player() then
+    local ok, inv = pcall(function() return owner.get_inventory(ids.character_main) end)
+    if ok and inv then return inv end
+    return nil
+  end
+
+  -- Entities (guard each id; id may be nil on some builds)
+  local inv_id = nil
+  if owner.type == "logistic-container" then
+    inv_id = ids.chest
+  elseif owner.type == "spider-vehicle" then
+    inv_id = ids.spider_trunk
+  elseif owner.type == "car" then
+    inv_id = ids.car_trunk
+  elseif owner.type == "rocket-silo" then
+    inv_id = ids.rocket_silo_rocket
+  elseif owner.type == "cargo-landing-pad" then
+    inv_id = ids.cargo_landing_pad_main
+  elseif owner.type == "character" then
+    inv_id = ids.character_main
   end
 
   if not inv_id then return nil end
@@ -220,8 +268,9 @@ local function get_requester_point_generic(owner)
     -- Treat tank as a logistic container member for requester point purposes.
     index = defines.logistic_member_index.logistic_container
   elseif owner.type == "rocket-silo" then
-    -- Rocket silo typically does not expose a requester point -> skip (trash purge still happens).
-    return nil
+    index = defines.logistic_member_index.rocket_silo_requester
+  elseif owner.type == "cargo-landing-pad" then
+    index = defines.logistic_member_index.space_platform_hub_requester
   else
     return nil
   end
@@ -312,7 +361,9 @@ end
 local function total_count(owner, item_name, quality)
   local stack = {name = item_name}
   if quality then stack.quality = quality end
-  local ok, n = pcall(function() return owner.get_item_count(stack) end)
+  local main_inv = get_main_inventory(owner)
+  if not main_inv then return 0 end
+  local ok, n = pcall(function() return main_inv.get_item_count(stack) end)
   return (ok and tonumber(n)) or 0
 end
 
@@ -373,10 +424,8 @@ end
 local function handle_entity(ent)
   if not (ent and ent.valid and is_supported_entity(ent)) then return end
   if not any_player_enabled() then return end
-  -- Rocket silo usually has no requester point; trim_excess_from_filters() will no-op,
-  -- but purge_owner_trash() WILL clear its trash inventory when available.
   trim_excess_from_filters(ent)
-  purge_owner_trash(ent)  -- includes rocket_silo_trash when available
+  purge_owner_trash(ent)
 end
 
 -- Validate a player candidate

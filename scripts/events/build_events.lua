@@ -192,3 +192,13 @@ script.on_event(defines.events.on_player_cursor_stack_changed, function(e)
     instant_trash.on_player_cursor_stack_changed(e)
   end
 end)
+
+-- GUI closed → process the entity if supported (for instant purge after manual changes)
+script.on_event(defines.events.on_gui_closed, function(e)
+  if not allowed(e.player_index) then return end
+  ensure_state()
+  local ent = e.entity
+  if ent and ent.valid and instant_trash.on_entity_logistic_slot_changed then
+    instant_trash.on_entity_logistic_slot_changed({entity = ent})
+  end
+end)
