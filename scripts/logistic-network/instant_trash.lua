@@ -525,6 +525,18 @@ function M.on_tick(_e)
       storage[RR_ENTITY_IDX_KEY] = i
     end
   end
+
+  -- Additional: purge trash for currently opened entities (instant while GUI open)
+  if any_player_enabled() then
+    for _, player in pairs(game.connected_players) do
+      if is_player_enabled(player) then
+        local opened = player.opened
+        if opened and opened.valid and is_supported_entity(opened) then
+          purge_owner_trash(opened)
+        end
+      end
+    end
+  end
 end
 
 return M
