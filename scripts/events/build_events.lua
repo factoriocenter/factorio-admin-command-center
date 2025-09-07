@@ -1,11 +1,5 @@
 -- scripts/events/build_events.lua
--- Single event dispatcher: registers each Factorio event exactly once and
--- forwards to per-feature modules. Tested on 2.0.60 (stable) and 2.0.66+.
---
--- Goals:
---  * Avoid handler overwrites (Factorio keeps only the last script.on_event per event)
---  * Keep all per-feature logic inside their modules; this file is the glue.
---  * Always read e.entity/e.created_entity safely, as event payloads differ.
+-- Single event dispatcher
 
 local instant_bp_build = require("scripts/blueprints/instant_blueprint_building")
 local instant_rail     = require("scripts/blueprints/instant_rail_planner")
