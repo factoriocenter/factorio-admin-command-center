@@ -325,7 +325,7 @@ local TABS = {
         tooltip = {"tooltip.instant-request"},
         switch  = true
       },
-    {
+      {
         name    = "facc_instant_trash",
         caption = {"facc.instant-trash"},
         tooltip = {"tooltip.instant-trash"},
