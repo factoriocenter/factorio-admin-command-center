@@ -1,4 +1,17 @@
 ---------------------------------------------------------------------------------------------------
+Version: 3.7.0
+Date: 2025-09-08
+  Features:
+    - Invincible Player: Keep your character safe from damage while it's ON.
+    - Ghost Mode: Move freely like a ghost, without getting stuck on buildings.
+    - Instant Request: Requested items arrive instantly.
+    - Instant Upgrade: Upgrades apply instantly when you use the Upgrade Planner.
+    - Instant Trash: Items sent to logistics trash slots disappear right away.
+    - Indestructible Builds: Make all structures unbreakable to protect key areas.
+    - Non-mineable Builds: Prevent structures from being mined or picked up.
+  Translation:
+    - Added English and Brazilian Portuguese text for the new options.
+---------------------------------------------------------------------------------------------------
 Version: 3.6.2
 Date: 2025-09-02
   Bugfixes:

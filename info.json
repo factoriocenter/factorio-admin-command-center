@@ -11,7 +11,7 @@
     "base >= 2.0.66",
     "? quality >= 2.0.66",
     "? space-age >= 2.0.66",
-    "? factorio-admin-command-center-locales >= 1.2.0"
+    "? factorio-admin-command-center-locales >= 1.3.0"
   ],
   "description": "A powerful and intuitive GUI-based administration toolkit for Factorio. Includes over 20 categorized tools for editing, blueprinting, map cleanup, tech unlocks, pollution control, and more — all accessible via a sleek tabbed interface with Lua console support."
 }
