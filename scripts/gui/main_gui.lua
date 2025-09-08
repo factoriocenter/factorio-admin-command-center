@@ -230,6 +230,11 @@ local TABS = {
         switch  = true
       },
       {
+        name    = "facc_indestructible_builds_permanent",
+        caption = {"facc.indestructible-builds_permanent"},
+        tooltip = {"tooltip.indestructible-builds_permanent"},
+      },
+      {
         name    = "facc_ammo_turrets",
         caption = {"facc.ammo-turrets"},
         tooltip = {"tooltip.ammo-turrets"}
@@ -363,6 +368,11 @@ local TABS = {
         caption = {"facc.toggle-minable"},
         tooltip = {"tooltip.toggle-minable"},
         switch  = true
+      },
+      {
+        name    = "facc_non_minable_permanent",
+        caption = {"facc.non-minable-permanent"},
+        tooltip = {"tooltip.non-minable-permanent"},
       },
       {
         name    = "facc_set_mining_speed",

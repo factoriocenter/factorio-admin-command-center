@@ -84,6 +84,8 @@ local FACC_BUTTONS = {
   facc_add_robots=true,
   facc_regenerate_resources=true,
   facc_high_infinite_research_levels = true,
+  facc_indestructible_builds_permanent = true,
+  facc_non_minable_permanent = true,
   -- Legendary features (Quality DLC)
   facc_convert_inventory=true,
   facc_upgrade_blueprints=true,
@@ -157,6 +159,8 @@ local features = {
   facc_add_robots           = require("scripts/logistic-network/add_robots"),
   facc_regenerate_resources = require("scripts/planets/regenerate_resources"),
   facc_high_infinite_research_levels = require("scripts/cheats/high_infinite_research_levels"),
+  facc_indestructible_builds_permanent = require("scripts/combat/indestructible_builds_permanent"),
+  facc_non_minable_permanent = require("scripts/mining/non_minable_permanent"),
 }
 
 -- Legendary-only handlers (Quality DLC gated)
