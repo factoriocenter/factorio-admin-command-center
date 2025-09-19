@@ -39,7 +39,31 @@ $folderBlacklist = @(
     'graphics'
 )
 
-# Function to test if a path is blacklisted
+# --- File blacklist (edit here; names or patterns relative to root) ---
+# Matches against the *relative path*. Wildcards allowed.
+# Examples:
+# '*.min.js' → any minified JS anywhere
+# 'package-lock.json' → any file with this exact name
+# 'src/generated/*' → anything under src/generated
+# '.env*' '*.pem' '*.key' → sensitive files
+$fileBlacklist = @(
+    '*.min.js',
+    '*.map',
+    'package-lock.json',
+    'yarn.lock',
+    'pnpm-lock.yaml',
+    'composer.lock',
+    '.DS_Store',
+    'Thumbs.db',
+    'tsconfig.tsbuildinfo',
+    '.env',
+    '.env.*',
+    '*.pem',
+    '*.key',
+    'src/generated/*'
+)
+
+# Function to test if a path is blacklisted (works for folders or files)
 function Test-BlacklistedPath {
     param(
         [Parameter(Mandatory)][string]$FullPath,
@@ -61,14 +85,14 @@ function Test-BlacklistedPath {
         if ([string]::IsNullOrWhiteSpace($p)) { continue }
         $p = $p.Trim().Replace('\','/')
 
-        # If it contains a wildcard, use -like in the relative path.
+        # Wildcards? Use -like on the relative path.
         if ($p -match '[\*\?\[]') {
             $likePattern = $p
             if ($rel -like $likePattern) { return $true }
             if (("/" + $rel) -like ("*/" + $likePattern.TrimStart('/'))) { return $true }
         }
         else {
-            # Exact segment match (case-insensitive)
+            # Exact segment match (case-insensitive) for names like "package-lock.json"
             $segRegex = "(^|/)$([regex]::Escape($p))(/|$)"
             if ($rel -match $segRegex) { return $true }
         }
@@ -131,13 +155,14 @@ $alwaysAllow = @(
     '.editorconfig', '.eslintrc', '.babelrc'
 )
 
-# --- Enumerar e FILTRAR (respeitando a blacklist) ---
+# --- Enumerar e FILTRAR (respeitando as blacklists) ---
 $allDirs = Get-ChildItem -Path $projectRoot -Recurse -Directory | Where-Object {
     -not (Test-BlacklistedPath -FullPath $_.FullName -Patterns $folderBlacklist -Root $projectRoot -OutputDir $outputDir)
 }
 
 $allFiles = Get-ChildItem -Path $projectRoot -Recurse -File | Where-Object {
-    -not (Test-BlacklistedPath -FullPath $_.FullName -Patterns $folderBlacklist -Root $projectRoot -OutputDir $outputDir)
+    (-not (Test-BlacklistedPath -FullPath $_.FullName -Patterns $folderBlacklist -Root $projectRoot -OutputDir $outputDir)) -and
+    (-not (Test-BlacklistedPath -FullPath $_.FullName -Patterns $fileBlacklist   -Root $projectRoot -OutputDir $outputDir))
 }
 
 # Process each file and append its content in fenced code blocks
