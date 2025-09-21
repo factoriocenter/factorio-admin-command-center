@@ -1,6 +1,5 @@
 -- settings.lua
 -- Startup settings for the Factorio Admin Command Center (FACC)
-
 data:extend({
   {
     type = "bool-setting",
@@ -42,7 +41,6 @@ data:extend({
     localised_name = {"mod-setting-name.facc-infinite-resources"},
     localised_description = {"mod-setting-description.facc-infinite-resources"}
   },
-
   -- NEW: Separate multipliers for solid and fluid resources
   {
     type = "string-setting",
@@ -66,21 +64,19 @@ data:extend({
     localised_name = {"mod-setting-name.facc-infinite-resources-multiplier-fluid"},
     localised_description = {"mod-setting-description.facc-infinite-resources-multiplier-fluid"}
   },
-
   -- Backwards-compat control: keep the automation toggle
   {
     -- Disable automatic resource regeneration when infinite-resources setting changes
     type = "bool-setting",
-    name = "facc-disable-auto-resource-regeneration",
+    name = "facc-enable-auto-resource-regeneration",
     setting_type = "startup",
     default_value = false,
     order = "f",
     per_user = false,
-    localised_name = {"mod-setting-name.facc-disable-auto-resource-regeneration"},
-    localised_description = {"mod-setting-description.facc-disable-auto-resource-regeneration"}
+    localised_name = {"mod-setting-name.facc-enable-auto-resource-regeneration"},
+    localised_description = {"mod-setting-description.facc-enable-auto-resource-regeneration"}
   }
 })
-
 -- NOTE:
 -- We intentionally did not re-declare the legacy single multiplier
 -- "facc-infinite-resources-multiplier". Existing saves that still carry it

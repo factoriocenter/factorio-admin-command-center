@@ -1,4 +1,9 @@
 ---------------------------------------------------------------------------------------------------
+Version: 3.7.2
+Date: 2025-09-21
+  Changes:
+    - Renamed "Disable auto resource regeneration" to "Enable auto resource regeneration" and inverted its behavior (when ON, auto regeneration is enabled).
+---------------------------------------------------------------------------------------------------
 Version: 3.7.1
 Date: 2025-09-08
   Bugfixes:

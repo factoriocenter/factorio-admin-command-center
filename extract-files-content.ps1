@@ -60,7 +60,8 @@ $fileBlacklist = @(
     '.env.*',
     '*.pem',
     '*.key',
-    'src/generated/*'
+    'src/generated/*',
+    'changelog.txt'
 )
 
 # Function to test if a path is blacklisted (works for folders or files)
@@ -141,7 +142,7 @@ $languageMap = @{
     '.ini'   = $true; 
     '.toml'  = $true;
     '.env'   = $false; 
-    '.txt'   = $false; 
+    '.true'   = $false; 
     '.bat'   = $true;
     '.conf'  = $false; 
     '.cfg'   = $false;  
