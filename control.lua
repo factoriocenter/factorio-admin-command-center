@@ -5,6 +5,11 @@
 --------------------------------------------------------------------------------
 local permissions = require("scripts/utils/permissions")
 _G.is_allowed = permissions.is_allowed
+
+-- Alias the persistent global table so every module can use the shorter `storage`
+-- name (historically used by the mod) while still relying on Factorio's official
+-- persistence table. This keeps saves compatible across updates/load.
+storage = storage or global
 --------------------------------------------------------------------------------
 -- Helpers for resource regeneration
 --------------------------------------------------------------------------------

@@ -19,8 +19,19 @@ function M.apply(player, old, new)
   local force = player.force
   local current = force.worker_robots_speed_modifier or 0
 
+  -- Clamp persisted slider value; UI can only store [0, MAX_BONUS] but older saves
+  -- or other mods might have written something unexpected.
+  local previous_slider = math.max(0, math.min(old or 0, MAX_BONUS))
+
+  -- The underlying property can never go below -1, so any previous slider effect
+  -- larger than current+1 would imply the state drifted (e.g. another mod changed
+  -- the modifier). Trim the removable portion so that the derived base remains >= -1
+  -- and avoid triggering Factorio's lower-bound assertion.
+  local max_removable = math.max(0, current + 1)
+  local applied_slider = math.min(previous_slider, max_removable)
+
   -- Remove old slider effect, preserving any existing bonuses (e.g. from research)
-  local base = current - old
+  local base = current - applied_slider
 
   -- Clamp the slider bonus itself within [0, MAX_BONUS]
   local slider_bonus = math.max(0, math.min(new, MAX_BONUS))
