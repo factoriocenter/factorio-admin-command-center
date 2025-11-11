@@ -2,11 +2,11 @@
 Version: 3.7.3
 Date: 2025-11-11
   Changes:
-    - All sliders that boost robots, crafting, ammo, or turrets now follow Factorio 2.0.72’s safe limits, so their numbers never wander into values the game rejects.
+    - All sliders that boost robots, crafting, ammo, or turrets now follow Factorio 2.0.72's safe limits, so their numbers never wander into values the game rejects.
   Bugfixes:
     - Moving the "Increase Robot Speed" slider could freeze the game if another mod or an old save left a strange bonus behind. We now clean up that old number before applying the new one.
     - The ammo, turret, and crafting speed sliders apply the same cleanup, preventing surprise warnings when loading older saves.
-    - Saved slider values now live in Factorio’s own persistent storage, so every toggle and number survives reloads and future updates.
+    - Saved slider values now live in Factorio's own persistent storage, so every toggle and number survives reloads and future updates.
 ---------------------------------------------------------------------------------------------------
 Version: 3.7.2
 Date: 2025-09-21
@@ -177,7 +177,7 @@ Date: 2025-07-10
 Version: 3.1.1
 Date: 2025-07-02
   Minor Features:
-    - Added a button in the Cheats tab that inserts 100 000 coins into the player’s inventory. Useful for scenarios: Tight spot or Rocket rush
+    - Added a button in the Cheats tab that inserts 100 000 coins into the player's inventory. Useful for scenarios: Tight spot or Rocket rush
 ---------------------------------------------------------------------------------------------------
 Version: 3.1.0
 Date: 2025-07-01
@@ -198,7 +198,7 @@ Date: 2025-06-30
   Gui:
     - Always show Quality and Space Age feature controls (visible but disabled when the corresponding mods are inactive) instead of hiding them.
   Bugfixes:
-    - Fixed startup syntax error in `scripts/gui/main_gui.lua` ("unexpected symbol near ‘.’") that prevented the mod from loading.
+    - Fixed startup syntax error in `scripts/gui/main_gui.lua` ("unexpected symbol near ‘.'") that prevented the mod from loading.
 ---------------------------------------------------------------------------------------------------
 Version: 3.0.0
 Date: 2025-06-30
@@ -232,13 +232,13 @@ Date: 2025-05-20
     - Space Age Platform Distance slider: set close to 1 to travel to a planet, close to 0 to return to the previous planet.
     - Toggle Minable switch to mark placed items as non-minable.
   Changes:
-    - Cheat Tools tab is now disabled by default. Existing users who had it enabled don’t need to re-enable it; new users must enable it in mod settings to see it.
+    - Cheat Tools tab is now disabled by default. Existing users who had it enabled don't need to re-enable it; new users must enable it in mod settings to see it.
 ---------------------------------------------------------------------------------------------------
 Version: 2.5.0
 Date: 2025-05-18
   Major Features:
     - Cheat Tools tab in the crafting menu for easy recipes (infinity-chest, infinity-pipe, etc.), toggleable in settings.
-    - Internal Names option to display each item’s raw prototype ID, toggleable in settings.
+    - Internal Names option to display each item's raw prototype ID, toggleable in settings.
     - New Switchers tab with simple on/off switches for key mod features.
   Features:
     - Renamed "Utility" tab to "Essentials" for clearer organization.
@@ -255,10 +255,10 @@ Date: 2025-05-18
 Version: 2.4.4
 Date: 2025-05-11
   Changes:
-    - All "legendary" tools now stay visible in the menu, but are greyed out if you don’t have the Quality mod and/or the Space Age DLC installed.
-    - Sliders, switches and buttons for those tools are automatically disabled when the required mods aren’t active, preventing any errors or confusion.
+    - All "legendary" tools now stay visible in the menu, but are greyed out if you don't have the Quality mod and/or the Space Age DLC installed.
+    - Sliders, switches and buttons for those tools are automatically disabled when the required mods aren't active, preventing any errors or confusion.
   Locale:
-    - Names and tooltips now include "(Quality)" or "(Space Age + Quality)" so it’s clear which add-ons you need, updated in both English and Portuguese.
+    - Names and tooltips now include "(Quality)" or "(Space Age + Quality)" so it's clear which add-ons you need, updated in both English and Portuguese.
 ---------------------------------------------------------------------------------------------------
 Version: 2.4.3
 Date: 2025-05-10
@@ -355,7 +355,7 @@ Date: 2025-04-30
 Version: 2.2.0
 Date: 2025-04-30
   Major Features:
-    - Legendary Upgrader tool: drag-select an area to convert every built entity and ghost to legendary quality using a temporary upgrade-planner (inspired by Quezler’s Quality Upgrade Planner).
+    - Legendary Upgrader tool: drag-select an area to convert every built entity and ghost to legendary quality using a temporary upgrade-planner (inspired by Quezler's Quality Upgrade Planner).
   Features:
     - Unified conversion: real entities and ghosts handled in one streamlined workflow.
     - Chat notifications on equip, errors, and success.
