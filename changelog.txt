@@ -2,8 +2,8 @@
 Version: 3.8.0
 Date: 2025-11-12
   Features:
-    - Added the Instant Mining Drills setting to make every drill pull ore almost instantly.
-    - Added the Instant Crafting Machines setting so assemblers, furnaces, and rocket silos finish recipes right away.
+    - Added the Instant Mining Drills setting to make every drill pull ores instantly.
+    - Added the Instant Crafting Machines setting so assemblers, furnaces, and rocket silos finish recipes instantly.
 ---------------------------------------------------------------------------------------------------
 Version: 3.7.3
 Date: 2025-11-11
