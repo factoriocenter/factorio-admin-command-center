@@ -75,6 +75,26 @@ data:extend({
     per_user = false,
     localised_name = {"mod-setting-name.facc-enable-auto-resource-regeneration"},
     localised_description = {"mod-setting-description.facc-enable-auto-resource-regeneration"}
+  },
+  {
+    type = "bool-setting",
+    name = "facc-instant-mining-drills",
+    setting_type = "startup",
+    default_value = false,
+    order = "g",
+    per_user = false,
+    localised_name = {"mod-setting-name.facc-instant-mining-drills"},
+    localised_description = {"mod-setting-description.facc-instant-mining-drills"}
+  },
+  {
+    type = "bool-setting",
+    name = "facc-instant-crafting-machines",
+    setting_type = "startup",
+    default_value = false,
+    order = "h",
+    per_user = false,
+    localised_name = {"mod-setting-name.facc-instant-crafting-machines"},
+    localised_description = {"mod-setting-description.facc-instant-crafting-machines"}
   }
 })
 -- NOTE:

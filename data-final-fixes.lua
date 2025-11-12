@@ -33,3 +33,31 @@ if settings.startup["facc-infinite-resources"]
     and settings.startup["facc-infinite-resources"].value then
   require("scripts/startup-settings/infinite_resources")
 end
+
+-- Optional: make all mining drills effectively instant
+if settings.startup["facc-instant-mining-drills"]
+    and settings.startup["facc-instant-mining-drills"].value then
+  local multiplier = 1000 -- big enough to mine almost instantly
+  local drills = data.raw["mining-drill"] or {}
+  for _, drill in pairs(drills) do
+    local base_speed = drill.mining_speed or 1
+    drill.mining_speed = base_speed * multiplier
+  end
+end
+
+-- Optional: make assembling machines/furnaces craft instantly
+if settings.startup["facc-instant-crafting-machines"]
+    and settings.startup["facc-instant-crafting-machines"].value then
+  local multiplier = 1000
+  -- Prototype types that expose crafting_speed
+  local crafting_types = { "assembling-machine", "furnace", "rocket-silo" }
+  for _, type_name in ipairs(crafting_types) do
+    local prototypes = data.raw[type_name]
+    if prototypes then
+      for _, machine in pairs(prototypes) do
+        local base_speed = machine.crafting_speed or 1
+        machine.crafting_speed = base_speed * multiplier
+      end
+    end
+  end
+end
