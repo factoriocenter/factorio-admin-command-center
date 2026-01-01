@@ -189,7 +189,7 @@ Contribute, report issues, or browse the code on GitHub:
 
 ## License
 
-[MIT](/LICENSE) © <!-- change year start --> 2025<!-- change year end --> Factorio Center
+[MIT](/LICENSE) © <!-- change year start --> 2026<!-- change year end --> Factorio Center
 
 ---
 
