@@ -334,6 +334,18 @@ function M.toggle_player(player, enable)
   end
 end
 
+function M.on_entity_created(e)
+  if not is_enabled() then return end
+  local ent = e and (e.created_entity or e.entity) or nil
+  add_entity(ent)
+end
+
+function M.on_entity_removed(e)
+  if not is_enabled() then return end
+  local ent = e and e.entity or nil
+  remove_entity(ent)
+end
+
 --- Handler for when a logistic slot changes on an entity that exposes sections.
 --- If the section is active and we have a filter at e.slot_index, fulfills just that filter.
 function M.on_entity_logistic_slot_changed(e)
@@ -395,35 +407,5 @@ function M.on_tick(_e)
 
   storage[RR_INDEX_KEY] = i
 end
-
--- --------------------------------------------------------------------------------
--- Event hooks for adding/removing entities (convenience wiring)
--- Note: Other events (on_tick, inventory/logistic slot changes) can be wired elsewhere if desired.
--- --------------------------------------------------------------------------------
-
-script.on_event(
-  { defines.events.on_built_entity
-  , defines.events.on_robot_built_entity
-  , defines.events.script_raised_built
-  },
-  function(e)
-    if not is_enabled() then return end
-    local ent = e.created_entity or e.entity
-    add_entity(ent)
-  end
-)
-
-script.on_event(
-  { defines.events.on_entity_died
-  , defines.events.on_robot_mined_entity
-  , defines.events.on_player_mined_entity
-  , defines.events.script_raised_destroy
-  },
-  function(e)
-    if not is_enabled() then return end
-    local ent = e.entity
-    remove_entity(ent)
-  end
-)
 
 return M

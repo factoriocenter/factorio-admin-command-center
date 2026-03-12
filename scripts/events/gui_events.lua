@@ -1,7 +1,7 @@
 -- scripts/events/gui_events.lua
 -- GUI event dispatcher for FACC.
--- Centralizes click, slider, and switch handling. This file intentionally
--- contains no per-feature game logic; it only persists GUI state and calls
+-- Centralizes list selection, click, slider, and switch handling.
+-- This file intentionally contains no per-feature game logic; it only persists GUI state and calls
 -- each feature's public API.
 --
 -- Notable details:
@@ -84,6 +84,7 @@ local FACC_BUTTONS = {
   facc_add_robots=true,
   facc_regenerate_resources=true,
   facc_high_infinite_research_levels = true,
+  facc_add_infinite_research_levels = true,
   facc_indestructible_builds_permanent = true,
   facc_non_minable_permanent = true,
   -- Legendary features (Quality DLC)
@@ -91,7 +92,8 @@ local FACC_BUTTONS = {
   facc_upgrade_blueprints=true,
   facc_convert_to_legendary=true,
   -- Platform distance confirm
-  facc_set_platform_distance=true
+  facc_set_platform_distance=true,
+  facc_fill_platform_thrusters=true
 }
 
 local FACC_SLIDERS = {
@@ -157,15 +159,16 @@ local features = {
   facc_generate_planet_surfaces = require("scripts/planets/generate_planet_surfaces"),
   facc_create_full_armor    = require("scripts/armor/create_full_armor"),
   facc_add_robots           = require("scripts/logistic-network/add_robots"),
+  facc_fill_platform_thrusters = require("scripts/transportation/fill_platform_thrusters"),
   facc_regenerate_resources = require("scripts/planets/regenerate_resources"),
   facc_high_infinite_research_levels = require("scripts/cheats/high_infinite_research_levels"),
+  facc_add_infinite_research_levels = require("scripts/cheats/add_infinite_research_levels"),
   facc_indestructible_builds_permanent = require("scripts/combat/indestructible_builds_permanent"),
   facc_non_minable_permanent = require("scripts/mining/non_minable_permanent"),
 }
 
 -- Legendary-only handlers (Quality DLC gated)
 local quality_enabled   = script.active_mods["quality"]    ~= nil
-local space_age_enabled = script.active_mods["space-age"] ~= nil
 
 if quality_enabled then
   features.facc_convert_inventory    = require("scripts/character/convert_inventory_to_legendary")
@@ -173,12 +176,22 @@ if quality_enabled then
   features.facc_convert_to_legendary = require("scripts/blueprints/convert_constructions_to_legendary")
 end
 
+script.on_event(defines.events.on_gui_selection_state_changed, function(event)
+  local elem = event.element
+  if not (elem and elem.valid and elem.name == "facc_menu_list") then return end
+  local player = game.get_player(event.player_index)
+  if not (player and player.valid) then return end
+  ensure_state()
+  main_gui.handle_tab_selection(player, elem.selected_index)
+end)
+
 -- GUI click dispatcher (whitelisted FACC buttons only)
 script.on_event(defines.events.on_gui_click, function(event)
   local player, element = game.get_player(event.player_index), event.element
   if not (player and element and element.valid) then return end
   local name = element.name
   if not FACC_BUTTONS[name] then return end
+  ensure_state()
 
   -- Main GUI toggle
   if name == "facc_main_button" or name == "facc_close_main_gui" then
@@ -221,6 +234,7 @@ script.on_event(defines.events.on_gui_value_changed, function(event)
   if not (elem and elem.valid and elem.type == "slider" and FACC_SLIDERS[elem.name]) then return end
   ensure_state()
   local player = game.get_player(event.player_index)
+  if not (player and player.valid) then return end
 
   -- Live slider: Increase Robot Speed (applies delta immediately)
   if elem.name == "slider_increase_robot_speed" then

@@ -189,6 +189,11 @@ local TABS = {
         tooltip = {"tooltip.high_infinite_research_levels"}
       },
       {
+        name    = "facc_add_infinite_research_levels",
+        caption = {"facc.add_infinite_research_levels"},
+        tooltip = {"tooltip.add_infinite_research_levels"}
+      },
+      {
         name    = "facc_insert_coins",
         caption = {"facc.insert-coins"},
         tooltip = {"tooltip.insert-coins"}
@@ -427,6 +432,11 @@ local TABS = {
     label    = {"facc.tab-transportation"},
     elements = {
       {
+        name    = "facc_fill_platform_thrusters",
+        caption = {"facc.fill-thrusters"},
+        tooltip = {"tooltip.fill-thrusters"}
+      },
+      {
         name    = "facc_set_platform_distance",
         caption = {"facc.platform-distance"},
         tooltip = {"tooltip.platform-distance"},
@@ -468,6 +478,7 @@ end
 --------------------------------------------------------------------------------
 local function is_feature_enabled(name)
   if name == "facc_set_platform_distance" then return space_age_enabled end
+  if name == "facc_fill_platform_thrusters" then return space_age_enabled end
   if name == "facc_generate_planet_surfaces" then return space_age_enabled end
   if name == "facc_convert_inventory"
       or name == "facc_upgrade_blueprints"
@@ -583,7 +594,10 @@ end
 -- Build & display the GUI
 --------------------------------------------------------------------------------
 local function open_gui(player)
-  if not (player and player.valid and (not game.is_multiplayer() or player.admin)) then
+  if not (player and player.valid) then
+    return
+  end
+  if not (not game.is_multiplayer() or player.admin) then
     player.print({"facc.not-allowed"})
     return
   end
@@ -665,7 +679,6 @@ local function open_gui(player)
   content_pane.style.vertically_stretchable  = true
   content_pane.style.padding                 = SPACING
 
-  M.content_frames = {}
   for _, key in ipairs(TAB_ORDER) do
     local sec = content_pane.add{ type="flow", name="facc_content_"..key, direction="vertical" }
     sec.visible = (key == storage.facc_gui_state.tab)
@@ -673,84 +686,55 @@ local function open_gui(player)
     for _, elem in ipairs(TABS[key].elements) do
       add_function_block(sec, elem)
     end
-    M.content_frames[key] = sec
   end
 end
 
---------------------------------------------------------------------------------
--- Event Handlers
---------------------------------------------------------------------------------
-script.on_event(defines.events.on_gui_selection_state_changed, function(e)
-  if not (e.element and e.element.valid and e.element.name == "facc_menu_list") then return end
-  local player = game.get_player(e.player_index)
-  M.ensure_persistent_state()
+local function apply_tab_to_frame(main, new_tab)
+  local container = main and main.children and main.children[2]
+  local outer = container and container["facc_content_outer"]
+  local pane = outer and outer["facc_content_pane"]
+  if pane then
+    for _, key in ipairs(TAB_ORDER) do
+      local section = pane["facc_content_" .. key]
+      if section and section.valid then
+        section.visible = (key == new_tab)
+      end
+    end
+  end
 
-  local idx = e.element.selected_index
-  if not (idx and TAB_ORDER[idx]) then return end
-  local new_tab = TAB_ORDER[idx]
+  local sub = outer and outer["facc_subheader_frame"]
+  local lbl = sub and sub["facc_subheader_label"]
+  if lbl and lbl.valid then
+    lbl.caption = TABS[new_tab].label
+  end
+end
+
+function M.handle_tab_selection(player, selected_index)
+  M.ensure_persistent_state()
+  if not (selected_index and TAB_ORDER[selected_index]) then return end
+  local new_tab = TAB_ORDER[selected_index]
   storage.facc_gui_state.tab = new_tab
 
-  if not M.content_frames then open_gui(player) end
-  for k, frm in pairs(M.content_frames) do
-    frm.visible = (k == new_tab)
+  local main = player and player.valid and player.gui.screen["facc_main_frame"] or nil
+  if not (main and main.valid) then
+    open_gui(player)
+    return
   end
+  apply_tab_to_frame(main, new_tab)
+end
 
-  local main = player.gui.screen["facc_main_frame"]
-  if main then
-    local container = main.children[2]
-    if container then
-      local outer = container["facc_content_outer"]
-      if outer then
-        local sub = outer["facc_subheader_frame"]
-        if sub then
-          local lbl = sub["facc_subheader_label"]
-          if lbl then lbl.caption = TABS[new_tab].label end
-        end
-      end
+function M.restore_open_gui_for_all_players()
+  M.ensure_persistent_state()
+  if not storage.facc_gui_state.is_open then return end
+  for _, player in pairs(game.players) do
+    if not game.is_multiplayer() or player.admin then
+      open_gui(player)
     end
   end
-end)
-
-script.on_event(defines.events.on_gui_click, function(e)
-  if e.element and e.element.valid and e.element.name == "facc_close_main_gui" then
-    M.toggle_main_gui(game.get_player(e.player_index))
-  end
-end)
-
-script.on_event(defines.events.on_gui_value_changed, function(e)
-  if e.element and e.element.valid and e.element.type == "slider" then
-    storage.facc_gui_state.sliders[e.element.name] = e.element.slider_value
-    local box = e.element.parent[e.element.name.."_value"]
-    if box and box.valid then
-      local new_text = e.element.slider_value
-      if e.element.name == "slider_set_game_speed" then
-        local speeds = {0.25, 0.5, 1, 2, 4, 8, 16, 32, 64}
-        new_text = speeds[e.element.slider_value] or speeds[3]
-      end
-      box.text = tostring(new_text)
-    end
-  end
-end)
-
-script.on_event(defines.events.on_gui_switch_state_changed, function(e)
-  if e.element and e.element.valid and e.element.type == "switch" then
-    storage.facc_gui_state.switches[e.element.name] = (e.element.switch_state == "right")
-  end
-end)
-
-local restore_on_tick = false
-script.on_load(function() restore_on_tick = true end)
-script.on_event(defines.events.on_tick, function()
-  if restore_on_tick then
-    restore_on_tick = false
-    M.ensure_persistent_state()
-    if storage.facc_gui_state.is_open then
-      for _, player in pairs(game.players) do open_gui(player) end
-    end
-  end
-end)
+end
 
 function M.toggle_main_gui(player)
+  if not (player and player.valid) then return end
   M.ensure_persistent_state()
   local frame = player.gui.screen["facc_main_frame"]
   if frame then
@@ -760,7 +744,6 @@ function M.toggle_main_gui(player)
     if pane then save_all_sliders(pane) end
     frame.destroy()
     storage.facc_gui_state.is_open = false
-    M.content_frames = nil
   else
     open_gui(player)
     storage.facc_gui_state.is_open = true

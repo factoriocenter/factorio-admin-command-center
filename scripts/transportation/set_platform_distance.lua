@@ -8,6 +8,7 @@ local M = {}
 -- @param player LuaPlayer
 -- @param distance number between 0.0 and 1.0
 function M.run(player, distance)
+    if not (player and player.valid) then return end
     if not is_allowed(player) then
         player.print({"facc.not-allowed"})
         return
@@ -19,11 +20,17 @@ function M.run(player, distance)
         return
     end
 
+    if type(distance) ~= "number" then
+        distance = 0.99
+    end
+    if distance < 0 then distance = 0 end
+    if distance > 1 then distance = 1 end
+
     -- Round to two decimal places
     local d = math.floor(distance * 100 + 0.5) / 100
 
     -- Attempt to set the distance (may fail if trains are currently traveling)
-    local ok, err = pcall(function()
+    local ok = pcall(function()
         surface.platform.distance = d
     end)
     if not ok then
@@ -34,38 +41,45 @@ function M.run(player, distance)
     -- (Optional) feedback could be provided here if desired
 end
 
---- Recursively search for a GUI element by name under a root element.
--- @param element LuaGuiElement
--- @param name string
--- @treturn LuaGuiElement|nil
-local function find_child_by_name(element, name)
-    if not (element and element.valid and element.children) then
+local function find_platform_slider(frame)
+    local container = frame and frame.children and frame.children[2]
+    local outer = container and container["facc_content_outer"]
+    local pane = outer and outer["facc_content_pane"]
+    local section = pane and pane["facc_content_transportation"]
+    if not (section and section.valid) then
         return nil
     end
-    for _, child in pairs(element.children) do
-        if child.name == name then
-            return child
-        end
-        local found = find_child_by_name(child, name)
-        if found then
-            return found
+
+    for _, row in pairs(section.children) do
+        local left = row and row.children and row.children[1]
+        local slider_flow = left and left.children and left.children[2]
+        local slider = slider_flow and slider_flow["slider_platform_distance"]
+        if slider and slider.valid then
+            return slider
         end
     end
     return nil
 end
 
 --------------------------------------------------------------------------------
--- Periodic update (every 60 ticks = 1 second) to refresh the slider UI
+-- Periodic update (every 60 ticks = 1 second) to refresh the slider UI.
+-- Event wiring is centralized in scripts/events/build_events.lua.
 --------------------------------------------------------------------------------
-script.on_nth_tick(60, function(event)
+function M.on_tick(event)
+    if not (event and event.tick and event.tick % 60 == 0) then
+        return
+    end
+    if not (storage and storage.facc_gui_state and storage.facc_gui_state.tab == "transportation") then
+        return
+    end
+
     for _, player in pairs(game.players) do
         local frame = player.gui.screen["facc_main_frame"]
         if not (frame and frame.valid) then
             goto continue
         end
 
-        local slider = find_child_by_name(frame, "slider_platform_distance")
-        local box    = find_child_by_name(frame, "slider_platform_distance_value")
+        local slider = find_platform_slider(frame)
         if not (slider and slider.valid) then
             goto continue
         end
@@ -73,22 +87,14 @@ script.on_nth_tick(60, function(event)
         local surface = player.surface
         if surface and surface.platform then
             local d = surface.platform.distance or 0
-            -- Update slider position
             slider.slider_value = d
-            -- If the text box exists, update its display text (rounded to two decimals)
-            if box and box.valid then
-                local display = math.floor(d * 100 + 0.5) / 100
-                box.text = tostring(display)
-            end
-            -- Enable slider when a platform is present
             slider.enabled = true
         else
-            -- Disable slider when no platform detected
             slider.enabled = false
         end
 
         ::continue::
     end
-end)
+end
 
 return M

@@ -9,12 +9,11 @@ local clean_pollution  = require("scripts/environment/clean_pollution")
 local instant_research = require("scripts/cheats/instant_research")
 local instant_request  = require("scripts/logistic-network/instant_request")
 local instant_trash    = require("scripts/logistic-network/instant_trash")
+local set_platform_distance = require("scripts/transportation/set_platform_distance")
+local main_gui = require("scripts/gui/main_gui")
 
--- Minimal persistent GUI state scaffold (mirrors what GUI code expects)
-local function ensure_state()
-  storage.facc_gui_state = storage.facc_gui_state or { sliders = {}, switches = {}, is_open = false }
-  storage.facc_gui_state.switches = storage.facc_gui_state.switches or {}
-end
+local ensure_state = main_gui.ensure_persistent_state
+local restore_gui_on_next_tick = false
 
 -- Permission gate (best-effort):
 local function allowed(player_index)
@@ -28,11 +27,16 @@ end
 -- Player-built entities: blueprint/rail fast paths
 --------------------------------------------------------------------------------
 script.on_event(defines.events.on_built_entity, function(e)
-  if not allowed(e.player_index) then return end
   ensure_state()
 
   local ent = e.entity or e.created_entity
   if not (ent and ent.valid) then return end
+
+  -- Keep tracked logistics entities current even when non-admins build.
+  if instant_request.on_entity_created then instant_request.on_entity_created(e) end
+  if instant_trash.on_entity_created then instant_trash.on_entity_created(e) end
+
+  if not allowed(e.player_index) then return end
 
   -- Blueprint building pipeline:
   if ent.type == "entity-ghost" or ent.type == "tile-ghost" or ent.type == "item-request-proxy" then
@@ -48,27 +52,37 @@ script.on_event(defines.events.on_built_entity, function(e)
   end
 end)
 
--- Robot/script built (no-op for instant_trash; kept for symmetry/future use)
+-- Robot/script-built entities: keep logistics tracking lists in sync.
 script.on_event(
   {defines.events.on_robot_built_entity, defines.events.script_raised_built},
   function(e)
     ensure_state()
+    if instant_request.on_entity_created then
+      instant_request.on_entity_created(e)
+    end
     if instant_trash.on_entity_created then
       instant_trash.on_entity_created(e)
     end
   end
 )
 
--- Removals (death/mined/script) (no-op for instant_trash; kept for symmetry/future use)
+-- Entity removals (death/mined/script): keep logistics tracking lists in sync.
 script.on_event(
   {defines.events.on_entity_died, defines.events.on_robot_mined_entity, defines.events.on_player_mined_entity, defines.events.script_raised_destroy},
   function(e)
     ensure_state()
+    if instant_request.on_entity_removed then
+      instant_request.on_entity_removed(e)
+    end
     if instant_trash.on_entity_removed then
       instant_trash.on_entity_removed(e)
     end
   end
 )
+
+script.on_load(function()
+  restore_gui_on_next_tick = true
+end)
 
 --------------------------------------------------------------------------------
 -- Marked for deconstruction: instant removal (entities) → processed on tick
@@ -110,6 +124,11 @@ script.on_event(defines.events.on_tick, function(event)
   ensure_state()
   local s = storage.facc_gui_state
 
+  if restore_gui_on_next_tick then
+    restore_gui_on_next_tick = false
+    main_gui.restore_open_gui_for_all_players()
+  end
+
   -- 1) Instant Blueprint Building worker
   if s.switches["facc_instant_blueprint_building"] and instant_bp_build.on_tick then
     instant_bp_build.on_tick(event)
@@ -139,9 +158,14 @@ script.on_event(defines.events.on_tick, function(event)
     instant_request.on_tick(event)
   end
 
-  -- 5) Instant Trash worker (ALWAYS safe to call; module checks per-player toggles)
-  if instant_trash.on_tick then
+  -- 5) Instant Trash worker (skip when no player has it enabled)
+  if instant_trash.on_tick and instant_trash.has_enabled_players and instant_trash.has_enabled_players() then
     instant_trash.on_tick(event)
+  end
+
+  -- 6) Space platform slider refresh (every 60 ticks)
+  if set_platform_distance.on_tick then
+    set_platform_distance.on_tick(event)
   end
 end)
 

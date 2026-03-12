@@ -403,6 +403,10 @@ function M.toggle_player(player, enable)
     player.print({"facc.instant-trash-disabled"})
   end
 end
+
+function M.has_enabled_players()
+  return any_player_enabled()
+end
 -- Player inventory changes
 function M.on_player_main_inventory_changed(e)
   local player = e and e.player_index and game.get_player(e.player_index) or nil

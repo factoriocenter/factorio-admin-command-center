@@ -1,4 +1,17 @@
 ---------------------------------------------------------------------------------------------------
+Version: 3.9.0
+Date: 2026-03-12
+  Features:
+    - Added "Refuel Platform Thrusters (Space Age)" option in the Transportation tab.
+    - Added "Add +100 to Infinite Researches" option in the Cheats tab.
+  Changes:
+    - Improved menu behavior when opening, closing, and loading saves.
+    - Improved Space Platform distance control updates.
+  Bugfixes:
+    - Fixed text messages that were not showing values correctly (counts, radius, and level increases).
+  Translation:
+    - Added English and Brazilian Portuguese names, messages, and tooltips for the new options.
+---------------------------------------------------------------------------------------------------
 Version: 3.8.0
 Date: 2025-11-12
   Features:
@@ -22,7 +35,7 @@ Date: 2025-09-21
 Version: 3.7.1
 Date: 2025-09-08
   Bugfixes:
-    - Fixed an Issue with Instant Trash
+    - Fixed an issue with Instant Trash.
 ---------------------------------------------------------------------------------------------------
 Version: 3.7.0
 Date: 2025-09-08
@@ -140,7 +153,7 @@ Date: 2025-07-17
     - Converted Ammo Damage Boost from switch to slider.
     - Converted Turret Damage Boost from switch to slider.
   Bugfixes:
-    - Fixed slides bug caused by other mods.
+    - Fixed slider bug caused by other mods.
 ---------------------------------------------------------------------------------------------------
 Version: 3.3.0
 Date: 2025-07-17
@@ -183,7 +196,7 @@ Date: 2025-07-10
 Version: 3.1.1
 Date: 2025-07-02
   Minor Features:
-    - Added a button in the Cheats tab that inserts 100 000 coins into the player's inventory. Useful for scenarios: Tight spot or Rocket rush
+    - Added a button in the Cheats tab that inserts 100,000 coins into the player's inventory. Useful for scenarios like Tight Spot or Rocket Rush.
 ---------------------------------------------------------------------------------------------------
 Version: 3.1.0
 Date: 2025-07-01
