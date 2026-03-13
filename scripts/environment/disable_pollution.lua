@@ -2,6 +2,7 @@
 -- Clear all existing pollution and toggle pollution generation
 
 local M = {}
+local flib_table = require("__flib__.table")
 
 --- Clears all pollution and toggles new pollution generation globally.
 -- @param player LuaPlayer
@@ -13,9 +14,9 @@ function M.run(player, enabled)
     end
     if enabled then
         -- Clear existing pollution
-        for _, surface in pairs(game.surfaces) do
+        flib_table.for_each(game.surfaces, function(surface)
             surface.clear_pollution()
-        end
+        end)
         -- Disable new pollution
         game.map_settings.pollution.enabled = false
         player.print({"facc.disable-pollution-activated"})

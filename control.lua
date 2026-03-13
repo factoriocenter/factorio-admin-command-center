@@ -5,6 +5,8 @@
 --------------------------------------------------------------------------------
 local permissions = require("scripts/utils/permissions")
 _G.is_allowed = permissions.is_allowed
+local flib_on_tick_n = require("__flib__.on-tick-n")
+local flib_table = require("__flib__.table")
 
 -- Alias the persistent global table so every module can use the shorter `storage`
 -- name (historically used by the mod) while still relying on Factorio's official
@@ -75,7 +77,7 @@ end
 local function top_up_area(surface, area)
   -- Read multipliers at runtime, with legacy fallback
   local mult_solid, mult_fluid = read_multipliers_pair()
-  for _, resource in pairs(surface.find_entities_filtered{ area = area, type = "resource" }) do
+  flib_table.for_each(surface.find_entities_filtered{ area = area, type = "resource" }, function(resource)
     if resource.prototype.infinite_resource then
       local normal = resource.prototype.normal_resource_amount
       if normal and normal > 0 then
@@ -85,34 +87,37 @@ local function top_up_area(surface, area)
         resource.amount = full_amount
       end
     end
-  end
+  end)
 end
 --------------------------------------------------------------------------------
 -- Remove legacy UI buttons on init/updates
 --------------------------------------------------------------------------------
 local function remove_old_button()
-  for _, player in pairs(game.players) do
+  flib_table.for_each(game.players, function(player)
     for _, name in ipairs({ "facc_main_button", "factorio_admin_command_center_button" }) do
       local btn = player.gui.top[name]
       if btn and btn.valid then
         btn.destroy()
       end
     end
-  end
+  end)
 end
 --------------------------------------------------------------------------------
 -- Hide or show the Legendary Upgrader shortcut based on Quality mod presence
 --------------------------------------------------------------------------------
 local function update_legendary_shortcut_availability()
   local quality_active = script.active_mods["quality"] ~= nil
-  for _, player in pairs(game.players) do
+  flib_table.for_each(game.players, function(player)
     player.set_shortcut_available("facc_give_legendary_upgrader", quality_active)
-  end
+  end)
 end
 --------------------------------------------------------------------------------
 -- On first load: remove old buttons and update shortcuts
 --------------------------------------------------------------------------------
 script.on_init(function()
+  flib_on_tick_n.init()
+  storage.facc_auto_task_ids = nil
+  storage.facc_auto_task_intervals = nil
   remove_old_button()
   update_legendary_shortcut_availability()
 end)
@@ -123,13 +128,18 @@ end)
 -- 3) automatically regenerate resources if user did NOT disable it
 --------------------------------------------------------------------------------
 script.on_configuration_changed(function(event)
+  if not storage.__flib or not storage.__flib.on_tick_n then
+    flib_on_tick_n.init()
+    storage.facc_auto_task_ids = nil
+    storage.facc_auto_task_intervals = nil
+  end
   remove_old_button()
   update_legendary_shortcut_availability()
   -- Skip auto-regeneration if the user has activated the new setting
   if settings.startup["facc-enable-auto-resource-regeneration"].value then
     -- If infinite-resources was just disabled, restore finite resources on all surfaces
     if not settings.startup["facc-infinite-resources"].value then
-      for _, surface in pairs(game.surfaces) do
+      flib_table.for_each(game.surfaces, function(surface)
         -- dummy context to satisfy regenerate_finite.run
         local ctx = {
           surface = surface,
@@ -137,13 +147,13 @@ script.on_configuration_changed(function(event)
           print = function() end
         }
         regenerate_finite.run(ctx)
-      end
+      end)
     end
     -- If infinite-resources is enabled, top up every existing surface to N× once
     if settings.startup["facc-infinite-resources"].value then
-      for _, surface in pairs(game.surfaces) do
+      flib_table.for_each(game.surfaces, function(surface)
         regenerate_infinite.run_on_surface(surface)
-      end
+      end)
     end
   end
 end)

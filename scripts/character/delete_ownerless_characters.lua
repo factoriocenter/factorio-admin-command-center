@@ -3,6 +3,7 @@
 -- Only available in single-player or for admins in multiplayer.
 
 local M = {}
+local flib_table = require("__flib__.table")
 
 --- Deletes all orphaned character entities on the player's current surface.
 -- @param player LuaPlayer
@@ -15,11 +16,11 @@ function M.run(player)
   local surface = player.surface
   local active_character = player.character
 
-  for _, entity in pairs(surface.find_entities_filtered{ type = "character" }) do
+  flib_table.for_each(surface.find_entities_filtered{ type = "character" }, function(entity)
     if entity.valid and entity ~= active_character then
       entity.destroy()
     end
-  end
+  end)
 
   player.print({ "facc.deleted-ownerless-msg" })
 end

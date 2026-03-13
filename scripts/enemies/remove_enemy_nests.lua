@@ -3,6 +3,8 @@
 -- The radius value is defined by the user through the GUI slider.
 
 local M = {}
+local area_util = require("scripts/utils/flib_area")
+local flib_table = require("__flib__.table")
 
 function M.run(player, radius)
   if not is_allowed(player) then
@@ -10,20 +12,16 @@ function M.run(player, radius)
     return
   end
 
-  local pos = player.position
-  local area = {
-    {pos.x - radius, pos.y - radius},
-    {pos.x + radius, pos.y + radius}
-  }
+  local area = area_util.square_from_center(player.position, radius)
 
-  for _, entity in pairs(player.surface.find_entities_filtered{
+  flib_table.for_each(player.surface.find_entities_filtered{
     area = area,
     force = "enemy"
-  }) do
+  }, function(entity)
     if entity.valid then
       entity.destroy()
     end
-  end
+  end)
 
   player.print({"facc.remove-nests-msg", radius, radius})
 end

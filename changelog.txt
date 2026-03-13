@@ -1,4 +1,19 @@
 ---------------------------------------------------------------------------------------------------
+Version: 4.0.0
+Date: 2026-03-12
+  Major Features:
+    - FACC now uses FLib as a required library for its core interface systems.
+  Gui:
+    - Updated the main admin window and Lua console window to the FLib GUI structure.
+    - Improved window sizing and layout behavior for a more stable interface experience.
+  Optimizations:
+    - Improved internal math and area handling used by multiple tools (sliders, radius actions, and platform distance).
+    - Reduced repeated logic by centralizing shared calculations into common utility modules.
+  Changes:
+    - Reorganized internal code to be cleaner and easier to maintain for future updates.
+  Compatibility:
+    - Added mandatory dependency: FLib 0.16.5 or newer.
+---------------------------------------------------------------------------------------------------
 Version: 3.9.0
 Date: 2026-03-12
   Features:

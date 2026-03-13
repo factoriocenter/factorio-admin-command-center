@@ -3,6 +3,13 @@
 -- Adjusts the list depending on whether the Space-Age DLC is active.
 
 local M = {}
+local flib_technology = require("__flib__.technology")
+local research_targets = require("scripts/cheats/research_targets")
+
+local function is_multilevel(tech)
+    local ok, result = pcall(flib_technology.is_multilevel, tech)
+    return ok and result
+end
 
 --- Sets each technology in the list to level 100.
 -- In Space-Age active: applies the full set of high-level researches.
@@ -18,52 +25,12 @@ function M.run(player)
     local force = player.force
     local space_age_enabled = script.active_mods["space-age"] ~= nil
 
-    -- Choose the appropriate research list
-    local tech_names
-    if space_age_enabled then
-        tech_names = {
-            "mining-productivity-3",
-            "steel-plate-productivity",
-            "laser-weapons-damage-7",
-            "physical-projectile-damage-7",
-            "low-density-structure-productivity",
-            "artillery-shell-speed-1",
-            "artillery-shell-damage-1",
-            "artillery-shell-range-1",
-            "plastic-bar-productivity",
-            "rocket-fuel-productivity",
-            "health",
-            "refined-flammables-7",
-            "stronger-explosives-7",
-            "asteroid-productivity",
-            "railgun-damage-1",
-            "scrap-recycling-productivity",
-            "processing-unit-productivity",
-            "electric-weapons-damage-4",
-            "worker-robots-speed-7",
-            "rocket-part-productivity",
-            "railgun-shooting-speed-1",
-            "research-productivity",
-            "follower-robot-count-5"
-        }
-    else
-        tech_names = {
-            "laser-weapons-damage-7",
-            "physical-projectile-damage-7",
-            "refined-flammables-7",
-            "stronger-explosives-7",
-            "artillery-shell-range-1",
-            "artillery-shell-speed-1",
-            "worker-robots-speed-6",
-            "mining-productivity-4",
-            "follower-robot-count-5"
-        }
-    end
+    local tech_names = research_targets.get(space_age_enabled)
 
     -- Apply level override for each technology
     for _, name in ipairs(tech_names) do
         local tech = force.technologies[name]
-        if tech then
+        if tech and is_multilevel(tech) then
             tech.level = 101
         end
     end

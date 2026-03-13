@@ -3,6 +3,7 @@
 -- to the maximum possible value (2^32 - 1).
 
 local M = {}
+local flib_table = require("__flib__.table")
 
 function M.run(player)
   if not is_allowed(player) then
@@ -12,11 +13,11 @@ function M.run(player)
 
   local surface = player.surface
 
-  for _, resource in pairs(surface.find_entities_filtered{type = "resource"}) do
+  flib_table.for_each(surface.find_entities_filtered{type = "resource"}, function(resource)
     if resource.valid and resource.amount then
       resource.amount = 4294967295 -- Max value for 32-bit unsigned integer
     end
-  end
+  end)
 
   player.print({"facc.increase-resources-msg"})
 end

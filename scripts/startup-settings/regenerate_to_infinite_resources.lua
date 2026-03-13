@@ -3,6 +3,7 @@
 -- Applies distinct multipliers for solid vs fluid resources with robust detection.
 
 local M = {}
+local flib_table = require("__flib__.table")
 
 --- Parse "Nx" (e.g., "10x") or return 1.
 local function parse_x(str)
@@ -64,12 +65,12 @@ function M.run_on_surface(surface)
 
   -- 1) Destroy all finite resources and collect their names
   local to_regen = {}
-  for _, resource in ipairs(surface.find_entities_filtered{ type = "resource" }) do
+  flib_table.for_each(surface.find_entities_filtered{ type = "resource" }, function(resource)
     if not resource.prototype.infinite_resource then
       to_regen[resource.name] = true
       resource.destroy()
     end
-  end
+  end)
 
   -- 2) Regenerate each collected resource type (pcall skips errors)
   for resource_name in pairs(to_regen) do
@@ -79,7 +80,7 @@ function M.run_on_surface(surface)
   end
 
   -- 3) Top up all remaining resource patches according to their category
-  for _, resource in ipairs(surface.find_entities_filtered{ type = "resource" }) do
+  flib_table.for_each(surface.find_entities_filtered{ type = "resource" }, function(resource)
     local normal_amount = resource.prototype.normal_resource_amount
     if normal_amount and normal_amount > 0 then
       local m = is_fluid_resource(resource) and mult_fluid or mult_solid
@@ -87,12 +88,12 @@ function M.run_on_surface(surface)
       resource.amount         = amt
       resource.initial_amount = amt
     end
-  end
+  end)
 
   -- 4) Refresh connections on all mining drills
-  for _, drill in ipairs(surface.find_entities_filtered{ type = "mining-drill" }) do
+  flib_table.for_each(surface.find_entities_filtered{ type = "mining-drill" }, function(drill)
     drill.update_connections()
-  end
+  end)
 end
 
 return M

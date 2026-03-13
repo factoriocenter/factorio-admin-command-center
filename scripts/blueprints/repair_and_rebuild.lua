@@ -4,6 +4,7 @@
 -- when the Quality DLC is active.
 
 local M = {}
+local flib_table = require("__flib__.table")
 
 -- Insert helper that preserves item quality if provided.
 local function insert_with_quality(container, name, count, quality)
@@ -87,9 +88,9 @@ local function fulfill_all_proxies(surface)
     return surface.find_entities_filtered{ type = "item-request-proxy" }
   end)
   if not (ok and proxies) then return end
-  for _, p in pairs(proxies) do
+  flib_table.for_each(proxies, function(p)
     fulfill_item_request_proxy(p)
-  end
+  end)
 end
 
 function M.run(player)
@@ -103,23 +104,23 @@ function M.run(player)
   local force   = player.force
 
   -- 1) Instantly restore health of every entity belonging to the force
-  for _, ent in ipairs(surface.find_entities_filtered{ force = force }) do
+  flib_table.for_each(surface.find_entities_filtered{ force = force }, function(ent)
     if ent.valid and ent.health then
       -- Big value effectively tops it up; Factorio will clamp to prototype max internally.
       pcall(function() ent.health = 1e9 end)
     end
-  end
+  end)
 
   -- 2) Revive all entity ghosts (proxies may be created with quality-aware requests)
-  for _, ghost in ipairs(surface.find_entities_filtered{ force = force, type = "entity-ghost" }) do
+  flib_table.for_each(surface.find_entities_filtered{ force = force, type = "entity-ghost" }, function(ghost)
     if ghost.valid then
       pcall(function() ghost.revive() end)
     end
-  end
+  end)
 
   -- 3) Revive all tile ghosts (including landfill), batching non-landfill tiles
   local tiles_to_set = {}
-  for _, tile in ipairs(surface.find_entities_filtered{ force = force, type = "tile-ghost" }) do
+  flib_table.for_each(surface.find_entities_filtered{ force = force, type = "tile-ghost" }, function(tile)
     if tile.valid then
       if tile.ghost_name == "landfill" then
         pcall(function() tile.revive() end)
@@ -127,7 +128,7 @@ function M.run(player)
         table.insert(tiles_to_set, { name = tile.ghost_name, position = tile.position })
       end
     end
-  end
+  end)
   if #tiles_to_set > 0 then
     pcall(function() surface.set_tiles(tiles_to_set) end)
   end

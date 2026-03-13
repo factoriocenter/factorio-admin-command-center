@@ -2,6 +2,7 @@
 -- Toggle destructibility of all existing entities belonging to the player’s force.
 
 local M = {}
+local flib_table = require("__flib__.table")
 
 --- Apply or remove indestructibility on existing entities.
 function M.run(player, enabled)
@@ -14,13 +15,13 @@ function M.run(player, enabled)
     local force   = player.force
 
     -- Iterate through all entities of this force on the current surface
-    for _, entity in pairs(surface.find_entities_filtered{ force = force }) do
+    flib_table.for_each(surface.find_entities_filtered{ force = force }, function(entity)
         if entity.valid and entity.destructible ~= nil then
             -- When enabled == true (switch ON), set destructible = false.
             -- When enabled == false (switch OFF), set destructible = true.
             entity.destructible = not enabled
         end
-    end
+    end)
 
     if enabled then
         player.print({"facc.indestructible-activated"})     -- You should add these localization keys

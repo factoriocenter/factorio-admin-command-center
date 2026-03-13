@@ -3,29 +3,62 @@
 
 
 local M = {}
+local flib_bounding_box = require("__flib__.bounding-box")
+local flib_queue = require("__flib__.queue")
+local flib_table = require("__flib__.table")
 
 -- Keys in storage
 local QUEUE_KEY = "facc_pending_instant_deconstruction"
 local PREF_KEY  = "facc_last_deconstruction_pref"
 
 -- Ensure/return queue
+local function is_queue(value)
+  return type(value) == "table" and type(value.first) == "number" and type(value.last) == "number"
+end
+
+local function array_to_queue(arr)
+  local q = flib_queue.new()
+  for i = 1, #arr do
+    flib_queue.push_back(q, arr[i])
+  end
+  return q
+end
+
 local function ensure_queue()
-  storage[QUEUE_KEY] = storage[QUEUE_KEY] or {}
-  return storage[QUEUE_KEY]
+  local value = storage[QUEUE_KEY]
+  if value == nil then
+    value = flib_queue.new()
+    storage[QUEUE_KEY] = value
+    return value
+  end
+
+  if is_queue(value) then
+    return value
+  end
+
+  if type(value) == "table" then
+    local converted = array_to_queue(value)
+    storage[QUEUE_KEY] = converted
+    return converted
+  end
+
+  local fallback = flib_queue.new()
+  storage[QUEUE_KEY] = fallback
+  return fallback
 end
 
 -- Ensure/return per-player preferences
 local function ensure_prefs()
-  storage[PREF_KEY] = storage[PREF_KEY] or {}
-  return storage[PREF_KEY]
+  return flib_table.get_or_insert(storage, PREF_KEY, {})
 end
 
 -- Point-in-rect check for {left_top={x,y}, right_bottom={x,y}}
 local function point_in_area(pos, area)
-  if not (pos and area and area.left_top and area.right_bottom) then return false end
-  local x, y = pos.x or pos[1], pos.y or pos[2]
-  return x >= area.left_top.x and x <= area.right_bottom.x
-     and y >= area.left_top.y and y <= area.right_bottom.y
+  if not (pos and area) then return false end
+  local ok, inside = pcall(function()
+    return flib_bounding_box.contains_position(area, pos)
+  end)
+  return ok and inside or false
 end
 
 --------------------------------------------------------------------------------
@@ -62,7 +95,7 @@ function M.on_marked_for_deconstruction(event)
 
   -- Enqueue (regular entities and "allowed" tiles)
   local q = ensure_queue()
-  q[#q+1] = { entity = ent, player_index = event.player_index }
+  flib_queue.push_back(q, { entity = ent, player_index = event.player_index })
 end
 
 --------------------------------------------------------------------------------
@@ -90,16 +123,26 @@ function M.on_player_deconstructed_area(event)
   -- Build a reliable area (use event.area if available; otherwise derive from tiles)
   local area = event.area
   if (not area) and event.tiles and #event.tiles > 0 then
-    local minx, miny = math.huge, math.huge
-    local maxx, maxy = -math.huge, -math.huge
-    for _, t in ipairs(event.tiles) do
-      local p = t.position
-      if p.x < minx then minx = p.x end
-      if p.y < miny then miny = p.y end
-      if p.x > maxx then maxx = p.x end
-      if p.y > maxy then maxy = p.y end
+    local first = event.tiles[1]
+    if first and first.position then
+      area = {
+        left_top = { x = first.position.x, y = first.position.y },
+        right_bottom = { x = first.position.x, y = first.position.y }
+      }
     end
-    area = { left_top = {x=minx, y=miny}, right_bottom = {x=maxx, y=maxy} }
+    for i = 2, #event.tiles do
+      local tile = event.tiles[i]
+      if tile and tile.position then
+        if area then
+          area = flib_bounding_box.expand_to_contain_position(area, tile.position)
+        else
+          area = {
+            left_top = { x = tile.position.x, y = tile.position.y },
+            right_bottom = { x = tile.position.x, y = tile.position.y }
+          }
+        end
+      end
+    end
   end
 
   -- Save the player's selection preference
@@ -116,14 +159,15 @@ end
 -- Tick worker: processes the queue (entities + allowed tiles) in batches
 --------------------------------------------------------------------------------
 function M.on_tick(_)
-  local q = storage and storage[QUEUE_KEY]
-  if not (q and #q > 0) then return end
+  local q = storage and ensure_queue()
+  if not (q and flib_queue.length(q) > 0) then return end
 
   local new_tiles_on_surfaces = nil
 
-  -- Process back-to-front
-  for i = #q, 1, -1 do
-    local data   = q[i]
+  -- Process one full queue pass (FIFO)
+  local jobs = flib_queue.length(q)
+  for _ = 1, jobs do
+    local data   = flib_queue.pop_front(q)
     local ent    = data and data.entity
 
     if ent and ent.valid then
@@ -141,11 +185,7 @@ function M.on_tick(_)
           if hidden and hidden ~= "" then
             new_tiles_on_surfaces = new_tiles_on_surfaces or {}
             local sname = surface.name
-            local bucket = new_tiles_on_surfaces[sname]
-            if not bucket then
-              bucket = { tiles = {} }
-              new_tiles_on_surfaces[sname] = bucket
-            end
+            local bucket = flib_table.get_or_insert(new_tiles_on_surfaces, sname, { tiles = {} })
             bucket.tiles[#bucket.tiles+1] = { name = hidden, position = pos }
           end
 
@@ -159,7 +199,6 @@ function M.on_tick(_)
       end
     end
 
-    table.remove(q, i)
   end
 
   -- Apply collected tiles per surface

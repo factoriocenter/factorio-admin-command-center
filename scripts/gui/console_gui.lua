@@ -4,6 +4,9 @@
 -- which survives save/load and even returning to the main menu.
 
 local M = {}
+local flib_gui = require("__flib__.gui")
+local flib_table = require("__flib__.table")
+local gui_events = require("scripts/events/gui_events")
 
 --------------------------------------------------------------------------------
 -- Toggles the visibility of the Lua Console window.
@@ -18,7 +21,10 @@ function M.toggle_console_gui(player)
   end
 
   -- Initialize our storage slot if needed
-  storage.facc_last_command = storage.facc_last_command or ""
+  local last_cmd = flib_table.get_or_insert(storage, "facc_last_command", "")
+  if type(last_cmd) ~= "string" then
+    storage.facc_last_command = tostring(last_cmd or "")
+  end
 
   local screen = player.gui.screen
 
@@ -29,54 +35,62 @@ function M.toggle_console_gui(player)
     return
   end
 
-  -- Otherwise, build the console window
-  local frame = screen.add{
-    type      = "frame",
-    name      = "facc_console_frame",
-    caption   = {"facc.console-title"},
-    direction = "vertical"
-  }
+  -- Otherwise, build the console window through FLib GUI definitions
+  local _, frame = flib_gui.add(screen, {
+    type = "frame",
+    name = "facc_console_frame",
+    caption = {"facc.console-title"},
+    direction = "vertical",
+    style_mods = {
+      minimal_width = 600,
+      maximal_width = 800
+    },
+    children = {
+      {
+        type = "label",
+        caption = {"facc.console-instruction"}
+      },
+      {
+        type = "text-box",
+        name = "facc_textbox",
+        text = storage.facc_last_command,
+        style = "facc_console_input_style",
+        handler = { [defines.events.on_gui_text_changed] = gui_events.handlers.console_text_changed },
+        elem_mods = {
+          word_wrap = true
+        },
+        style_mods = {
+          minimal_height = 200,
+          horizontally_stretchable = true
+        }
+      },
+      {
+        type = "flow",
+        direction = "horizontal",
+        style_mods = {
+          horizontal_align = "right",
+          horizontal_spacing = 8
+        },
+        children = {
+          {
+            type = "button",
+            name = "facc_console_close",
+            caption = {"facc.console-close"},
+            style = "back_button",
+            handler = { [defines.events.on_gui_click] = gui_events.handlers.click }
+          },
+          {
+            type = "button",
+            name = "facc_console_exec",
+            caption = {"facc.console-exec"},
+            style = "confirm_button",
+            handler = { [defines.events.on_gui_click] = gui_events.handlers.click }
+          }
+        }
+      }
+    }
+  })
   frame.auto_center        = true
-  frame.style.minimal_width  = 600
-  frame.style.maximal_width  = 800
-
-  -- Instruction label
-  frame.add{
-    type    = "label",
-    caption = {"facc.console-instruction"}
-  }
-
-  -- Multi-line text box, pre-loaded from storage
-  local textbox = frame.add{
-    type      = "text-box",
-    name      = "facc_textbox",
-    text      = storage.facc_last_command,
-    style     = "facc_console_input_style"
-  }
-  textbox.word_wrap                   = true
-  textbox.style.minimal_height        = 200
-  textbox.style.horizontally_stretchable = true
-
-  -- Flow for the Close + Execute buttons
-  local button_flow = frame.add{ type = "flow", direction = "horizontal" }
-  button_flow.style.horizontal_align   = "right"
-  button_flow.style.horizontal_spacing = 8
-
-  -- Close button
-  button_flow.add{
-    type    = "button",
-    name    = "facc_console_close",
-    caption = {"facc.console-close"},
-    style   = "back_button"
-  }
-
-  -- Execute button
-  button_flow.add{
-    type    = "button",
-    name    = "facc_console_exec",
-    caption = {"facc.console-exec"},
-    style   = "confirm_button"
-  }
 end
 
 --------------------------------------------------------------------------------
@@ -129,14 +143,6 @@ function M.exec_console_command(player)
 end
 
 --------------------------------------------------------------------------------
--- Immediate persistence: whenever the textbox text changes, update storage.
--- Ensures that pressing ESC or making any GUI change won’t lose your input.
---------------------------------------------------------------------------------
-script.on_event(defines.events.on_gui_text_changed, function(e)
-  local element = e.element
-  if element and element.valid and element.name == "facc_textbox" then
-    storage.facc_last_command = element.text or ""
-  end
-end)
+gui_events.set_console_gui_api(M)
 
 return M

@@ -1,6 +1,7 @@
 -- scripts/character/toggle_ghost_character.lua
 
 local M = {}
+local math_util = require("scripts/utils/flib_math")
 
 local INV = defines.inventory
 local INV_IDS = {
@@ -16,7 +17,7 @@ local function move_inventory(from_char, to_char, inv_id)
   local src = from_char and from_char.valid and from_char.get_inventory(inv_id)
   local dst = to_char   and to_char.valid   and to_char.get_inventory(inv_id)
   if not (src and dst) then return end
-  local n = math.min(#src, #dst)
+  local n = math_util.min(#src, #dst)
   for i = 1, n do
     local s = src[i]
     if s and s.valid_for_read and s.count > 0 then

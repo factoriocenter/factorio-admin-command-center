@@ -3,6 +3,8 @@
 -- The radius is provided by the GUI slider and confirmed via a green button.
 
 local M = {}
+local area_util = require("scripts/utils/flib_area")
+local flib_table = require("__flib__.table")
 
 function M.run(player, radius)
   if not is_allowed(player) then
@@ -10,17 +12,13 @@ function M.run(player, radius)
     return
   end
 
-  local pos = player.position
-  local area = {
-    {pos.x - radius, pos.y - radius},
-    {pos.x + radius, pos.y + radius}
-  }
+  local area = area_util.square_from_center(player.position, radius)
 
-  for _, cliff in pairs(player.surface.find_entities_filtered{area = area, type = "cliff"}) do
+  flib_table.for_each(player.surface.find_entities_filtered{area = area, type = "cliff"}, function(cliff)
     if cliff.valid then
       cliff.destroy()
     end
-  end
+  end)
 
   player.print({"facc.remove-cliffs-msg", radius, radius})
 end

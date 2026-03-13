@@ -5,6 +5,7 @@
 -- • Finally, mining drills are refreshed to reconnect.
 
 local M = {}
+local flib_table = require("__flib__.table")
 
 --- Regenerates finite resource entities on the player's current surface.
 -- Destroys all finite resources, records their prototype names, and regenerates them.
@@ -20,12 +21,12 @@ function M.run(player)
 
   -- 1) Destroy all finite resources and collect their names
   local to_regenerate = {}
-  for _, resource in ipairs(surface.find_entities_filtered{ type = "resource" }) do
+  flib_table.for_each(surface.find_entities_filtered{ type = "resource" }, function(resource)
     if not resource.prototype.infinite_resource then
       to_regenerate[resource.name] = true
       resource.destroy()
     end
-  end
+  end)
 
   -- 2) Attempt to regenerate each collected resource type (pcall skips non-autoplacable)
   for resource_name in pairs(to_regenerate) do
@@ -35,9 +36,9 @@ function M.run(player)
   end
 
   -- 3) Refresh connections on all mining drills
-  for _, drill in ipairs(surface.find_entities_filtered{ type = "mining-drill" }) do
+  flib_table.for_each(surface.find_entities_filtered{ type = "mining-drill" }, function(drill)
     drill.update_connections()
-  end
+  end)
 
   player.print({"facc.regenerate-resources-msg"})
 end

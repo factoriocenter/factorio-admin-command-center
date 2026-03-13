@@ -3,6 +3,7 @@
 -- @param player LuaPlayer      — the invoking player
 -- @param modifier number       — mining speed modifier (0..1000)
 local M = {}
+local math_util = require("scripts/utils/flib_math")
 
 --- Runs the mining speed change.
 -- Checks permissions, clamps the value, applies and notifies the player.
@@ -14,7 +15,7 @@ function M.run(player, modifier)
     return
   end
   -- Clamp between 0 and 1000
-  local m = math.max(0, math.min(modifier, 1000))
+  local m = math_util.clamp_number(modifier, 0, 1000, 0)
   local force = player.force
   force.manual_mining_speed_modifier = m
   -- player.print({"facc.set-mining-speed-msg", m})

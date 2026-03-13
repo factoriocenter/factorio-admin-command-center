@@ -2,24 +2,73 @@
 -- Instant Request
 
 local M = {}
+local flib_table = require("__flib__.table")
+local flib_queue = require("__flib__.queue")
 
 -- --------------------------------------------------------------------------------
 -- Storage keys
 -- --------------------------------------------------------------------------------
 
 local ENABLED_KEY = "facc_instant_request_enabled"      -- boolean (global toggle)
-local ENTITY_LIST_KEY = "facc_instant_request_entities" -- array of unit_numbers
-local RR_INDEX_KEY = "facc_instant_request_rr_index"    -- round-robin index
+local ENTITY_LIST_KEY = "facc_instant_request_entities" -- queue of unit_numbers
+local ENTITY_SET_KEY = "facc_instant_request_entity_set"
 
 -- --------------------------------------------------------------------------------
 -- Storage helpers
 -- --------------------------------------------------------------------------------
 
+local function is_queue(value)
+  return type(value) == "table" and type(value.first) == "number" and type(value.last) == "number"
+end
+
+local function array_to_queue(arr)
+  local q = flib_queue.new()
+  for i = 1, #arr do
+    flib_queue.push_back(q, arr[i])
+  end
+  return q
+end
+
+local function ensure_entity_queue()
+  local value = storage[ENTITY_LIST_KEY]
+  if value == nil then
+    value = flib_queue.new()
+    storage[ENTITY_LIST_KEY] = value
+    return value
+  end
+
+  if is_queue(value) then
+    return value
+  end
+
+  if type(value) == "table" then
+    local converted = array_to_queue(value)
+    storage[ENTITY_LIST_KEY] = converted
+    return converted
+  end
+
+  local fallback = flib_queue.new()
+  storage[ENTITY_LIST_KEY] = fallback
+  return fallback
+end
+
+local function ensure_entity_set(queue)
+  local set = storage[ENTITY_SET_KEY]
+  if set == nil then
+    set = {}
+    for _, un in flib_queue.iter(queue) do
+      set[un] = true
+    end
+    storage[ENTITY_SET_KEY] = set
+  end
+  return set
+end
+
 --- Ensures storage keys exist with sane defaults.
 local function ensure_storage()
-  storage[ENABLED_KEY] = storage[ENABLED_KEY] or false
-  storage[ENTITY_LIST_KEY] = storage[ENTITY_LIST_KEY] or {}
-  storage[RR_INDEX_KEY] = storage[RR_INDEX_KEY] or 1
+  flib_table.get_or_insert(storage, ENABLED_KEY, false)
+  local queue = ensure_entity_queue()
+  ensure_entity_set(queue)
 end
 
 --- Returns whether the feature is globally enabled.
@@ -28,10 +77,12 @@ local function is_enabled()
   return storage[ENABLED_KEY] == true
 end
 
---- Returns the current list of tracked entity unit_numbers.
-local function get_entity_list()
+--- Returns the current queue and set for tracked entity unit_numbers.
+local function get_entity_queue_and_set()
   ensure_storage()
-  return storage[ENTITY_LIST_KEY]
+  local queue = ensure_entity_queue()
+  local set = ensure_entity_set(queue)
+  return queue, set
 end
 
 -- --------------------------------------------------------------------------------
@@ -146,38 +197,40 @@ end
 local function add_entity(ent)
   if not (ent and ent.valid and ent.unit_number) then return end
   if not entity_is_auto_supported(ent) then return end
-  local list = get_entity_list()
-  for _, un in ipairs(list) do
-    if un == ent.unit_number then return end
-  end
-  table.insert(list, ent.unit_number)
+  local queue, set = get_entity_queue_and_set()
+  local un = ent.unit_number
+  if set[un] then return end
+  set[un] = true
+  flib_queue.push_back(queue, un)
 end
 
---- Removes an entity (by unit_number) from the tracked list.
+--- Removes an entity (by unit_number) from the tracked set.
+--- Queue entries are cleaned lazily when popped on tick.
 local function remove_entity(ent)
   local un = ent and ent.unit_number
   if not un then return end
-  local list = get_entity_list()
-  for i, v in ipairs(list) do
-    if v == un then
-      table.remove(list, i)
-      break
-    end
-  end
+  local _, set = get_entity_queue_and_set()
+  set[un] = nil
 end
 
---- Rebuilds the tracked entity list by scanning all surfaces for auto-supported entities.
-local function refresh_entity_list()
-  local new_list = {}
-  for _, s in pairs(game.surfaces) do
+--- Rebuilds the tracked entity queue by scanning all surfaces for auto-supported entities.
+local function refresh_entity_queue()
+  local queue = flib_queue.new()
+  local set = {}
+  flib_table.for_each(game.surfaces, function(s)
     -- We fetch all entities for the player force, then probe; this runs only on enable or manual refresh.
-    for _, ent in pairs(s.find_entities_filtered{force = "player"}) do
+    flib_table.for_each(s.find_entities_filtered{force = "player"}, function(ent)
       if entity_is_auto_supported(ent) then
-        table.insert(new_list, ent.unit_number)
+        local un = ent.unit_number
+        if un and not set[un] then
+          set[un] = true
+          flib_queue.push_back(queue, un)
+        end
       end
-    end
-  end
-  storage[ENTITY_LIST_KEY] = new_list
+    end)
+  end)
+  storage[ENTITY_LIST_KEY] = queue
+  storage[ENTITY_SET_KEY] = set
 end
 
 -- --------------------------------------------------------------------------------
@@ -321,9 +374,10 @@ function M.toggle_player(player, enable)
   ensure_storage()
   storage[ENABLED_KEY] = (enable == true)
   if enable then
-    refresh_entity_list()
+    refresh_entity_queue()
   else
-    storage[ENTITY_LIST_KEY] = {}
+    storage[ENTITY_LIST_KEY] = flib_queue.new()
+    storage[ENTITY_SET_KEY] = {}
   end
   if player and player.valid then
     if enable then
@@ -377,35 +431,28 @@ end
 --- On-tick round-robin: each tick (when enabled) we service one tracked entity, if any.
 function M.on_tick(_e)
   if not is_enabled() then return end
-  local list = get_entity_list()
-  if #list == 0 then return end
+  local queue, set = get_entity_queue_and_set()
+  local attempts_total = flib_queue.length(queue)
+  if attempts_total == 0 then return end
 
-  local i = storage[RR_INDEX_KEY]
-  if i > #list then i = 1 end
-
-  local attempts = 0
-  while attempts < #list do
-    local un = list[i]
-    local ent = game.get_entity_by_unit_number(un)
-    if ent and ent.valid then
-      if entity_is_auto_supported(ent) then
-        fulfill_all_active_requests(ent)
-        i = i + 1
-        if i > #list then i = 1 end
-        break
-      else
-        -- Entity no longer exposes requester-like points; drop it.
-        table.remove(list, i)
-        if i > #list then i = 1 end
-      end
-    else
-      table.remove(list, i)
-      if i > #list then i = 1 end
+  for _ = 1, attempts_total do
+    local un = flib_queue.pop_front(queue)
+    if not un then
+      break
     end
-    attempts = attempts + 1
-  end
 
-  storage[RR_INDEX_KEY] = i
+    if set[un] then
+      local ent = game.get_entity_by_unit_number(un)
+      if ent and ent.valid and entity_is_auto_supported(ent) then
+        fulfill_all_active_requests(ent)
+        flib_queue.push_back(queue, un)
+        break
+      end
+
+      -- Entity no longer valid/supported: remove from tracked set.
+      set[un] = nil
+    end
+  end
 end
 
 return M

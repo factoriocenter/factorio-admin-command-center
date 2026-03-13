@@ -6,6 +6,7 @@
 --   • all tanks of the force
 
 local M = {}
+local flib_table = require("__flib__.table")
 
 function M.run(player)
   if not is_allowed(player) then
@@ -17,11 +18,11 @@ function M.run(player)
   local force   = player.force
 
   -- 1) Recharge all electric entities belonging to the force
-  for _, entity in pairs(surface.find_entities_filtered{force = force}) do
+  flib_table.for_each(surface.find_entities_filtered{force = force}, function(entity)
     if entity.valid and entity.energy and entity.electric_buffer_size then
       entity.energy = entity.electric_buffer_size
     end
-  end
+  end)
 
   -- 2) Recharge player's equipment grid
   if player.character and player.character.grid then
@@ -33,26 +34,26 @@ function M.run(player)
   end
 
   -- 3) Recharge all spidertron equipment grids
-  for _, spider in pairs(surface.find_entities_filtered{name = "spidertron", force = force}) do
+  flib_table.for_each(surface.find_entities_filtered{name = "spidertron", force = force}, function(spider)
     if spider.valid and spider.grid then
-      for _, eq in pairs(spider.grid.equipment) do
+      flib_table.for_each(spider.grid.equipment, function(eq)
         if eq.valid and eq.energy and eq.max_energy then
           eq.energy = eq.max_energy
         end
-      end
+      end)
     end
-  end
+  end)
 
   -- 4) Recharge all tank equipment grids
-  for _, tank in pairs(surface.find_entities_filtered{name = "tank", force = force}) do
+  flib_table.for_each(surface.find_entities_filtered{name = "tank", force = force}, function(tank)
     if tank.valid and tank.grid then
-      for _, eq in pairs(tank.grid.equipment) do
+      flib_table.for_each(tank.grid.equipment, function(eq)
         if eq.valid and eq.energy and eq.max_energy then
           eq.energy = eq.max_energy
         end
-      end
+      end)
     end
-  end
+  end)
 
   player.print({"facc.recharge-energy-msg"})
 end

@@ -11,9 +11,48 @@ local instant_request  = require("scripts/logistic-network/instant_request")
 local instant_trash    = require("scripts/logistic-network/instant_trash")
 local set_platform_distance = require("scripts/transportation/set_platform_distance")
 local main_gui = require("scripts/gui/main_gui")
+local flib_on_tick_n = require("__flib__.on-tick-n")
+local flib_table = require("__flib__.table")
+local math_util = require("scripts/utils/flib_math")
 
 local ensure_state = main_gui.ensure_persistent_state
 local restore_gui_on_next_tick = false
+local AUTO_TASKS_KEY = "facc_auto_task_ids"
+local AUTO_TASK_INTERVALS_KEY = "facc_auto_task_intervals"
+local AUTO_TASK_CLEAN = "facc_auto_clean_pollution"
+local AUTO_TASK_RESEARCH = "facc_auto_instant_research"
+local AUTO_TASK_PLATFORM = "facc_platform_distance_refresh"
+
+local function ensure_auto_task_ids()
+  return flib_table.get_or_insert(storage, AUTO_TASKS_KEY, {})
+end
+
+local function ensure_auto_task_intervals()
+  return flib_table.get_or_insert(storage, AUTO_TASK_INTERVALS_KEY, {})
+end
+
+local function interval_to_ticks(seconds)
+  return math_util.max(1, math_util.floor((tonumber(seconds) or 1) * 60))
+end
+
+local function cancel_auto_task(task_ids, task_intervals, key)
+  local ident = task_ids[key]
+  if ident then
+    flib_on_tick_n.remove(ident)
+    task_ids[key] = nil
+  end
+  task_intervals[key] = nil
+end
+
+local function ensure_auto_task(task_ids, task_intervals, key, seconds)
+  local ticks = interval_to_ticks(seconds)
+  if task_ids[key] and task_intervals[key] == ticks then
+    return
+  end
+  cancel_auto_task(task_ids, task_intervals, key)
+  task_ids[key] = flib_on_tick_n.add(game.tick + ticks, key)
+  task_intervals[key] = ticks
+end
 
 -- Permission gate (best-effort):
 local function allowed(player_index)
@@ -123,10 +162,57 @@ end)
 script.on_event(defines.events.on_tick, function(event)
   ensure_state()
   local s = storage.facc_gui_state
+  local auto_task_ids = ensure_auto_task_ids()
+  local auto_task_intervals = ensure_auto_task_intervals()
 
   if restore_gui_on_next_tick then
     restore_gui_on_next_tick = false
     main_gui.restore_open_gui_for_all_players()
+  end
+
+  -- FLib scheduled auto workers
+  if s.switches["facc_auto_clean_pollution"] then
+    ensure_auto_task(auto_task_ids, auto_task_intervals, AUTO_TASK_CLEAN, s.sliders["slider_auto_clean_pollution"] or 60)
+  else
+    cancel_auto_task(auto_task_ids, auto_task_intervals, AUTO_TASK_CLEAN)
+  end
+
+  if s.switches["facc_auto_instant_research"] then
+    ensure_auto_task(auto_task_ids, auto_task_intervals, AUTO_TASK_RESEARCH, s.sliders["slider_auto_instant_research"] or 1)
+  else
+    cancel_auto_task(auto_task_ids, auto_task_intervals, AUTO_TASK_RESEARCH)
+  end
+
+  if set_platform_distance.on_tick then
+    ensure_auto_task(auto_task_ids, auto_task_intervals, AUTO_TASK_PLATFORM, 1)
+  else
+    cancel_auto_task(auto_task_ids, auto_task_intervals, AUTO_TASK_PLATFORM)
+  end
+
+  for _, task in pairs(flib_on_tick_n.retrieve(event.tick) or {}) do
+    if task == AUTO_TASK_CLEAN then
+      auto_task_ids[AUTO_TASK_CLEAN] = nil
+      if s.switches["facc_auto_clean_pollution"] then
+        flib_table.for_each(game.players, function(p)
+          clean_pollution.run(p)
+        end)
+        ensure_auto_task(auto_task_ids, auto_task_intervals, AUTO_TASK_CLEAN, s.sliders["slider_auto_clean_pollution"] or 60)
+      end
+    elseif task == AUTO_TASK_RESEARCH then
+      auto_task_ids[AUTO_TASK_RESEARCH] = nil
+      if s.switches["facc_auto_instant_research"] then
+        flib_table.for_each(game.players, function(p)
+          instant_research.run(p)
+        end)
+        ensure_auto_task(auto_task_ids, auto_task_intervals, AUTO_TASK_RESEARCH, s.sliders["slider_auto_instant_research"] or 1)
+      end
+    elseif task == AUTO_TASK_PLATFORM then
+      auto_task_ids[AUTO_TASK_PLATFORM] = nil
+      if set_platform_distance.on_tick then
+        set_platform_distance.on_tick({ tick = event.tick })
+        ensure_auto_task(auto_task_ids, auto_task_intervals, AUTO_TASK_PLATFORM, 1)
+      end
+    end
   end
 
   -- 1) Instant Blueprint Building worker
@@ -139,34 +225,16 @@ script.on_event(defines.events.on_tick, function(event)
     instant_decon.on_tick(event)
   end
 
-  -- 3) Existing automations
-  if s.switches["facc_auto_clean_pollution"] then
-    local secs = s.sliders["slider_auto_clean_pollution"] or 60
-    if secs >= 1 and (event.tick % (secs * 60) == 0) then
-      for _,p in pairs(game.players) do clean_pollution.run(p) end
-    end
-  end
-  if s.switches["facc_auto_instant_research"] then
-    local secs = s.sliders["slider_auto_instant_research"] or 1
-    if secs >= 1 and (event.tick % (secs * 60) == 0) then
-      for _,p in pairs(game.players) do instant_research.run(p) end
-    end
-  end
-
-  -- 4) Instant Request per-player worker (gated by GUI switch)
+  -- 3) Instant Request per-player worker (gated by GUI switch)
   if s.switches["facc_instant_request"] and instant_request.on_tick then
     instant_request.on_tick(event)
   end
 
-  -- 5) Instant Trash worker (skip when no player has it enabled)
+  -- 4) Instant Trash worker (skip when no player has it enabled)
   if instant_trash.on_tick and instant_trash.has_enabled_players and instant_trash.has_enabled_players() then
     instant_trash.on_tick(event)
   end
 
-  -- 6) Space platform slider refresh (every 60 ticks)
-  if set_platform_distance.on_tick then
-    set_platform_distance.on_tick(event)
-  end
 end)
 
 -- PERSONAL LOGISTICS: slot changed → fulfill that slot (per-player)

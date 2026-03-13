@@ -2,6 +2,8 @@
 -- Instant Blueprint Building
 
 local M = {}
+local flib_bounding_box = require("__flib__.bounding-box")
+local flib_queue = require("__flib__.queue")
 
 -- Persistent queue keys
 local PENDING_PROXY_KEY   = "facc_pending_item_proxies"
@@ -18,9 +20,44 @@ local TILE_WARMUP_TRIES   = 18      -- first N tries: tiles-only on space platfo
 --------------------------------------------------------------------------------
 -- Storage helpers
 --------------------------------------------------------------------------------
+local function is_queue(value)
+  return type(value) == "table" and type(value.first) == "number" and type(value.last) == "number"
+end
+
+local function array_to_queue(arr)
+  local q = flib_queue.new()
+  for i = 1, #arr do
+    flib_queue.push_back(q, arr[i])
+  end
+  return q
+end
+
+local function ensure_queue(key)
+  local value = storage[key]
+  if value == nil then
+    value = flib_queue.new()
+    storage[key] = value
+    return value
+  end
+
+  if is_queue(value) then
+    return value
+  end
+
+  if type(value) == "table" then
+    local converted = array_to_queue(value)
+    storage[key] = converted
+    return converted
+  end
+
+  local fallback = flib_queue.new()
+  storage[key] = fallback
+  return fallback
+end
+
 local function ensure_storage()
-  storage[PENDING_PROXY_KEY] = storage[PENDING_PROXY_KEY] or {}
-  storage[PENDING_AREA_KEY]  = storage[PENDING_AREA_KEY]  or {}
+  ensure_queue(PENDING_PROXY_KEY)
+  ensure_queue(PENDING_AREA_KEY)
 end
 
 --------------------------------------------------------------------------------
@@ -31,17 +68,8 @@ end
 -- @param pad  number padding value
 local function expand_area(area, pad)
   pad = pad or 0
-  if area.left_top and area.right_bottom then
-    return {
-      left_top     = { x = area.left_top.x - pad,     y = area.left_top.y - pad },
-      right_bottom = { x = area.right_bottom.x + pad, y = area.right_bottom.y + pad }
-    }
-  else
-    return {
-      { (area[1].x or area[1][1]) - pad, (area[1].y or area[1][2]) - pad },
-      { (area[2].x or area[2][1]) + pad, (area[2].y or area[2][2]) + pad }
-    }
-  end
+  local explicit = flib_bounding_box.ensure_explicit(area)
+  return flib_bounding_box.resize(explicit, pad)
 end
 
 --- Builds a safe bbox for an entity (ghost or real). Falls back to a 1×1 around position.
@@ -53,7 +81,7 @@ local function bbox_from_entity_safe(ent)
   if ok and bb then return bb end
   local okp, p = pcall(function() return ent.position end)
   if okp and p then
-    return { left_top = {x = p.x - 0.5, y = p.y - 0.5}, right_bottom = {x = p.x + 0.5, y = p.y + 0.5} }
+    return flib_bounding_box.from_position(p, false)
   end
   return nil
 end
@@ -240,13 +268,11 @@ end
 --------------------------------------------------------------------------------
 --- Enqueue an area to be processed on tick with a warm-up for tiles on space platforms.
 local function enqueue_area(surface, area)
-  ensure_storage()
-  table.insert(storage[PENDING_AREA_KEY], {
+  local queue = ensure_queue(PENDING_AREA_KEY)
+  local explicit = flib_bounding_box.ensure_explicit(area)
+  flib_queue.push_back(queue, {
     surface_index = surface.index,
-    area = {
-      left_top     = { x = area.left_top.x,     y = area.left_top.y },
-      right_bottom = { x = area.right_bottom.x, y = area.right_bottom.y }
-    },
+    area = explicit,
     tries = 0
   })
 end
@@ -273,7 +299,7 @@ function M.on_built_entity(event)
       local area = bb and expand_area(bb, REVIVE_PAD) or nil
       fulfill_item_request_proxy(ent)
       if area then
-        table.insert(storage[PENDING_PROXY_KEY], { surface_index = surface.index, area = area, tries = 0 })
+        flib_queue.push_back(ensure_queue(PENDING_PROXY_KEY), { surface_index = surface.index, area = area, tries = 0 })
       end
     end
     return
@@ -308,57 +334,65 @@ function M.on_built_entity(event)
   enqueue_area(surface, area)
 
   -- Also create a short proxy retry window
-  table.insert(storage[PENDING_PROXY_KEY], { surface_index = surface.index, area = area, tries = 0 })
+  flib_queue.push_back(ensure_queue(PENDING_PROXY_KEY), { surface_index = surface.index, area = area, tries = 0 })
 end
 
 --------------------------------------------------------------------------------
 -- Tick worker: multi-pass converging loop (EXPORTED)
 --------------------------------------------------------------------------------
 function M.on_tick(_event)
-  local Qa = storage and storage[PENDING_AREA_KEY]
-  if Qa and #Qa > 0 then
-    for i = #Qa, 1, -1 do
-      local job = Qa[i]
-      local surface = game.surfaces[job.surface_index]
-      if not surface then
-        table.remove(Qa, i)
-      else
-        job.tries = (job.tries or 0) + 1
+  local Qa = storage and ensure_queue(PENDING_AREA_KEY)
+  if Qa and flib_queue.length(Qa) > 0 then
+    local jobs_to_process = flib_queue.length(Qa)
+    for _ = 1, jobs_to_process do
+      local job = flib_queue.pop_front(Qa)
+      if job then
+        local keep_job = false
+        local surface = game.surfaces[job.surface_index]
+        if surface then
+          job.tries = (job.tries or 0) + 1
 
-        local area = job.area
-        local is_space_platform = (surface.platform ~= nil)
+          local area = job.area
+          local is_space_platform = (surface.platform ~= nil)
 
-        -- Phase A: Tiles only (warm-up) on space platforms.
-        if is_space_platform and job.tries <= TILE_WARMUP_TRIES then
-          revive_all_tiles(surface, area)
-        else
-          -- Full pass: Tiles (foundation first), then Entities, then Proxies
-          revive_all_tiles(surface, area)
-          local _, remaining = revive_all_entities(surface, area)
-          fulfill_nearby_proxies(surface, area)
+          -- Phase A: Tiles only (warm-up) on space platforms.
+          if is_space_platform and job.tries <= TILE_WARMUP_TRIES then
+            revive_all_tiles(surface, area)
+            keep_job = true
+          else
+            -- Full pass: Tiles (foundation first), then Entities, then Proxies
+            revive_all_tiles(surface, area)
+            local _, remaining = revive_all_entities(surface, area)
+            fulfill_nearby_proxies(surface, area)
 
-          -- Stop if no entity ghosts remain or out of budget
-          if remaining == 0 or job.tries >= MAX_REVIVE_TRIES then
-            table.remove(Qa, i)
+            -- Keep trying while entity ghosts remain and we still have budget.
+            if remaining > 0 and job.tries < MAX_REVIVE_TRIES then
+              keep_job = true
+            end
           end
+        end
+
+        if keep_job then
+          flib_queue.push_back(Qa, job)
         end
       end
     end
   end
 
   -- Short proxy retry queue
-  local Qp = storage and storage[PENDING_PROXY_KEY]
-  if Qp and #Qp > 0 then
-    for i = #Qp, 1, -1 do
-      local e = Qp[i]
-      local surface = game.surfaces[e.surface_index]
-      if not surface then
-        table.remove(Qp, i)
-      else
-        fulfill_nearby_proxies(surface, e.area)
-        e.tries = (e.tries or 0) + 1
-        if e.tries >= 10 then
-          table.remove(Qp, i)
+  local Qp = storage and ensure_queue(PENDING_PROXY_KEY)
+  if Qp and flib_queue.length(Qp) > 0 then
+    local proxies_to_process = flib_queue.length(Qp)
+    for _ = 1, proxies_to_process do
+      local e = flib_queue.pop_front(Qp)
+      if e then
+        local surface = game.surfaces[e.surface_index]
+        if surface then
+          fulfill_nearby_proxies(surface, e.area)
+          e.tries = (e.tries or 0) + 1
+          if e.tries < 10 then
+            flib_queue.push_back(Qp, e)
+          end
         end
       end
     end

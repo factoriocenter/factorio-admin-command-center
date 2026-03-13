@@ -2,6 +2,7 @@
 -- Build All Ghosts
 
 local M = {}
+local flib_table = require("__flib__.table")
 
 -- Insert helper that preserves item quality if provided.
 local function insert_with_quality(container, name, count, quality)
@@ -77,9 +78,9 @@ local function fulfill_all_proxies(surface)
     return surface.find_entities_filtered{ type = "item-request-proxy" }
   end)
   if not (ok and proxies) then return end
-  for _, p in pairs(proxies) do
+  flib_table.for_each(proxies, function(p)
     fulfill_item_request_proxy(p)
-  end
+  end)
 end
 
 function M.run(player)
@@ -92,15 +93,15 @@ function M.run(player)
   local force = player.force
 
   -- 1) Revive entity ghosts
-  for _, ghost in pairs(surface.find_entities_filtered{ force = force, type = "entity-ghost" }) do
+  flib_table.for_each(surface.find_entities_filtered{ force = force, type = "entity-ghost" }, function(ghost)
     if ghost.valid then
       pcall(function() ghost.revive() end) -- proxy may be created with quality-aware requests
     end
-  end
+  end)
 
   -- 2) Revive tile ghosts (including landfill)
   local tiles_to_set = {}
-  for _, tile in pairs(surface.find_entities_filtered{ type = "tile-ghost" }) do
+  flib_table.for_each(surface.find_entities_filtered{ type = "tile-ghost" }, function(tile)
     if tile.valid then
       if tile.ghost_name == "landfill" then
         pcall(function() tile.revive() end)
@@ -108,7 +109,7 @@ function M.run(player)
         table.insert(tiles_to_set, { name = tile.ghost_name, position = tile.position })
       end
     end
-  end
+  end)
   if #tiles_to_set > 0 then
     pcall(function() surface.set_tiles(tiles_to_set) end)
   end

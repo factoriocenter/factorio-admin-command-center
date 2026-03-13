@@ -2,6 +2,7 @@
 -- Gera todas as superfícies dos planetas e mapeia uma área de 150×150 centrada em (0,0).
 
 local M = {}
+local flib_table = require("__flib__.table")
 
 function M.run(player)
   if not is_allowed(player) then
@@ -10,10 +11,10 @@ function M.run(player)
   end
 
   local half = 75
-  for _, planet in pairs(game.planets) do
+  flib_table.for_each(game.planets, function(planet)
     local surface = planet.create_surface()
     game.forces["player"].chart(surface, {{-half, -half}, {half, half}})
-  end
+  end)
 
   player.print({"facc.generate-planet-surfaces-msg"})
 end

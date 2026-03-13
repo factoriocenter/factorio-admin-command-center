@@ -3,6 +3,7 @@
 -- @param player LuaPlayer — the invoking player
 -- @param speed number     — desired game speed (clamped 0.25..64)
 local M = {}
+local math_util = require("scripts/utils/flib_math")
 
 --- Runs the speed change.
 -- Checks permissions, clamps the value, applies and notifies the player.
@@ -14,7 +15,7 @@ function M.run(player, speed)
     return
   end
   -- Clamp speed between 0.25 and 64
-  local s = math.max(0.25, math.min(speed, 64))
+  local s = math_util.clamp_number(speed, 0.25, 64, 1)
   game.speed = s
   -- player.print({"facc.set-game-speed-msg", s})
 end

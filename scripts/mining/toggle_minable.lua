@@ -2,6 +2,7 @@
 -- Toggles all existing entities on the current surface between minable/non-minable.
 
 local M = {}
+local flib_table = require("__flib__.table")
 
 --- Toggles whether entities belonging to the player’s force can be mined.
 -- @param player LuaPlayer
@@ -14,13 +15,13 @@ function M.run(player, enabled)
     local surface = player.surface
     local force   = player.force
 
-    for _, e in pairs(surface.find_entities_filtered{force = force}) do
+    flib_table.for_each(surface.find_entities_filtered{force = force}, function(e)
         if e.valid then
             -- when switch is ON (enabled==true), set minable=false
             -- when switch is OFF (enabled==false), set minable=true
             e.minable = not enabled
         end
-    end
+    end)
 
     if enabled then
         player.print({"facc.minable-disabled"})

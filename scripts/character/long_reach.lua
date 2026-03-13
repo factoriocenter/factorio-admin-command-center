@@ -8,15 +8,13 @@
 -- • This avoids the "New value must be >= 0" crash.
 
 local M = {}
+local math_util = require("scripts/utils/flib_math")
 
 local MAX_BONUS = 100
 
 --- Clamp helper
 local function clamp01k(x)
-  x = tonumber(x) or 0
-  if x < 0 then return 0 end
-  if x > MAX_BONUS then return MAX_BONUS end
-  return x
+  return math_util.clamp_number(x, 0, MAX_BONUS, 0)
 end
 
 --- Apply new slider value.
@@ -39,28 +37,28 @@ function M.apply(player, old_slider, new_slider)
   do
     local cur   = force.character_build_distance_bonus or 0
     local base  = cur - old_bonus
-    force.character_build_distance_bonus = math.max(0, base + new_bonus)
+    force.character_build_distance_bonus = math_util.max(0, base + new_bonus)
   end
 
   -- Reach distance
   do
     local cur   = force.character_reach_distance_bonus or 0
     local base  = cur - old_bonus
-    force.character_reach_distance_bonus = math.max(0, base + new_bonus)
+    force.character_reach_distance_bonus = math_util.max(0, base + new_bonus)
   end
 
   -- Resource reach distance
   do
     local cur   = force.character_resource_reach_distance_bonus or 0
     local base  = cur - old_bonus
-    force.character_resource_reach_distance_bonus = math.max(0, base + new_bonus)
+    force.character_resource_reach_distance_bonus = math_util.max(0, base + new_bonus)
   end
 
   -- Item drop distance
   do
     local cur   = force.character_item_drop_distance_bonus or 0
     local base  = cur - old_bonus
-    force.character_item_drop_distance_bonus = math.max(0, base + new_bonus)
+    force.character_item_drop_distance_bonus = math_util.max(0, base + new_bonus)
   end
 end
 

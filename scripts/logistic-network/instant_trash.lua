@@ -1,6 +1,8 @@
 -- scripts/logistic-network/instant_trash.lua
 -- Instant Trash
 local M = {}
+local flib_table = require("__flib__.table")
+local flib_queue = require("__flib__.queue")
 -- ------------------------------------------------------------------------------
 -- Tunables
 -- ------------------------------------------------------------------------------
@@ -11,21 +13,91 @@ local REFRESH_INTERVAL_TICKS = 60*20 -- entity list refresh every 20 seconds
 -- Storage keys
 -- ------------------------------------------------------------------------------
 local ENABLED_PLAYERS_KEY = "facc_instant_trash_enabled_players" -- map[player_index]=true|false
+local ENABLED_COUNT_KEY = "facc_instant_trash_enabled_count"
 local RR_PLAYER_IDX_KEY = "facc_instant_trash_rr_player_index"
-local ENTITY_LIST_KEY = "facc_instant_trash_entities" -- {unit_number,...}
-local RR_ENTITY_IDX_KEY = "facc_instant_trash_rr_entity_index"
+local ENTITY_LIST_KEY = "facc_instant_trash_entities" -- queue of unit_numbers
+local ENTITY_SET_KEY = "facc_instant_trash_entity_set"
 local LAST_REFRESH_TICK_KEY = "facc_instant_trash_last_refresh"
 local INV_IDS_KEY = "facc_instant_trash_inventory_ids" -- cached resolved inventory ids
 -- ------------------------------------------------------------------------------
 -- Storage helpers
 -- ------------------------------------------------------------------------------
+local function is_queue(value)
+  return type(value) == "table" and type(value.first) == "number" and type(value.last) == "number"
+end
+
+local function array_to_queue(arr)
+  local q = flib_queue.new()
+  for i = 1, #arr do
+    flib_queue.push_back(q, arr[i])
+  end
+  return q
+end
+
+local function ensure_entity_queue()
+  local value = storage[ENTITY_LIST_KEY]
+  if value == nil then
+    value = flib_queue.new()
+    storage[ENTITY_LIST_KEY] = value
+    return value
+  end
+
+  if is_queue(value) then
+    return value
+  end
+
+  if type(value) == "table" then
+    local converted = array_to_queue(value)
+    storage[ENTITY_LIST_KEY] = converted
+    return converted
+  end
+
+  local fallback = flib_queue.new()
+  storage[ENTITY_LIST_KEY] = fallback
+  return fallback
+end
+
+local function ensure_entity_set(queue)
+  local set = storage[ENTITY_SET_KEY]
+  if set == nil then
+    set = {}
+    for _, un in flib_queue.iter(queue) do
+      set[un] = true
+    end
+    storage[ENTITY_SET_KEY] = set
+  end
+  return set
+end
+
+local function ensure_enabled_count()
+  local enabled_players = flib_table.get_or_insert(storage, ENABLED_PLAYERS_KEY, {})
+  local count = storage[ENABLED_COUNT_KEY]
+  if type(count) == "number" then
+    if count < 0 then
+      count = 0
+      storage[ENABLED_COUNT_KEY] = count
+    end
+    return count
+  end
+
+  count = 0
+  for _, v in pairs(enabled_players) do
+    if v == true then
+      count = count + 1
+    end
+  end
+  storage[ENABLED_COUNT_KEY] = count
+  return count
+end
+
 local function ensure_storage()
-  storage[ENABLED_PLAYERS_KEY] = storage[ENABLED_PLAYERS_KEY] or {}
-  storage[RR_PLAYER_IDX_KEY] = storage[RR_PLAYER_IDX_KEY] or 1
-  storage[ENTITY_LIST_KEY] = storage[ENTITY_LIST_KEY] or {}
-  storage[RR_ENTITY_IDX_KEY] = storage[RR_ENTITY_IDX_KEY] or 1
-  storage[LAST_REFRESH_TICK_KEY] = storage[LAST_REFRESH_TICK_KEY] or 0
-  storage[INV_IDS_KEY] = storage[INV_IDS_KEY] or { probed = false }
+  flib_table.get_or_insert(storage, ENABLED_PLAYERS_KEY, {})
+  ensure_enabled_count()
+  flib_table.get_or_insert(storage, RR_PLAYER_IDX_KEY, 1)
+  local queue = ensure_entity_queue()
+  ensure_entity_set(queue)
+  flib_table.get_or_insert(storage, LAST_REFRESH_TICK_KEY, 0)
+  flib_table.get_or_insert(storage, INV_IDS_KEY, { probed = false })
 end
 local function is_player_enabled(player)
   ensure_storage()
@@ -33,14 +105,13 @@ local function is_player_enabled(player)
 end
 local function any_player_enabled()
   ensure_storage()
-  for _, v in pairs(storage[ENABLED_PLAYERS_KEY]) do
-    if v == true then return true end
-  end
-  return false
+  return ensure_enabled_count() > 0
 end
 local function get_entity_list()
   ensure_storage()
-  return storage[ENTITY_LIST_KEY]
+  local queue = ensure_entity_queue()
+  local set = ensure_entity_set(queue)
+  return queue, set
 end
 -- ------------------------------------------------------------------------------
 -- Inventory id probing (robust across builds)
@@ -90,41 +161,51 @@ local function is_supported_entity(ent)
 end
 -- Refresh list with requester/buffer chests, spidertron, tank, rocket silo, cargo landing pad
 local function refresh_entity_list()
-  local new_list = {}
-  for _, s in pairs(game.surfaces) do
-    -- Chests (requester/buffer)
-    for _, chest in pairs(s.find_entities_filtered{force="player", type="logistic-container"}) do
-      if is_supported_entity(chest) and chest.unit_number then
-        new_list[#new_list+1] = chest.unit_number
-      end
+  local queue = flib_queue.new()
+  local set = {}
+
+  local function push_un(un)
+    if not un or set[un] then
+      return
     end
-    -- Spidertron
-    for _, sp in pairs(s.find_entities_filtered{force="player", type="spider-vehicle"}) do
-      if is_supported_entity(sp) and sp.unit_number then
-        new_list[#new_list+1] = sp.unit_number
-      end
-    end
-    -- Tank
-    for _, car in pairs(s.find_entities_filtered{force="player", type="car", name="tank"}) do
-      if is_supported_entity(car) and car.unit_number then
-        new_list[#new_list+1] = car.unit_number
-      end
-    end
-    -- Rocket silo
-    for _, silo in pairs(s.find_entities_filtered{force="player", type="rocket-silo"}) do
-      if is_supported_entity(silo) and silo.unit_number then
-        new_list[#new_list+1] = silo.unit_number
-      end
-    end
-    -- Cargo landing pad
-    for _, pad in pairs(s.find_entities_filtered{force="player", type="cargo-landing-pad"}) do
-      if is_supported_entity(pad) and pad.unit_number then
-        new_list[#new_list+1] = pad.unit_number
-      end
-    end
+    set[un] = true
+    flib_queue.push_back(queue, un)
   end
-  storage[ENTITY_LIST_KEY] = new_list
-  storage[RR_ENTITY_IDX_KEY] = 1
+
+  flib_table.for_each(game.surfaces, function(s)
+    -- Chests (requester/buffer)
+    flib_table.for_each(s.find_entities_filtered{force="player", type="logistic-container"}, function(chest)
+      if is_supported_entity(chest) and chest.unit_number then
+        push_un(chest.unit_number)
+      end
+    end)
+    -- Spidertron
+    flib_table.for_each(s.find_entities_filtered{force="player", type="spider-vehicle"}, function(sp)
+      if is_supported_entity(sp) and sp.unit_number then
+        push_un(sp.unit_number)
+      end
+    end)
+    -- Tank
+    flib_table.for_each(s.find_entities_filtered{force="player", type="car", name="tank"}, function(car)
+      if is_supported_entity(car) and car.unit_number then
+        push_un(car.unit_number)
+      end
+    end)
+    -- Rocket silo
+    flib_table.for_each(s.find_entities_filtered{force="player", type="rocket-silo"}, function(silo)
+      if is_supported_entity(silo) and silo.unit_number then
+        push_un(silo.unit_number)
+      end
+    end)
+    -- Cargo landing pad
+    flib_table.for_each(s.find_entities_filtered{force="player", type="cargo-landing-pad"}, function(pad)
+      if is_supported_entity(pad) and pad.unit_number then
+        push_un(pad.unit_number)
+      end
+    end)
+  end)
+  storage[ENTITY_LIST_KEY] = queue
+  storage[ENTITY_SET_KEY] = set
   storage[LAST_REFRESH_TICK_KEY] = game.tick
 end
 -- Optional: allow external dispatcher to push adds/removes
@@ -132,17 +213,17 @@ function M.on_entity_created(e)
   local ent = (e and (e.created_entity or e.entity)) or nil
   if not (ent and ent.valid and ent.unit_number) then return end
   if not is_supported_entity(ent) then return end
-  local list = get_entity_list()
-  for _, un in ipairs(list) do if un == ent.unit_number then return end end
-  list[#list+1] = ent.unit_number
+  local queue, set = get_entity_list()
+  local un = ent.unit_number
+  if set[un] then return end
+  set[un] = true
+  flib_queue.push_back(queue, un)
 end
 function M.on_entity_removed(e)
   local ent = e and e.entity or nil
   if not (ent and ent.unit_number) then return end
-  local list = get_entity_list()
-  for i, un in ipairs(list) do
-    if un == ent.unit_number then table.remove(list, i); break end
-  end
+  local _, set = get_entity_list()
+  set[ent.unit_number] = nil
 end
 -- ------------------------------------------------------------------------------
 -- Trash inventories (player & entities)
@@ -395,7 +476,24 @@ end
 function M.toggle_player(player, enable)
   ensure_storage()
   if not (player and player.valid) then return end
-  storage[ENABLED_PLAYERS_KEY][player.index] = (enable == true)
+  local enabled_players = storage[ENABLED_PLAYERS_KEY]
+  local was_enabled = enabled_players[player.index] == true
+  local now_enabled = (enable == true)
+  enabled_players[player.index] = now_enabled
+
+  if was_enabled ~= now_enabled then
+    local count = ensure_enabled_count()
+    if now_enabled then
+      count = count + 1
+    else
+      count = count - 1
+    end
+    if count < 0 then
+      count = 0
+    end
+    storage[ENABLED_COUNT_KEY] = count
+  end
+
   if enable then
     refresh_entity_list()
     player.print({"facc.instant-trash-enabled"})
@@ -434,8 +532,9 @@ end
 -- Central on_tick worker (players + entities)
 function M.on_tick(_e)
   ensure_storage()
+  local has_enabled_players = any_player_enabled()
   -- Periodic entity list refresh
-  if any_player_enabled() and (game.tick - storage[LAST_REFRESH_TICK_KEY] >= REFRESH_INTERVAL_TICKS) then
+  if has_enabled_players and (game.tick - storage[LAST_REFRESH_TICK_KEY] >= REFRESH_INTERVAL_TICKS) then
     refresh_entity_list()
   end
   -- Players RR
@@ -456,39 +555,42 @@ function M.on_tick(_e)
     storage[RR_PLAYER_IDX_KEY] = i
   end
   -- Entities RR (only if any player enabled)
-  if any_player_enabled() then
-    local list = get_entity_list()
-    if #list > 0 then
-      local i = storage[RR_ENTITY_IDX_KEY]
-      if i > #list then i = 1 end
+  if has_enabled_players then
+    local queue, set = get_entity_list()
+    local queue_len = flib_queue.length(queue)
+    if queue_len > 0 then
       local processed = 0
-      local max_loop = #list
+      local max_loop = queue_len
       while processed < PER_TICK_ENTITIES and processed < max_loop do
-        local un = list[i]
-        local ent = game.get_entity_by_unit_number(un)
-        if ent and ent.valid and is_supported_entity(ent) then
-          handle_entity(ent)
-          i = i + 1
-          if i > #list then i = 1 end
-        else
-          table.remove(list, i)
-          if i > #list then i = 1 end
+        local un = flib_queue.pop_front(queue)
+        if not un then
+          break
         end
+
+        if set[un] then
+          local ent = game.get_entity_by_unit_number(un)
+          if ent and ent.valid and is_supported_entity(ent) then
+            handle_entity(ent)
+            flib_queue.push_back(queue, un)
+          else
+            set[un] = nil
+          end
+        end
+
         processed = processed + 1
       end
-      storage[RR_ENTITY_IDX_KEY] = i
     end
   end
   -- Additional: purge trash for currently opened entities (instant while GUI open)
-  if any_player_enabled() then
-    for _, player in pairs(game.connected_players) do
+  if has_enabled_players then
+    flib_table.for_each(game.connected_players, function(player)
       if is_player_enabled(player) then
         local opened = player.opened
         if opened and opened.valid and is_supported_entity(opened) then
           purge_owner_trash(opened)
         end
       end
-    end
+    end)
   end
 end
 return M

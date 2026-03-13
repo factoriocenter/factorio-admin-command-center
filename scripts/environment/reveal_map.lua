@@ -3,6 +3,7 @@
 -- based on a radius defined by the GUI slider.
 
 local M = {}
+local area_util = require("scripts/utils/flib_area")
 
 function M.run(player, radius)
   if not is_allowed(player) then
@@ -10,11 +11,7 @@ function M.run(player, radius)
     return
   end
 
-  local pos = player.position
-  local area = {
-    {pos.x - radius, pos.y - radius},
-    {pos.x + radius, pos.y + radius}
-  }
+  local area = area_util.square_from_center(player.position, radius)
 
   player.force.chart(player.surface, area)
 

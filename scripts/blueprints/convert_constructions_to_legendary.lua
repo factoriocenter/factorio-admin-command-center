@@ -4,6 +4,8 @@
 -- Enhanced: temporarily research construction robotics if not researched.
 
 local M = {}
+local area_util = require("scripts/utils/flib_area")
+local flib_table = require("__flib__.table")
 
 function M.run(player, radius)
   if not is_allowed(player) then
@@ -13,11 +15,7 @@ function M.run(player, radius)
 
   local surface = player.surface
   local force = player.force
-  local position = player.position
-  local area = {
-    {position.x - radius, position.y - radius},
-    {position.x + radius, position.y + radius}
-  }
+  local area = area_util.square_from_center(player.position, radius)
 
   -- Ensure construction robotics technology is available for ghost placement
   local tech = force.technologies["construction-robotics"]
@@ -27,11 +25,11 @@ function M.run(player, radius)
   end
 
   -- Step 1: Destroy valid entities to leave ghosts (with correct rotation)
-  for _, entity in pairs(surface.find_entities_filtered{area = area, force = force}) do
+  flib_table.for_each(surface.find_entities_filtered{area = area, force = force}, function(entity)
     if entity.valid and entity.minable and entity.prototype.items_to_place_this then
       entity.die()
     end
-  end
+  end)
 
   -- Step 2: Setup temporary upgrade planner
   local success, inventory = pcall(function() return game.create_inventory(1) end)
@@ -45,7 +43,7 @@ function M.run(player, radius)
   local mapped = {}
 
   -- Maps ghost entities to their legendary version
-  for _, ghost in pairs(surface.find_entities_filtered{area = area, name = "entity-ghost", force = force}) do
+  flib_table.for_each(surface.find_entities_filtered{area = area, name = "entity-ghost", force = force}, function(ghost)
     if ghost.ghost_prototype and ghost.ghost_prototype.items_to_place_this then
       local name = ghost.ghost_name
       if not mapped[name] then
@@ -59,7 +57,7 @@ function M.run(player, radius)
         end
       end
     end
-  end
+  end)
 
   -- Apply the planner upgrade to the area
   surface.upgrade_area{
@@ -73,11 +71,11 @@ function M.run(player, radius)
   inventory.destroy()
 
   -- Step 3: Revive legendary ghosts
-  for _, ghost in pairs(surface.find_entities_filtered{area = area, name = "entity-ghost", force = force}) do
+  flib_table.for_each(surface.find_entities_filtered{area = area, name = "entity-ghost", force = force}, function(ghost)
     if ghost.valid then
       ghost.revive()
     end
-  end
+  end)
 
   -- Revert construction robotics technology if it was not researched before
   if tech and not had_tech then

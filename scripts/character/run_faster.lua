@@ -2,6 +2,7 @@
 -- Live slider: adjusts the player's running speed modifier (0..10)
 
 local M = {}
+local math_util = require("scripts/utils/flib_math")
 
 --- Sets the character running speed modifier.
 -- @param player LuaPlayer – the invoking player
@@ -12,7 +13,7 @@ function M.run(player, speed)
     return
   end
   -- Clamp speed between 0 and 10
-  local s = math.max(0, math.min(speed, 10))
+  local s = math_util.clamp_number(speed, 0, 10, 0)
   player.character_running_speed_modifier = s
 end
 

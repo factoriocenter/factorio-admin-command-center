@@ -3,6 +3,8 @@
 -- including immediate update when the slider is moved, and periodic refresh.
 
 local M = {}
+local math_util = require("scripts/utils/flib_math")
+local flib_table = require("__flib__.table")
 
 --- Set the platform distance threshold on the player's current surface.
 -- @param player LuaPlayer
@@ -20,14 +22,10 @@ function M.run(player, distance)
         return
     end
 
-    if type(distance) ~= "number" then
-        distance = 0.99
-    end
-    if distance < 0 then distance = 0 end
-    if distance > 1 then distance = 1 end
+    distance = math_util.clamp_number(distance, 0, 1, 0.99)
 
     -- Round to two decimal places
-    local d = math.floor(distance * 100 + 0.5) / 100
+    local d = math_util.round_to(distance, 0.01)
 
     -- Attempt to set the distance (may fail if trains are currently traveling)
     local ok = pcall(function()
@@ -66,22 +64,22 @@ end
 -- Event wiring is centralized in scripts/events/build_events.lua.
 --------------------------------------------------------------------------------
 function M.on_tick(event)
-    if not (event and event.tick and event.tick % 60 == 0) then
+    if not (event and event.tick) then
         return
     end
     if not (storage and storage.facc_gui_state and storage.facc_gui_state.tab == "transportation") then
         return
     end
 
-    for _, player in pairs(game.players) do
+    flib_table.for_each(game.players, function(player)
         local frame = player.gui.screen["facc_main_frame"]
         if not (frame and frame.valid) then
-            goto continue
+            return
         end
 
         local slider = find_platform_slider(frame)
         if not (slider and slider.valid) then
-            goto continue
+            return
         end
 
         local surface = player.surface
@@ -92,9 +90,7 @@ function M.on_tick(event)
         else
             slider.enabled = false
         end
-
-        ::continue::
-    end
+    end)
 end
 
 return M

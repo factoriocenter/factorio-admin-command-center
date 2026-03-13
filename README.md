@@ -7,7 +7,7 @@ A compact admin toolkit for Factorio 2.0 with a category-based GUI, live sliders
 
 ## Current Version
 
-- 🏷️ Version: `3.9.0`
+- 🏷️ Version: `4.0.0`
 - 📝 Changelog: [changelog.txt](changelog.txt)
 
 ## Features (All Current)
@@ -114,6 +114,7 @@ A compact admin toolkit for Factorio 2.0 with a category-based GUI, live sliders
 ## Compatibility
 
 - 🎮 Factorio: `2.0` (base `>= 2.0.72`)
+- 📚 Required library: `flib >= 0.16.5`
 - 🔌 Optional integrations: `quality`, `space-age`, `factorio-admin-command-center-locales`
 - 👥 In multiplayer, admin tools are available to admins only.
 

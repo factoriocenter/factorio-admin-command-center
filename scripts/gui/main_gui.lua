@@ -4,6 +4,9 @@
 -- Added tooltip support: if an element has a `tooltip` field, an info icon will appear next to its label.
 
 local M = {}
+local flib_gui = require("__flib__.gui")
+local flib_table = require("__flib__.table")
+local gui_events = require("scripts/events/gui_events")
 
 --------------------------------------------------------------------------------
 -- Mod detection
@@ -18,6 +21,18 @@ local infinite_resources_enabled = settings.startup["facc-infinite-resources"]
 -- UI layout constants
 --------------------------------------------------------------------------------
 local SPACING = 12
+
+local CONFIRM_BUTTON_EXCLUDED = {
+  facc_set_platform_distance = true,
+  facc_set_game_speed = true,
+  facc_set_crafting_speed = true,
+  facc_set_mining_speed = true,
+  facc_run_faster = true,
+  facc_increase_robot_speed = true,
+  facc_long_reach = true,
+  facc_ammo_damage_boost = true,
+  facc_turret_damage_boost = true
+}
 
 --------------------------------------------------------------------------------
 -- Tab definitions (one per folder/tag)
@@ -58,12 +73,6 @@ local TABS = {
     label    = {"facc.tab-blueprints"},
     elements = {
       {
-        name    = "facc_ghost_on_death",
-        caption = {"facc.ghost-on-death"},
-        tooltip = {"tooltip.ghost-on-death"},
-        switch  = true
-      },
-            {
         name    = "facc_instant_blueprint_building",
         caption = {"facc.instant-blueprint-building"},
         tooltip = {"tooltip.instant-blueprint-building"},
@@ -86,6 +95,11 @@ local TABS = {
         caption = {"facc.instant-rail-planner"},
         tooltip = {"tooltip.instant-rail-planner"},
         switch  = true
+      },
+      {
+        name    = "facc_ghost_on_death",
+        caption = {"facc.ghost-on-death"},
+        tooltip = {"tooltip.ghost-on-death"}
       },
       {
         name    = "facc_build_all_ghosts",
@@ -450,13 +464,16 @@ local TABS = {
 -- Persistent state schema (with version-mismatch check)
 --------------------------------------------------------------------------------
 function M.ensure_persistent_state()
-  storage.facc_gui_state = storage.facc_gui_state or {}
-  local s = storage.facc_gui_state
+  local s = flib_table.get_or_insert(storage, "facc_gui_state", {})
+  if type(s) ~= "table" then
+    s = {}
+    storage.facc_gui_state = s
+  end
   -- if old save's tab no longer exists, reset to "cheats"
   if not (s.tab and TABS[s.tab]) then s.tab = "cheats" end
-  s.sliders  = s.sliders  or {}
-  s.switches = s.switches or {}
-  s.is_open  = s.is_open  or false
+  if type(s.sliders) ~= "table" then s.sliders = {} end
+  if type(s.switches) ~= "table" then s.switches = {} end
+  if type(s.is_open) ~= "boolean" then s.is_open = false end
 end
 
 --------------------------------------------------------------------------------
@@ -491,97 +508,171 @@ end
 --------------------------------------------------------------------------------
 -- Helper: render a function block (label/slider/switch/button)
 --------------------------------------------------------------------------------
-local function add_function_block(parent, elem)
+local function add_function_block(parent, elem, player)
   local enabled = is_feature_enabled(elem.name)
-  local row     = parent.add{ type="flow", direction="horizontal" }
-  row.style.horizontal_spacing = SPACING
-  row.style.vertical_align    = "center"
-
-  -- label container (with optional tooltip icon)
-  local left = row.add{ type="flow", direction="vertical" }
-  left.style.vertical_spacing         = SPACING
-  left.style.horizontally_stretchable = true
+  local left_children = {}
 
   if elem.tooltip then
-    local label_flow = left.add{ type="flow", direction="horizontal" }
-    label_flow.style.horizontal_spacing = 4
-    label_flow.style.vertical_align     = "center"
-    label_flow.add{ type="label",  caption = elem.caption }
-    label_flow.add{ type="sprite", sprite = "info", tooltip = elem.tooltip }
+    left_children[#left_children + 1] = {
+      type = "flow",
+      direction = "horizontal",
+      style_mods = {
+        horizontal_spacing = 4,
+        vertical_align = "center"
+      },
+      children = {
+        { type = "label", caption = elem.caption },
+        { type = "sprite", sprite = "info", tooltip = elem.tooltip }
+      }
+    }
   else
-    left.add{ type="label", caption = elem.caption }
+    left_children[#left_children + 1] = {
+      type = "label",
+      caption = elem.caption
+    }
   end
 
   if elem.slider then
-    local sf = left.add{ type="flow", direction="horizontal" }
-    sf.style.horizontal_spacing = SPACING
-    sf.style.vertical_align    = "center"
-
-    local init = storage.facc_gui_state.sliders[elem.slider.name] or elem.slider.default
-    local slider = sf.add{
-      type            = "slider",
-      name            = elem.slider.name,
-      minimum_value   = elem.slider.min,
-      maximum_value   = elem.slider.max,
-      value           = init,
-      discrete_slider = true
+    local slider_name = elem.slider.name
+    local init = storage.facc_gui_state.sliders[slider_name] or elem.slider.default
+    local slider_children = {
+      {
+        type = "slider",
+        name = slider_name,
+        minimum_value = elem.slider.min,
+        maximum_value = elem.slider.max,
+        value = init,
+        discrete_slider = true,
+        style_mods = {
+          horizontally_stretchable = true
+        },
+        handler = { [defines.events.on_gui_value_changed] = gui_events.handlers.slider }
+      }
     }
-    slider.style.horizontally_stretchable = true
-    slider.enabled = enabled
 
-    if elem.slider.name ~= "slider_platform_distance" then
+    if slider_name ~= "slider_platform_distance" then
       local display_value = init
-      if elem.slider.name == "slider_set_game_speed" then
+      if slider_name == "slider_set_game_speed" then
         local speeds = {0.25, 0.5, 1, 2, 4, 8, 16, 32, 64}
         display_value = speeds[init] or speeds[3]
       end
-      local box = sf.add{
-        type      = "textfield",
-        name      = elem.slider.name .. "_value",
-        text      = tostring(display_value),
-        numeric   = true,
+      slider_children[#slider_children + 1] = {
+        type = "textfield",
+        name = slider_name .. "_value",
+        text = tostring(display_value),
+        numeric = true,
         read_only = true,
-        style     = "short_number_textfield"
+        style = "short_number_textfield",
+        style_mods = {
+          width = 40
+        }
       }
-      box.style.width = 40
-      box.enabled     = false
+    end
+
+    left_children[#left_children + 1] = {
+      type = "flow",
+      direction = "horizontal",
+      style_mods = {
+        horizontal_spacing = SPACING,
+        vertical_align = "center"
+      },
+      children = slider_children
+    }
+  end
+
+  local row_children = {
+    {
+      type = "flow",
+      direction = "vertical",
+      style_mods = {
+        vertical_spacing = SPACING,
+        horizontally_stretchable = true
+      },
+      children = left_children
+    }
+  }
+
+  if elem.switch then
+    local state = storage.facc_gui_state.switches[elem.name] and "right" or "left"
+    row_children[#row_children + 1] = {
+      type = "flow",
+      direction = "horizontal",
+      style_mods = {
+        horizontal_align = "right"
+      },
+      children = {
+        {
+          type = "switch",
+          name = elem.name,
+          switch_state = state,
+          left_label_caption = {"facc.switch-off"},
+          right_label_caption = {"facc.switch-on"},
+          handler = { [defines.events.on_gui_switch_state_changed] = gui_events.handlers.switch }
+        }
+      }
+    }
+  elseif not CONFIRM_BUTTON_EXCLUDED[elem.name] then
+    row_children[#row_children + 1] = {
+      type = "flow",
+      direction = "horizontal",
+      style_mods = {
+        horizontal_align = "right"
+      },
+      children = {
+        {
+          type = "sprite-button",
+          name = elem.name,
+          sprite = "utility.confirm_slot",
+          style = "item_and_count_select_confirm",
+          tooltip = {"facc.confirm-button"},
+          handler = { [defines.events.on_gui_click] = gui_events.handlers.click }
+        }
+      }
+    }
+  end
+
+  local created = {}
+  flib_gui.add(parent, {
+    type = "flow",
+    direction = "horizontal",
+    style_mods = {
+      horizontal_spacing = SPACING,
+      vertical_align = "center"
+    },
+    children = row_children
+  }, created)
+
+  if elem.slider then
+    local slider = created[elem.slider.name]
+    if slider and slider.valid then
+      slider.enabled = enabled
+    end
+
+    if elem.slider.name ~= "slider_platform_distance" then
+      local box = created[elem.slider.name .. "_value"]
+      if box and box.valid then
+        box.enabled = false
+      end
     end
   end
 
   if elem.switch then
-    local right = row.add{ type="flow", direction="horizontal" }
-    right.style.horizontal_align = "right"
-    local state = storage.facc_gui_state.switches[elem.name] and "right" or "left"
-    local sw = right.add{
-      type                = "switch",
-      name                = elem.name,
-      switch_state        = state,
-      left_label_caption  = {"facc.switch-off"},
-      right_label_caption = {"facc.switch-on"}
-    }
-    sw.enabled = enabled
-  else
-    if     elem.name ~= "facc_set_platform_distance"
-      and elem.name ~= "facc_set_game_speed"
-      and elem.name ~= "facc_set_crafting_speed"
-      and elem.name ~= "facc_set_mining_speed"
-      and elem.name ~= "facc_run_faster"
-      and elem.name ~= "facc_increase_robot_speed"
-      and elem.name ~= "facc_long_reach"
-      and elem.name ~= "facc_ammo_damage_boost"
-      and elem.name ~= "facc_turret_damage_boost"
-    then
-      local right = row.add{ type="flow", direction="horizontal" }
-      right.style.horizontal_align = "right"
-      local btn = right.add{
-        type    = "sprite-button",
-        name    = elem.name,
-        sprite  = "utility.confirm_slot",
-        style   = "item_and_count_select_confirm",
-        tooltip = {"facc.confirm-button"}
-      }
-      -- Disable the “Increase Resources” button when infinite resources is active
+    local sw = created[elem.name]
+    if sw and sw.valid then
+      sw.enabled = enabled
+    end
+  elseif not CONFIRM_BUTTON_EXCLUDED[elem.name] then
+    local btn = created[elem.name]
+    if btn and btn.valid then
       if infinite_resources_enabled and (elem.name == "facc_increase_resources" or elem.name == "facc_regenerate_resources") then
+        btn.enabled = false
+      elseif elem.name == "facc_ghost_on_death"
+          and player
+          and player.valid
+          and player.force
+          and player.force.technologies["construction-robotics"]
+          and player.force.technologies["construction-robotics"].researched
+      then
         btn.enabled = false
       else
         btn.enabled = enabled
@@ -607,38 +698,144 @@ local function open_gui(player)
     player.gui.screen["facc_main_frame"].destroy()
   end
 
-  local frame = player.gui.screen.add{ type="frame", name="facc_main_frame", direction="vertical" }
+  local elems, frame = flib_gui.add(player.gui.screen, {
+    type = "frame",
+    name = "facc_main_frame",
+    direction = "vertical",
+    children = {
+      {
+        type = "flow",
+        name = "title_flow",
+        direction = "horizontal",
+        drag_target = "facc_main_frame",
+        style_mods = {
+          horizontal_spacing = SPACING,
+          horizontally_stretchable = true,
+          vertical_align = "center"
+        },
+        children = {
+          {
+            type = "label",
+            name = "facc_main_title",
+            caption = {"facc.main-title"},
+            style = "frame_title",
+            drag_target = "facc_main_frame"
+          },
+          {
+            type = "empty-widget",
+            name = "facc_drag_space",
+            style = "draggable_space_header",
+            style_mods = {
+              horizontally_stretchable = true,
+              vertically_stretchable = true
+            },
+            drag_target = "facc_main_frame"
+          },
+          {
+            type = "sprite-button",
+            name = "facc_close_main_gui",
+            sprite = "utility/close",
+            style = "frame_action_button",
+            tooltip = {"facc.close-menu"},
+            handler = { [defines.events.on_gui_click] = gui_events.handlers.click }
+          }
+        }
+      },
+      {
+        type = "flow",
+        name = "facc_container",
+        direction = "horizontal",
+        style_mods = {
+          horizontal_spacing = SPACING
+        },
+        children = {
+          {
+            type = "frame",
+            name = "facc_menu_frame",
+            style = "inside_shallow_frame",
+            direction = "vertical",
+            style_mods = {
+              minimal_width = 200,
+              maximal_width = 200,
+              vertically_stretchable = true,
+              padding = SPACING
+            },
+            children = {
+              {
+                type = "scroll-pane",
+                name = "facc_menu_pane",
+                direction = "vertical",
+                elem_mods = {
+                  horizontal_scroll_policy = "never",
+                  vertical_scroll_policy = "auto"
+                },
+                style_mods = {
+                  vertically_stretchable = true
+                },
+                children = {
+                  {
+                    type = "list-box",
+                    name = "facc_menu_list",
+                    handler = { [defines.events.on_gui_selection_state_changed] = gui_events.handlers.menu_selection },
+                    style_mods = {
+                      horizontally_stretchable = true,
+                      minimal_width = 180
+                    }
+                  }
+                }
+              }
+            }
+          },
+          {
+            type = "frame",
+            name = "facc_content_outer",
+            style = "inside_shallow_frame",
+            direction = "vertical",
+            style_mods = {
+              horizontally_stretchable = true,
+              minimal_width = 800,
+              minimal_height = 600
+            },
+            children = {
+              {
+                type = "frame",
+                name = "facc_subheader_frame",
+                style = "subheader_frame",
+                direction = "horizontal",
+                style_mods = {
+                  horizontally_stretchable = true
+                },
+                children = {
+                  {
+                    type = "label",
+                    name = "facc_subheader_label",
+                    caption = TABS[storage.facc_gui_state.tab].label,
+                    style = "heading_2_label"
+                  }
+                }
+              },
+              {
+                type = "scroll-pane",
+                name = "facc_content_pane",
+                direction = "vertical",
+                elem_mods = {
+                  horizontal_scroll_policy = "never",
+                  vertical_scroll_policy = "auto"
+                },
+                style_mods = {
+                  vertically_stretchable = true,
+                  padding = SPACING
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  })
   frame.auto_center = true
 
-  local tf = frame.add{ type="flow", name="title_flow", direction="horizontal" }
-  tf.drag_target = frame
-  tf.style.horizontal_spacing       = SPACING
-  tf.style.horizontally_stretchable = true
-  tf.style.vertical_align           = "center"
-  tf.add{ type="label", caption={"facc.main-title"}, style="frame_title" }.drag_target = frame
-  local spacer = tf.add{ type="empty-widget", style="draggable_space_header" }
-  spacer.style.horizontally_stretchable = true
-  spacer.style.vertically_stretchable   = true
-  spacer.drag_target = frame
-  tf.add{ type="sprite-button", name="facc_close_main_gui", sprite="utility/close", style="frame_action_button", tooltip={"facc.close-menu"} }
-
-  local container = frame.add{ type="flow", direction="horizontal" }
-  container.style.horizontal_spacing = SPACING
-
-  local menu_frame = container.add{ type="frame", style="inside_shallow_frame", direction="vertical" }
-  menu_frame.style.minimal_width         = 200
-  menu_frame.style.maximal_width         = 200
-  menu_frame.style.vertically_stretchable = true
-  menu_frame.style.padding               = SPACING
-
-  local menu_scroll = menu_frame.add{ type="scroll-pane", name="facc_menu_pane", direction="vertical" }
-  menu_scroll.horizontal_scroll_policy    = "never"
-  menu_scroll.vertical_scroll_policy      = "auto"
-  menu_scroll.style.vertically_stretchable = true
-
-  local list = menu_scroll.add{ type="list-box", name="facc_menu_list" }
-  list.style.horizontally_stretchable = true
-  list.style.minimal_width            = 180
+  local list = elems.facc_menu_list
   for _, key in ipairs(TAB_ORDER) do
     list.add_item(TABS[key].label)
   end
@@ -649,42 +846,20 @@ local function open_gui(player)
     end
   end
 
-  local content_outer = container.add{
-    type      = "frame",
-    name      = "facc_content_outer",
-    style     = "inside_shallow_frame",
-    direction = "vertical"
-  }
-  content_outer.style.horizontally_stretchable = true
-  content_outer.style.minimal_width           = 800
-  content_outer.style.minimal_height          = 600
-
-  local subheader_frame = content_outer.add{
-    type      = "frame",
-    name      = "facc_subheader_frame",
-    style     = "subheader_frame",
-    direction = "horizontal"
-  }
-  subheader_frame.style.horizontally_stretchable = true
-  subheader_frame.add{
-    type    = "label",
-    name    = "facc_subheader_label",
-    caption = TABS[storage.facc_gui_state.tab].label,
-    style   = "heading_2_label"
-  }
-
-  local content_pane = content_outer.add{ type="scroll-pane", name="facc_content_pane", direction="vertical" }
-  content_pane.horizontal_scroll_policy      = "never"
-  content_pane.vertical_scroll_policy        = "auto"
-  content_pane.style.vertically_stretchable  = true
-  content_pane.style.padding                 = SPACING
+  local content_pane = elems.facc_content_pane
 
   for _, key in ipairs(TAB_ORDER) do
-    local sec = content_pane.add{ type="flow", name="facc_content_"..key, direction="vertical" }
+    local _, sec = flib_gui.add(content_pane, {
+      type = "flow",
+      name = "facc_content_" .. key,
+      direction = "vertical",
+      style_mods = {
+        vertical_spacing = SPACING
+      }
+    })
     sec.visible = (key == storage.facc_gui_state.tab)
-    sec.style.vertical_spacing = SPACING
     for _, elem in ipairs(TABS[key].elements) do
-      add_function_block(sec, elem)
+      add_function_block(sec, elem, player)
     end
   end
 end
@@ -726,11 +901,11 @@ end
 function M.restore_open_gui_for_all_players()
   M.ensure_persistent_state()
   if not storage.facc_gui_state.is_open then return end
-  for _, player in pairs(game.players) do
+  flib_table.for_each(game.players, function(player)
     if not game.is_multiplayer() or player.admin then
       open_gui(player)
     end
-  end
+  end)
 end
 
 function M.toggle_main_gui(player)
@@ -749,5 +924,7 @@ function M.toggle_main_gui(player)
     storage.facc_gui_state.is_open = true
   end
 end
+
+gui_events.set_main_gui_api(M)
 
 return M

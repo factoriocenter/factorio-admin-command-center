@@ -4,12 +4,12 @@
 -- All comments and docs in English as requested.
 
 local M = {}
+local flib_table = require("__flib__.table")
 
 --- Internal storage helper (per-player boolean map).
 -- @return table
 local function store()
-  storage.facc_invincible_player = storage.facc_invincible_player or {}
-  return storage.facc_invincible_player
+  return flib_table.get_or_insert(storage, "facc_invincible_player", {})
 end
 
 --- Reapply the saved state for a player, if any.

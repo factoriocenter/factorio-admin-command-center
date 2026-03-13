@@ -1,6 +1,6 @@
 {
   "name": "factorio-admin-command-center",
-  "version": "3.9.0",
+  "version": "4.0.0",
   "title": "Factorio Admin Command Center",
   "author": "louanbastos",
   "contact": "https://github.com/louanfontenele",
@@ -9,6 +9,7 @@
   "factorio_version": "2.0",
   "dependencies": [
     "base >= 2.0.72",
+    "flib >= 0.16.5",
     "? quality >= 2.0.72",
     "? space-age >= 2.0.72",
     "? factorio-admin-command-center-locales >= 1.3.4"

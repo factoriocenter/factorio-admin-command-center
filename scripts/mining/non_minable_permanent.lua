@@ -3,6 +3,7 @@
 -- belonging to the player's force on all existing surfaces, making them non-minable permanently.
 
 local M = {}
+local flib_table = require("__flib__.table")
 
 function M.run(player)
   if not is_allowed(player) then
@@ -13,13 +14,13 @@ function M.run(player)
   local force = player.force
 
   -- Iterate over all surfaces in the game
-  for _, surface in pairs(game.surfaces) do
-    for _, entity in pairs(surface.find_entities_filtered{force = force}) do
+  flib_table.for_each(game.surfaces, function(surface)
+    flib_table.for_each(surface.find_entities_filtered{force = force}, function(entity)
       if entity.valid and entity.minable ~= nil then
         entity.minable = false
       end
-    end
-  end
+    end)
+  end)
 
   player.print({"facc.minable-disabled-permanent"})
 end
