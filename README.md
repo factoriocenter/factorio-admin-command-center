@@ -12,79 +12,79 @@ A compact admin toolkit for Factorio 2.0 with a category-based GUI, live sliders
 
 ## Features (All Current)
 
-- 🧪 Cheats:
-  - 🧙 `Cheat Mode`
-  - 🗺️ `Toggle editor mode`
-  - 💻 `Console`
-  - 🍲 `Unlock All Recipes`
-  - 🔬 `Unlock All Technologies`
-  - 🎯 `Set Infinite Researches to Level 100`
-  - ➕ `Add +100 to Infinite Researches`
-  - 💰 `Receive Coins (Tight spot or Rocket rush)`
-  - ⏱️ `Auto Instant Research`
-  - ⚡ `Adjust Game Speed`
-- 🛡️ Armor:
-  - 🤖 `Create Full Armor`
-- 📐 Blueprints:
-  - 👻 `Enable ghosts on entity death`
-  - 🏗️ `Instant Blueprint Building`
-  - 🧹 `Instant Deconstruction`
-  - ⬆️ `Instant Upgrading`
-  - 🛤️ `Instant Rail Planner`
-  - 🧱 `Build All Ghosts`
-  - 🔧 `Repair and Rebuild`
-  - 🚧 `Remove Marked Structures`
-  - 💎 `Upgrade Inventory Blueprints to Legendary (Quality)`
-  - 🌟 `Convert to Legendary Quality (Quality)`
-- 🚶 Character:
-  - 👻 `Ghost Mode`
-  - 🛡️ `Invincible Player`
-  - ✂️ `Delete Orphaned Characters`
-  - 🎒 `Convert Inventory to Legendary (Quality)`
-  - 🏃 `Run Faster`
-  - 🤚 `Long Reach`
-- ⚔️ Combat:
-  - 🚫 `Disable Friendly Fire`
-  - 🔒 `Indestructible Builds`
-  - ☮️ `Peaceful Mode`
-  - 🔐 `Indestructible Builds (Permanent)`
-  - 🎯 `Fill Empty Turrets`
-  - 💥 `Ammo Damage Boost`
-  - 🔫 `Turret Damage Boost`
-- 👾 Enemies:
-  - 🛑 `Disable Enemy Expansion`
-  - 💣 `Remove Enemy Nests`
-- 🌍 Environment:
-  - ☀️ `Perpetual Day`
-  - 🚫 `Disable Pollution`
-  - 🧽 `Clear Pollution`
-  - 🌫️ `Hide Map`
-  - 🗑️ `Remove Ground Items`
-  - ♻️ `Auto Clean Pollution`
-  - 🔍 `Reveal Map`
-  - ⛰️ `Remove Cliffs`
-- 🤖 Logistic Network:
-  - 📦 `Instant Personal Logistics`
-  - 🗑️ `Instant Trash`
-  - 🤖 `Add Robots`
-  - 🐇 `Increase worker robot speed`
-- 🏭 Manufacturing:
-  - ⚙️ `Adjust Crafting Speed`
-- ⛏️ Mining:
-  - ⛏️ `Entity Minability`
-  - 🚫 `Non-minable Builds (Permanent)`
-  - 🏎️ `Adjust Mining Speed`
-- 🪐 Planets:
-  - ♻️ `Regenerate Resources`
-  - 📈 `Increase Resources`
-  - 🗺️ `Generate Planets Surfaces and Chart Area (Space Age)`
+### 🧪 Cheats:
+- 🧙 `Cheat Mode`
+- 🗺️ `Toggle editor mode`
+- 💻 `Console`
+- 🍲 `Unlock All Recipes`
+- 🔬 `Unlock All Technologies`
+- 🎯 `Set Infinite Researches to Level 100`
+- ➕ `Add +100 to Infinite Researches`
+- 💰 `Receive Coins (Tight spot or Rocket rush)`
+- ⏱️ `Auto Instant Research`
+- ⚡ `Adjust Game Speed`
+### 🛡️ Armor:
+- 🤖 `Create Full Armor`
+### 📐 Blueprints:
+- 👻 `Enable ghosts on entity death`
+- 🏗️ `Instant Blueprint Building`
+- 🧹 `Instant Deconstruction`
+- ⬆️ `Instant Upgrading`
+- 🛤️ `Instant Rail Planner`
+- 🧱 `Build All Ghosts`
+- 🔧 `Repair and Rebuild`
+- 🚧 `Remove Marked Structures`
+- 💎 `Upgrade Inventory Blueprints to Legendary (Quality)`
+- 🌟 `Convert to Legendary Quality (Quality)`
+### 🚶 Character:
+- 👻 `Ghost Mode`
+- 🛡️ `Invincible Player`
+- ✂️ `Delete Orphaned Characters`
+- 🎒 `Convert Inventory to Legendary (Quality)`
+- 🏃 `Run Faster`
+- 🤚 `Long Reach`
+### ⚔️ Combat:
+- 🚫 `Disable Friendly Fire`
+- 🔒 `Indestructible Builds`
+- ☮️ `Peaceful Mode`
+- 🔐 `Indestructible Builds (Permanent)`
+- 🎯 `Fill Empty Turrets`
+- 💥 `Ammo Damage Boost`
+- 🔫 `Turret Damage Boost`
+### 👾 Enemies:
+- 🛑 `Disable Enemy Expansion`
+- 💣 `Remove Enemy Nests`
+### 🌍 Environment:
+- ☀️ `Perpetual Day`
+- 🚫 `Disable Pollution`
+- 🧽 `Clear Pollution`
+- 🌫️ `Hide Map`
+- 🗑️ `Remove Ground Items`
+- ♻️ `Auto Clean Pollution`
+- 🔍 `Reveal Map`
+- ⛰️ `Remove Cliffs`
+### 🤖 Logistic Network:
+- 📦 `Instant Personal Logistics`
+- 🗑️ `Instant Trash`
+- 🤖 `Add Robots`
+- 🐇 `Increase worker robot speed`
+### 🏭 Manufacturing:
+- ⚙️ `Adjust Crafting Speed`
+### ⛏️ Mining:
+- ⛏️ `Entity Minability`
+- 🚫 `Non-minable Builds (Permanent)`
+- 🏎️ `Adjust Mining Speed`
+### 🪐 Planets:
+- ♻️ `Regenerate Resources`
+- 📈 `Increase Resources`
+- 🗺️ `Generate Planets Surfaces and Chart Area (Space Age)`
 - ⚡ Power:
-  - 🔋 `Recharge Energy`
-- 🚂 Trains:
-  - 🚆 `Automatic Trains`
-- 🛰️ Transportation:
-  - ⛽ `Refuel Platform Thrusters (Space Age)`
-  - 📏 `Platform Distance (Space Age)`
+- 🔋 `Recharge Energy`
+### 🚂 Trains:
+- 🚆 `Automatic Trains`
+### 🛰️ Transportation:
+- ⛽ `Refuel Platform Thrusters (Space Age)`
+- 📏 `Platform Distance (Space Age)`
 
 ## Extra Tools
 
@@ -117,6 +117,7 @@ A compact admin toolkit for Factorio 2.0 with a category-based GUI, live sliders
 - 📚 Required library: `flib >= 0.16.5`
 - 🔌 Optional integrations: `quality`, `space-age`, `factorio-admin-command-center-locales`
 - 👥 In multiplayer, admin tools are available to admins only.
+
 
 ## Languages
 
