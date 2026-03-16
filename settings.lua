@@ -1,6 +1,7 @@
 -- settings.lua
--- Startup settings for the Factorio Admin Command Center (FACC)
+-- Mod settings for the Factorio Admin Command Center (FACC)
 data:extend({
+  -- Startup settings (require game restart)
   {
     type = "bool-setting",
     name = "facc-show-cheat-tab",
@@ -64,18 +65,6 @@ data:extend({
     localised_name = {"mod-setting-name.facc-infinite-resources-multiplier-fluid"},
     localised_description = {"mod-setting-description.facc-infinite-resources-multiplier-fluid"}
   },
-  -- Backwards-compat control: keep the automation toggle
-  {
-    -- Disable automatic resource regeneration when infinite-resources setting changes
-    type = "bool-setting",
-    name = "facc-enable-auto-resource-regeneration",
-    setting_type = "startup",
-    default_value = false,
-    order = "f",
-    per_user = false,
-    localised_name = {"mod-setting-name.facc-enable-auto-resource-regeneration"},
-    localised_description = {"mod-setting-description.facc-enable-auto-resource-regeneration"}
-  },
   {
     type = "bool-setting",
     name = "facc-instant-mining-drills",
@@ -95,6 +84,28 @@ data:extend({
     per_user = false,
     localised_name = {"mod-setting-name.facc-instant-crafting-machines"},
     localised_description = {"mod-setting-description.facc-instant-crafting-machines"}
+  },
+  -- Map settings (no restart, affect the current save)
+  {
+    -- Disable automatic resource regeneration when infinite-resources setting changes
+    type = "bool-setting",
+    name = "facc-enable-auto-resource-regeneration",
+    setting_type = "runtime-global",
+    default_value = false,
+    order = "f",
+    per_user = false,
+    localised_name = {"mod-setting-name.facc-enable-auto-resource-regeneration"},
+    localised_description = {"mod-setting-description.facc-enable-auto-resource-regeneration"}
+  },
+  -- Player settings (no restart, per-player preference)
+  {
+    type = "bool-setting",
+    name = "facc-enable-background-optimization",
+    setting_type = "runtime-global",
+    default_value = false,
+    order = "i",
+    localised_name = {"mod-setting-name.facc-enable-background-optimization"},
+    localised_description = {"mod-setting-description.facc-enable-background-optimization"}
   }
 })
 -- NOTE:

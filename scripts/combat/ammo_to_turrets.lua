@@ -7,9 +7,15 @@
 
 local M = {}
 local flib_table = require("__flib__.table")
+local chunk_jobs = require("scripts/utils/chunk_job_runner")
 
 -- Detect whether the Space Age DLC/mod is active
 local space_age_enabled = script.active_mods["space-age"] ~= nil
+local JOBS_KEY = "facc_jobs_ammo_to_turrets"
+local CHUNKS_PER_TICK = 8
+local STATUS_OPTIONS = {
+  process_name = {"facc.ammo-turrets"}
+}
 
 function M.run(player)
   if not is_allowed(player) then
@@ -17,52 +23,63 @@ function M.run(player)
     return
   end
 
-  local surface = player.surface
-  local force   = player.force
+  chunk_jobs.remove_jobs_for_player(JOBS_KEY, player.index)
+  chunk_jobs.enqueue_job(JOBS_KEY, {
+    player_index = player.index,
+    force_name = player.force.name,
+    surface_indices = chunk_jobs.collect_single_surface_indices(player.surface),
+    surface_cursor = 1,
+    chunks = nil,
+    chunk_cursor = 1
+  })
 
-  -- Gun turret
-  flib_table.for_each(surface.find_entities_filtered{force = force, name = "gun-turret"}, function(turret)
-    if turret.valid then
-      local inv = turret.get_inventory(defines.inventory.turret_ammo)
-      if inv and inv.is_empty() then
-        inv.insert{name = "uranium-rounds-magazine", count = 100}
-      end
-    end
-  end)
-
-  -- Artillery turret
-  flib_table.for_each(surface.find_entities_filtered{force = force, name = "artillery-turret"}, function(turret)
-    if turret.valid then
-      local inv = turret.get_inventory(defines.inventory.turret_ammo)
-      if inv and inv.is_empty() then
-        inv.insert{name = "artillery-shell", count = 5}
-      end
-    end
-  end)
-
-  if space_age_enabled then
-    -- Rocket turret (Space Age)
-    flib_table.for_each(surface.find_entities_filtered{force = force, name = "rocket-turret"}, function(turret)
-      if turret.valid then
-        local inv = turret.get_inventory(defines.inventory.turret_ammo)
-        if inv and inv.is_empty() then
-          inv.insert{name = "rocket", count = 100}
-        end
-      end
-    end)
-
-    -- Railgun turret (Space Age)
-    flib_table.for_each(surface.find_entities_filtered{force = force, name = "railgun-turret"}, function(turret)
-      if turret.valid then
-        local inv = turret.get_inventory(defines.inventory.turret_ammo)
-        if inv and inv.is_empty() then
-          inv.insert{name = "railgun-ammo", count = 10}
-        end
-      end
-    end)
+  if not chunk_jobs.is_background_optimization_enabled(player.index) then
+    M.on_tick({ tick = game.tick })
   end
+end
 
-  player.print({"facc.ammo-turrets-msg"})
+function M.on_tick(_event)
+  chunk_jobs.run_jobs(
+    JOBS_KEY,
+    CHUNKS_PER_TICK,
+    function(job, surface, _chunk, area)
+      flib_table.for_each(surface.find_entities_filtered{
+        area = area,
+        force = job.force_name,
+        type = "turret"
+      }, function(turret)
+        if not turret.valid then
+          return
+        end
+
+        local ammo_name = nil
+        local ammo_count = 0
+        if turret.name == "gun-turret" then
+          ammo_name, ammo_count = "uranium-rounds-magazine", 100
+        elseif turret.name == "artillery-turret" then
+          ammo_name, ammo_count = "artillery-shell", 5
+        elseif space_age_enabled and turret.name == "rocket-turret" then
+          ammo_name, ammo_count = "rocket", 100
+        elseif space_age_enabled and turret.name == "railgun-turret" then
+          ammo_name, ammo_count = "railgun-ammo", 10
+        end
+
+        if ammo_name then
+          local inv = turret.get_inventory(defines.inventory.turret_ammo)
+          if inv and inv.is_empty() then
+            inv.insert{ name = ammo_name, count = ammo_count }
+          end
+        end
+      end)
+    end,
+    function(job)
+      local player = game.get_player(job.player_index)
+      if player and player.valid then
+        player.print({"facc.ammo-turrets-msg"})
+      end
+    end,
+    STATUS_OPTIONS
+  )
 end
 
 return M

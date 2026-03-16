@@ -48,6 +48,20 @@ local function read_multipliers_pair()
                     or legacy or "1x"
   return parse_x(solid_str), parse_x(fluid_str)
 end
+
+--- Reads whether automatic resource regeneration should run when startup
+-- infinite-resources toggles are applied.
+-- Prefers runtime-global setting and keeps startup fallback for compatibility.
+-- @return boolean
+local function is_auto_resource_regeneration_enabled()
+  if settings.global and settings.global["facc-enable-auto-resource-regeneration"] then
+    return settings.global["facc-enable-auto-resource-regeneration"].value == true
+  end
+  if settings.startup and settings.startup["facc-enable-auto-resource-regeneration"] then
+    return settings.startup["facc-enable-auto-resource-regeneration"].value == true
+  end
+  return false
+end
 --- Check whether a resource entity behaves like a "fluid resource".
 -- Heuristics:
 -- 1) resource_category/category contains "fluid"
@@ -136,7 +150,7 @@ script.on_configuration_changed(function(event)
   remove_old_button()
   update_legendary_shortcut_availability()
   -- Skip auto-regeneration if the user has activated the new setting
-  if settings.startup["facc-enable-auto-resource-regeneration"].value then
+  if is_auto_resource_regeneration_enabled() then
     -- If infinite-resources was just disabled, restore finite resources on all surfaces
     if not settings.startup["facc-infinite-resources"].value then
       flib_table.for_each(game.surfaces, function(surface)

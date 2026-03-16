@@ -5,11 +5,25 @@ local instant_bp_build = require("scripts/blueprints/instant_blueprint_building"
 local instant_rail     = require("scripts/blueprints/instant_rail_planner")
 local instant_decon    = require("scripts/blueprints/instant_deconstruction")
 local instant_upgrade  = require("scripts/blueprints/instant_upgrading")
+local build_all_ghosts = require("scripts/blueprints/build_all_ghosts")
+local remove_decon_marks = require("scripts/blueprints/remove_deconstruction_marks")
+local repair_and_rebuild = require("scripts/blueprints/repair_and_rebuild")
 local clean_pollution  = require("scripts/environment/clean_pollution")
+local hide_map = require("scripts/environment/hide_map")
+local remove_ground_items = require("scripts/environment/remove_ground_items")
 local instant_research = require("scripts/cheats/instant_research")
+local ammo_to_turrets = require("scripts/combat/ammo_to_turrets")
+local indestructible_builds = require("scripts/combat/indestructible_builds")
+local indestructible_builds_permanent = require("scripts/combat/indestructible_builds_permanent")
 local instant_request  = require("scripts/logistic-network/instant_request")
 local instant_trash    = require("scripts/logistic-network/instant_trash")
+local delete_ownerless_characters = require("scripts/character/delete_ownerless_characters")
 local repair_mined_item = require("scripts/character/repair_mined_item")
+local toggle_minable = require("scripts/mining/toggle_minable")
+local non_minable_permanent = require("scripts/mining/non_minable_permanent")
+local increase_resources = require("scripts/planets/increase_resources")
+local regenerate_resources = require("scripts/planets/regenerate_resources")
+local recharge_energy = require("scripts/power/recharge_energy")
 local set_platform_distance = require("scripts/transportation/set_platform_distance")
 local main_gui = require("scripts/gui/main_gui")
 local flib_on_tick_n = require("__flib__.on-tick-n")
@@ -243,6 +257,22 @@ script.on_event(defines.events.on_tick, function(event)
   if instant_trash.on_tick and instant_trash.has_enabled_players and instant_trash.has_enabled_players() then
     instant_trash.on_tick(event)
   end
+
+  -- 5) Event-driven background jobs for heavy one-shot actions
+  if build_all_ghosts.on_tick then build_all_ghosts.on_tick(event) end
+  if remove_decon_marks.on_tick then remove_decon_marks.on_tick(event) end
+  if repair_and_rebuild.on_tick then repair_and_rebuild.on_tick(event) end
+  if remove_ground_items.on_tick then remove_ground_items.on_tick(event) end
+  if recharge_energy.on_tick then recharge_energy.on_tick(event) end
+  if increase_resources.on_tick then increase_resources.on_tick(event) end
+  if regenerate_resources.on_tick then regenerate_resources.on_tick(event) end
+  if hide_map.on_tick then hide_map.on_tick(event) end
+  if ammo_to_turrets.on_tick then ammo_to_turrets.on_tick(event) end
+  if delete_ownerless_characters.on_tick then delete_ownerless_characters.on_tick(event) end
+  if toggle_minable.on_tick then toggle_minable.on_tick(event) end
+  if non_minable_permanent.on_tick then non_minable_permanent.on_tick(event) end
+  if indestructible_builds.on_tick then indestructible_builds.on_tick(event) end
+  if indestructible_builds_permanent.on_tick then indestructible_builds_permanent.on_tick(event) end
 
 end)
 
