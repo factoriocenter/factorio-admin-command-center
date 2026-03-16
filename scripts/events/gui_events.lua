@@ -20,7 +20,7 @@ local toggle_minable         = require("scripts/mining/toggle_minable")
 local set_platform_distance  = require("scripts/transportation/set_platform_distance")
 
 local toggle_trains          = require("scripts/trains/toggle_trains")
-local long_reach             = require("scripts/character/long_reach")
+local distance_bonus         = require("scripts/character/distance_bonus")
 local ammo_damage_boost      = require("scripts/combat/ammo_damage_boost")
 local turret_damage_boost    = require("scripts/combat/turret_damage_boost")
 
@@ -34,6 +34,7 @@ local increase_robot_speed   = require("scripts/logistic-network/increase_robot_
 -- Character features
 local ghost_toggle           = require("scripts/character/toggle_ghost_character")
 local invincible_player      = require("scripts/character/invincible_player")
+local repair_mined_item      = require("scripts/character/repair_mined_item")
 
 -- Logistics helpers
 local instant_request        = require("scripts/logistic-network/instant_request")
@@ -119,7 +120,12 @@ local FACC_SLIDERS = {
   slider_auto_clean_pollution=true,
   slider_auto_instant_research=true,
   slider_increase_robot_speed=true,
-  slider_long_reach=true,
+  slider_build_distance=true,
+  slider_reach_distance=true,
+  slider_resource_reach_distance=true,
+  slider_item_drop_distance=true,
+  slider_item_pickup_distance=true,
+  slider_loot_pickup_distance=true,
   slider_ammo_damage_boost=true,
   slider_turret_damage_boost=true,
 }
@@ -142,8 +148,18 @@ local FACC_SWITCHES = {
   facc_instant_rail_planner       = true,
   facc_ghost_mode = true,
   facc_invincible_player = true,
+  facc_repair_mined_item = true,
   facc_instant_request = true,
   facc_instant_trash = true,
+}
+
+local DISTANCE_SLIDERS = {
+  slider_build_distance = "character_build_distance_bonus",
+  slider_reach_distance = "character_reach_distance_bonus",
+  slider_resource_reach_distance = "character_resource_reach_distance_bonus",
+  slider_item_drop_distance = "character_item_drop_distance_bonus",
+  slider_item_pickup_distance = "character_item_pickup_distance_bonus",
+  slider_loot_pickup_distance = "character_loot_pickup_distance_bonus",
 }
 
 local features = {
@@ -267,12 +283,13 @@ local function on_gui_value_changed(event)
     return
   end
 
-  if elem.name == "slider_long_reach" then
-    local old = state.sliders["slider_long_reach"] or 0
+  local distance_property = DISTANCE_SLIDERS[elem.name]
+  if distance_property then
+    local old = state.sliders[elem.name] or 0
     local new = elem.slider_value
-    long_reach.apply(player, old, new)
-    state.sliders["slider_long_reach"] = new
-    local box = elem.parent["slider_long_reach_value"]
+    distance_bonus.apply(player, distance_property, old, new)
+    state.sliders[elem.name] = new
+    local box = elem.parent[elem.name .. "_value"]
     if box and box.valid then box.text = tostring(new) end
     return
   end
@@ -354,6 +371,7 @@ local function on_gui_switch_state_changed(event)
   elseif elem.name == "facc_toggle_trains"          then toggle_trains.run(player, on)
   elseif elem.name == "facc_ghost_mode"             then ghost_toggle.run(player, on)
   elseif elem.name == "facc_invincible_player"      then invincible_player.run(player, on)
+  elseif elem.name == "facc_repair_mined_item"      then repair_mined_item.toggle_player(player, on)
   elseif elem.name == "facc_instant_request"        then instant_request.toggle_player(player, on)
   elseif elem.name == "facc_instant_trash"          then instant_trash.toggle_player(player, on)
   end

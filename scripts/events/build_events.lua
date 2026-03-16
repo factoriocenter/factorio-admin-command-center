@@ -9,6 +9,7 @@ local clean_pollution  = require("scripts/environment/clean_pollution")
 local instant_research = require("scripts/cheats/instant_research")
 local instant_request  = require("scripts/logistic-network/instant_request")
 local instant_trash    = require("scripts/logistic-network/instant_trash")
+local repair_mined_item = require("scripts/character/repair_mined_item")
 local set_platform_distance = require("scripts/transportation/set_platform_distance")
 local main_gui = require("scripts/gui/main_gui")
 local flib_on_tick_n = require("__flib__.on-tick-n")
@@ -154,6 +155,14 @@ script.on_event(defines.events.on_marked_for_upgrade, function(e)
   if storage.facc_gui_state.switches["facc_instant_upgrading"] then
     instant_upgrade.on_marked_for_upgrade(e)
   end
+end)
+
+--------------------------------------------------------------------------------
+-- Repair mined item: repair entity before it gets mined/removed
+--------------------------------------------------------------------------------
+script.on_event(defines.events.on_pre_player_mined_item, function(e)
+  if not allowed(e.player_index) then return end
+  repair_mined_item.on_pre_player_mined_item(e)
 end)
 
 --------------------------------------------------------------------------------

@@ -29,7 +29,12 @@ local CONFIRM_BUTTON_EXCLUDED = {
   facc_set_mining_speed = true,
   facc_run_faster = true,
   facc_increase_robot_speed = true,
-  facc_long_reach = true,
+  facc_build_distance = true,
+  facc_reach_distance = true,
+  facc_resource_reach_distance = true,
+  facc_item_drop_distance = true,
+  facc_item_pickup_distance = true,
+  facc_loot_pickup_distance = true,
   facc_ammo_damage_boost = true,
   facc_turret_damage_boost = true
 }
@@ -145,6 +150,12 @@ local TABS = {
         switch  = true
       },
       {
+        name    = "facc_repair_mined_item",
+        caption = {"facc.repair-mined-item"},
+        tooltip = {"tooltip.repair-mined-item"},
+        switch  = true
+      },
+      {
         name    = "facc_delete_ownerless",
         caption = {"facc.delete-ownerless"},
         tooltip = {"tooltip.delete-ownerless"}
@@ -161,10 +172,40 @@ local TABS = {
         slider  = { name="slider_run_faster", min=0, max=10, default=0 }
       },
       {
-        name    = "facc_long_reach",
-        caption = {"facc.long-reach"},
-        tooltip = {"tooltip.long-reach"},
-        slider  = { name="slider_long_reach", min=0, max=100, default=0 }
+        name    = "facc_build_distance",
+        caption = {"facc.build-distance"},
+        tooltip = {"tooltip.build-distance"},
+        slider  = { name="slider_build_distance", min=0, max=100, default=0 }
+      },
+      {
+        name    = "facc_reach_distance",
+        caption = {"facc.reach-distance"},
+        tooltip = {"tooltip.reach-distance"},
+        slider  = { name="slider_reach_distance", min=0, max=100, default=0 }
+      },
+      {
+        name    = "facc_resource_reach_distance",
+        caption = {"facc.resource-reach-distance"},
+        tooltip = {"tooltip.resource-reach-distance"},
+        slider  = { name="slider_resource_reach_distance", min=0, max=100, default=0 }
+      },
+      {
+        name    = "facc_item_drop_distance",
+        caption = {"facc.item-drop-distance"},
+        tooltip = {"tooltip.item-drop-distance"},
+        slider  = { name="slider_item_drop_distance", min=0, max=100, default=0 }
+      },
+      {
+        name    = "facc_item_pickup_distance",
+        caption = {"facc.item-pickup-distance"},
+        tooltip = {"tooltip.item-pickup-distance"},
+        slider  = { name="slider_item_pickup_distance", min=0, max=100, default=0 }
+      },
+      {
+        name    = "facc_loot_pickup_distance",
+        caption = {"facc.loot-pickup-distance"},
+        tooltip = {"tooltip.loot-pickup-distance"},
+        slider  = { name="slider_loot_pickup_distance", min=0, max=100, default=0 }
       }
     }
   },
@@ -473,6 +514,29 @@ function M.ensure_persistent_state()
   if not (s.tab and TABS[s.tab]) then s.tab = "cheats" end
   if type(s.sliders) ~= "table" then s.sliders = {} end
   if type(s.switches) ~= "table" then s.switches = {} end
+
+  local old_long_reach = s.sliders["slider_long_reach"]
+  if old_long_reach ~= nil then
+    if s.sliders["slider_build_distance"] == nil then
+      s.sliders["slider_build_distance"] = old_long_reach
+    end
+    if s.sliders["slider_reach_distance"] == nil then
+      s.sliders["slider_reach_distance"] = old_long_reach
+    end
+    if s.sliders["slider_resource_reach_distance"] == nil then
+      s.sliders["slider_resource_reach_distance"] = old_long_reach
+    end
+    if s.sliders["slider_item_drop_distance"] == nil then
+      s.sliders["slider_item_drop_distance"] = old_long_reach
+    end
+    if s.sliders["slider_item_pickup_distance"] == nil then
+      s.sliders["slider_item_pickup_distance"] = old_long_reach
+    end
+    if s.sliders["slider_loot_pickup_distance"] == nil then
+      s.sliders["slider_loot_pickup_distance"] = old_long_reach
+    end
+  end
+
   if type(s.is_open) ~= "boolean" then s.is_open = false end
 end
 
