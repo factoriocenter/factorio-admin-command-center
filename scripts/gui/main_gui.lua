@@ -219,6 +219,13 @@ local TABS = {
         switch  = true
       },
       {
+        name    = "facc_auto_instant_research",
+        caption = {"facc.auto-instant-research"},
+        tooltip = {"tooltip.auto-instant-research"},
+        slider  = { name="slider_auto_instant_research", min=1, max=300, default=1 },
+        switch  = true
+      },
+      {
         name    = "facc_toggle_editor",
         caption = {"facc.toggle-editor"},
         tooltip = {"tooltip.toggle-editor"}
@@ -252,13 +259,6 @@ local TABS = {
         name    = "facc_insert_coins",
         caption = {"facc.insert-coins"},
         tooltip = {"tooltip.insert-coins"}
-      },
-      {
-        name    = "facc_auto_instant_research",
-        caption = {"facc.auto-instant-research"},
-        tooltip = {"tooltip.auto-instant-research"},
-        slider  = { name="slider_auto_instant_research", min=1, max=300, default=1 },
-        switch  = true
       },
       {
         name    = "facc_set_game_speed",
@@ -334,6 +334,18 @@ local TABS = {
     label    = {"facc.tab-environment"},
     elements = {
       {
+        name    = "facc_surface_freeze_daytime",
+        caption = {"facc.surface-freeze-daytime"},
+        tooltip = {"tooltip.surface-freeze-daytime"},
+        switch  = true
+      },
+      {
+        name    = "facc_surface_peaceful_mode",
+        caption = {"facc.surface-peaceful-mode"},
+        tooltip = {"tooltip.surface-peaceful-mode"},
+        switch  = true
+      },
+      {
         name    = "facc_always_day",
         caption = {"facc.always-day"},
         tooltip = {"tooltip.always-day"},
@@ -344,6 +356,23 @@ local TABS = {
         caption = {"facc.disable-pollution"},
         tooltip = {"tooltip.disable-pollution"},
         switch  = true
+      },
+      {
+        name    = "facc_auto_clean_pollution",
+        caption = {"facc.auto-clean-pollution"},
+        tooltip = {"tooltip.auto-clean-pollution"},
+        slider  = { name="slider_auto_clean_pollution", min=1, max=300, default=1 },
+        switch  = true
+      },
+      {
+        name    = "facc_surface_daytime_midday",
+        caption = {"facc.surface-daytime-midday"},
+        tooltip = {"tooltip.surface-daytime-midday"}
+      },
+      {
+        name    = "facc_surface_daytime_midnight",
+        caption = {"facc.surface-daytime-midnight"},
+        tooltip = {"tooltip.surface-daytime-midnight"}
       },
       {
         name    = "facc_remove_pollution",
@@ -361,11 +390,28 @@ local TABS = {
         tooltip = {"tooltip.remove-ground-items"}
       },
       {
-        name    = "facc_auto_clean_pollution",
-        caption = {"facc.auto-clean-pollution"},
-        tooltip = {"tooltip.auto-clean-pollution"},
-        slider  = { name="slider_auto_clean_pollution", min=1, max=300, default=1 },
-        switch  = true
+        name    = "facc_surface_daytime",
+        caption = {"facc.surface-daytime"},
+        tooltip = {"tooltip.surface-daytime"},
+        slider  = { name="slider_surface_daytime", min=0, max=100, default=50 }
+      },
+      {
+        name    = "facc_surface_pressure",
+        caption = {"facc.surface-pressure"},
+        tooltip = {"tooltip.surface-pressure"},
+        slider  = { name="slider_surface_pressure", min=0, max=2000, default=1000 }
+      },
+      {
+        name    = "facc_surface_magnetic_field",
+        caption = {"facc.surface-magnetic-field"},
+        tooltip = {"tooltip.surface-magnetic-field"},
+        slider  = { name="slider_surface_magnetic_field", min=0, max=2000, default=90 }
+      },
+      {
+        name    = "facc_surface_gravity",
+        caption = {"facc.surface-gravity"},
+        tooltip = {"tooltip.surface-gravity"},
+        slider  = { name="slider_surface_gravity", min=0, max=2000, default=10 }
       },
       {
         name    = "facc_reveal_map",
@@ -557,7 +603,24 @@ end
 --------------------------------------------------------------------------------
 -- Feature enablement checks
 --------------------------------------------------------------------------------
-local function is_feature_enabled(name)
+local function surface_supports_property(player, property_name)
+  if not (player and player.valid and player.surface and player.surface.valid) then
+    return false
+  end
+  local ok = pcall(player.surface.get_property, player.surface, property_name)
+  return ok
+end
+
+local function is_feature_enabled(name, player)
+  if name == "facc_surface_pressure" then
+    return space_age_enabled and surface_supports_property(player, "pressure")
+  end
+  if name == "facc_surface_magnetic_field" then
+    return space_age_enabled and surface_supports_property(player, "magnetic-field")
+  end
+  if name == "facc_surface_gravity" then
+    return space_age_enabled and surface_supports_property(player, "gravity")
+  end
   if name == "facc_set_platform_distance" then return space_age_enabled end
   if name == "facc_fill_platform_thrusters" then return space_age_enabled end
   if name == "facc_generate_planet_surfaces" then return space_age_enabled end
@@ -573,7 +636,7 @@ end
 -- Helper: render a function block (label/slider/switch/button)
 --------------------------------------------------------------------------------
 local function add_function_block(parent, elem, player)
-  local enabled = is_feature_enabled(elem.name)
+  local enabled = is_feature_enabled(elem.name, player)
   local left_children = {}
 
   if elem.tooltip then
@@ -619,6 +682,8 @@ local function add_function_block(parent, elem, player)
       if slider_name == "slider_set_game_speed" then
         local speeds = {0.25, 0.5, 1, 2, 4, 8, 16, 32, 64}
         display_value = speeds[init] or speeds[3]
+      elseif slider_name == "slider_surface_daytime" then
+        display_value = string.format("%.2f", (tonumber(init) or 50) / 100)
       end
       slider_children[#slider_children + 1] = {
         type = "textfield",
@@ -922,7 +987,16 @@ local function open_gui(player)
       }
     })
     sec.visible = (key == storage.facc_gui_state.tab)
-    for _, elem in ipairs(TABS[key].elements) do
+    for i, elem in ipairs(TABS[key].elements) do
+      if i > 1 then
+        flib_gui.add(sec, {
+          type = "line",
+          direction = "horizontal",
+          style_mods = {
+            horizontally_stretchable = true
+          }
+        })
+      end
       add_function_block(sec, elem, player)
     end
   end
@@ -987,6 +1061,25 @@ function M.toggle_main_gui(player)
     open_gui(player)
     storage.facc_gui_state.is_open = true
   end
+end
+
+function M.refresh_open_gui(player)
+  if not (player and player.valid) then return end
+  M.ensure_persistent_state()
+
+  local frame = player.gui.screen["facc_main_frame"]
+  if not (frame and frame.valid) then return end
+
+  local container = frame.children[2]
+  local outer = container and container["facc_content_outer"]
+  local pane = outer and outer["facc_content_pane"]
+  if pane then
+    save_all_sliders(pane)
+  end
+
+  frame.destroy()
+  open_gui(player)
+  storage.facc_gui_state.is_open = true
 end
 
 gui_events.set_main_gui_api(M)

@@ -10,6 +10,7 @@ local cheat_mode             = require("scripts/cheats/cheat_mode")
 
 local always_day             = require("scripts/environment/always_day")
 local disable_pollution      = require("scripts/environment/disable_pollution")
+local surface_properties     = require("scripts/environment/surface_properties")
 
 local disable_friendly_fire  = require("scripts/combat/disable_friendly_fire")
 local peaceful_mode          = require("scripts/combat/peaceful_mode")
@@ -104,7 +105,13 @@ local FACC_BUTTONS = {
   facc_convert_to_legendary=true,
   -- Platform distance confirm
   facc_set_platform_distance=true,
-  facc_fill_platform_thrusters=true
+  facc_fill_platform_thrusters=true,
+  facc_surface_daytime=true,
+  facc_surface_daytime_midday=true,
+  facc_surface_daytime_midnight=true,
+  facc_surface_pressure=true,
+  facc_surface_magnetic_field=true,
+  facc_surface_gravity=true
 }
 
 local FACC_SLIDERS = {
@@ -128,6 +135,10 @@ local FACC_SLIDERS = {
   slider_loot_pickup_distance=true,
   slider_ammo_damage_boost=true,
   slider_turret_damage_boost=true,
+  slider_surface_daytime=true,
+  slider_surface_pressure=true,
+  slider_surface_magnetic_field=true,
+  slider_surface_gravity=true,
 }
 
 local FACC_SWITCHES = {
@@ -151,6 +162,8 @@ local FACC_SWITCHES = {
   facc_repair_mined_item = true,
   facc_instant_request = true,
   facc_instant_trash = true,
+  facc_surface_freeze_daytime = true,
+  facc_surface_peaceful_mode = true,
 }
 
 local DISTANCE_SLIDERS = {
@@ -262,6 +275,40 @@ local function on_gui_click(event)
   if name == "facc_set_platform_distance" then
     local raw = state.sliders["slider_platform_distance"] or 0.99
     set_platform_distance.run(player, raw)
+    return
+  end
+
+  if name == "facc_surface_daytime" then
+    local daytime_pct = state.sliders["slider_surface_daytime"] or 50
+    surface_properties.set_daytime(player, daytime_pct / 100)
+    return
+  end
+
+  if name == "facc_surface_daytime_midday" then
+    surface_properties.set_midday(player)
+    return
+  end
+
+  if name == "facc_surface_daytime_midnight" then
+    surface_properties.set_midnight(player)
+    return
+  end
+
+  if name == "facc_surface_pressure" then
+    local pressure = state.sliders["slider_surface_pressure"] or 1000
+    surface_properties.set_property(player, "pressure", pressure)
+    return
+  end
+
+  if name == "facc_surface_magnetic_field" then
+    local magnetic = state.sliders["slider_surface_magnetic_field"] or 90
+    surface_properties.set_property(player, "magnetic-field", magnetic)
+    return
+  end
+
+  if name == "facc_surface_gravity" then
+    local gravity = state.sliders["slider_surface_gravity"] or 10
+    surface_properties.set_property(player, "gravity", gravity)
   end
 end
 
@@ -311,6 +358,16 @@ local function on_gui_value_changed(event)
     state.sliders["slider_turret_damage_boost"] = new
     local box = elem.parent["slider_turret_damage_boost_value"]
     if box and box.valid then box.text = tostring(new) end
+    return
+  end
+
+  if elem.name == "slider_surface_daytime" then
+    local new = elem.slider_value
+    state.sliders["slider_surface_daytime"] = new
+    local box = elem.parent["slider_surface_daytime_value"]
+    if box and box.valid then
+      box.text = string.format("%.2f", new / 100)
+    end
     return
   end
 
@@ -374,6 +431,8 @@ local function on_gui_switch_state_changed(event)
   elseif elem.name == "facc_repair_mined_item"      then repair_mined_item.toggle_player(player, on)
   elseif elem.name == "facc_instant_request"        then instant_request.toggle_player(player, on)
   elseif elem.name == "facc_instant_trash"          then instant_trash.toggle_player(player, on)
+  elseif elem.name == "facc_surface_freeze_daytime" then surface_properties.set_freeze_daytime(player, on)
+  elseif elem.name == "facc_surface_peaceful_mode"  then surface_properties.set_peaceful_mode(player, on)
   end
 end
 

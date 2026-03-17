@@ -225,6 +225,14 @@ end
 --------------------------------------------------------------------------------
 local main_gui = require("scripts/gui/main_gui")
 local console_gui = require("scripts/gui/console_gui")
+
+script.on_event(defines.events.on_player_changed_surface, function(e)
+  local player = game.get_player(e.player_index)
+  if player and main_gui and main_gui.refresh_open_gui then
+    main_gui.refresh_open_gui(player)
+  end
+end)
+
 -- Toggle admin GUI with Ctrl+.
 script.on_event("facc_toggle_gui", function(e)
   local player = game.get_player(e.player_index)
