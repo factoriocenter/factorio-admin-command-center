@@ -3,8 +3,9 @@
 -- Uses runtime API fluidbox filters/prototypes instead of hardcoded fluid names.
 
 local M = {}
+local compat = require("scripts/utils/mod_compat")
 
-local space_age_enabled = script.active_mods["space-age"] ~= nil
+local space_age_enabled = compat.is_mod_active("space-age")
 
 local function get_required_fluid_name(fluidbox, index)
   local ok_proto, proto = pcall(function() return fluidbox.get_prototype(index) end)

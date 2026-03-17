@@ -68,6 +68,32 @@ function M.set_peaceful_mode(player, enabled)
   end
 end
 
+function M.set_no_enemies_mode(player, enabled)
+  if not is_allowed_player(player) then
+    return
+  end
+
+  local surface = get_surface(player)
+  if not surface then
+    return
+  end
+
+  local ok = pcall(function()
+    surface.no_enemies_mode = enabled
+  end)
+
+  if not ok then
+    player.print({"facc.surface-property-unsupported", "no_enemies_mode"})
+    return
+  end
+
+  if enabled then
+    player.print({"facc.surface-no-enemies-enabled"})
+  else
+    player.print({"facc.surface-no-enemies-disabled"})
+  end
+end
+
 function M.set_daytime(player, value)
   if not is_allowed_player(player) then
     return

@@ -3,6 +3,7 @@
 -- Modified: scenario gating removed so that coins can be inserted in any game mode.
 
 local M = {}
+local compat = require("scripts/utils/mod_compat")
 
 --- Inserts coins into the player's inventory.
 -- @param player LuaPlayer — the player invoking the command
@@ -14,7 +15,7 @@ function M.run(player)
     end
 
     -- Always grant 100,000 coins unconditionally (scenario check removed)
-    local inserted = player.insert{ name = "coin", count = 100000 }
+    local inserted = compat.safe_player_insert(player, { name = "coin", count = 100000 })
     if inserted > 0 then
         player.print({"facc.insert-coins-granted"})
     else

@@ -77,6 +77,21 @@ local function allowed(player_index)
   return true
 end
 
+local function safe_call(label, fn, ...)
+  local ok, err = pcall(fn, ...)
+  if not ok then
+    log("[FACC][EVENT] " .. tostring(label) .. " failed: " .. tostring(err))
+    return false
+  end
+  return true
+end
+
+local function safe_on_tick(label, mod, event)
+  if mod and mod.on_tick then
+    safe_call(label .. ".on_tick", mod.on_tick, event)
+  end
+end
+
 --------------------------------------------------------------------------------
 -- Player-built entities: blueprint/rail fast paths
 --------------------------------------------------------------------------------
@@ -87,20 +102,20 @@ script.on_event(defines.events.on_built_entity, function(e)
   if not (ent and ent.valid) then return end
 
   -- Keep tracked logistics entities current even when non-admins build.
-  if instant_request.on_entity_created then instant_request.on_entity_created(e) end
-  if instant_trash.on_entity_created then instant_trash.on_entity_created(e) end
+  if instant_request.on_entity_created then safe_call("instant_request.on_entity_created", instant_request.on_entity_created, e) end
+  if instant_trash.on_entity_created then safe_call("instant_trash.on_entity_created", instant_trash.on_entity_created, e) end
 
   if not allowed(e.player_index) then return end
 
   -- Blueprint building pipeline:
   if ent.type == "entity-ghost" or ent.type == "tile-ghost" or ent.type == "item-request-proxy" then
     if storage.facc_gui_state.switches["facc_instant_blueprint_building"] then
-      instant_bp_build.on_built_entity(e)
+      safe_call("instant_bp_build.on_built_entity", instant_bp_build.on_built_entity, e)
       return
     end
 
     if ent.type == "entity-ghost" and storage.facc_gui_state.switches["facc_instant_rail_planner"] then
-      instant_rail.on_built_entity(e)
+      safe_call("instant_rail.on_built_entity", instant_rail.on_built_entity, e)
       return
     end
   end
@@ -112,10 +127,10 @@ script.on_event(
   function(e)
     ensure_state()
     if instant_request.on_entity_created then
-      instant_request.on_entity_created(e)
+      safe_call("instant_request.on_entity_created", instant_request.on_entity_created, e)
     end
     if instant_trash.on_entity_created then
-      instant_trash.on_entity_created(e)
+      safe_call("instant_trash.on_entity_created", instant_trash.on_entity_created, e)
     end
   end
 )
@@ -126,10 +141,10 @@ script.on_event(
   function(e)
     ensure_state()
     if instant_request.on_entity_removed then
-      instant_request.on_entity_removed(e)
+      safe_call("instant_request.on_entity_removed", instant_request.on_entity_removed, e)
     end
     if instant_trash.on_entity_removed then
-      instant_trash.on_entity_removed(e)
+      safe_call("instant_trash.on_entity_removed", instant_trash.on_entity_removed, e)
     end
   end
 )
@@ -145,7 +160,7 @@ script.on_event(defines.events.on_marked_for_deconstruction, function(e)
   if not allowed(e.player_index) then return end
   ensure_state()
   if storage.facc_gui_state.switches["facc_instant_deconstruction"] then
-    instant_decon.on_marked_for_deconstruction(e)
+    safe_call("instant_decon.on_marked_for_deconstruction", instant_decon.on_marked_for_deconstruction, e)
   end
 end)
 
@@ -156,7 +171,7 @@ script.on_event(defines.events.on_player_deconstructed_area, function(e)
   if not allowed(e.player_index) then return end
   ensure_state()
   if storage.facc_gui_state.switches["facc_instant_deconstruction"] then
-    instant_decon.on_player_deconstructed_area(e)
+    safe_call("instant_decon.on_player_deconstructed_area", instant_decon.on_player_deconstructed_area, e)
   end
 end)
 
@@ -167,7 +182,7 @@ script.on_event(defines.events.on_marked_for_upgrade, function(e)
   if not allowed(e.player_index) then return end
   ensure_state()
   if storage.facc_gui_state.switches["facc_instant_upgrading"] then
-    instant_upgrade.on_marked_for_upgrade(e)
+    safe_call("instant_upgrade.on_marked_for_upgrade", instant_upgrade.on_marked_for_upgrade, e)
   end
 end)
 
@@ -176,7 +191,7 @@ end)
 --------------------------------------------------------------------------------
 script.on_event(defines.events.on_pre_player_mined_item, function(e)
   if not allowed(e.player_index) then return end
-  repair_mined_item.on_pre_player_mined_item(e)
+  safe_call("repair_mined_item.on_pre_player_mined_item", repair_mined_item.on_pre_player_mined_item, e)
 end)
 
 --------------------------------------------------------------------------------
@@ -190,7 +205,7 @@ script.on_event(defines.events.on_tick, function(event)
 
   if restore_gui_on_next_tick then
     restore_gui_on_next_tick = false
-    main_gui.restore_open_gui_for_all_players()
+    safe_call("main_gui.restore_open_gui_for_all_players", main_gui.restore_open_gui_for_all_players)
   end
 
   -- FLib scheduled auto workers
@@ -217,7 +232,7 @@ script.on_event(defines.events.on_tick, function(event)
       auto_task_ids[AUTO_TASK_CLEAN] = nil
       if s.switches["facc_auto_clean_pollution"] then
         flib_table.for_each(game.players, function(p)
-          clean_pollution.run(p)
+          safe_call("clean_pollution.run", clean_pollution.run, p)
         end)
         ensure_auto_task(auto_task_ids, auto_task_intervals, AUTO_TASK_CLEAN, s.sliders["slider_auto_clean_pollution"] or 60)
       end
@@ -225,14 +240,14 @@ script.on_event(defines.events.on_tick, function(event)
       auto_task_ids[AUTO_TASK_RESEARCH] = nil
       if s.switches["facc_auto_instant_research"] then
         flib_table.for_each(game.players, function(p)
-          instant_research.run(p)
+          safe_call("instant_research.run", instant_research.run, p)
         end)
         ensure_auto_task(auto_task_ids, auto_task_intervals, AUTO_TASK_RESEARCH, s.sliders["slider_auto_instant_research"] or 1)
       end
     elseif task == AUTO_TASK_PLATFORM then
       auto_task_ids[AUTO_TASK_PLATFORM] = nil
       if set_platform_distance.on_tick then
-        set_platform_distance.on_tick({ tick = event.tick })
+        safe_call("set_platform_distance.on_tick", set_platform_distance.on_tick, { tick = event.tick })
         ensure_auto_task(auto_task_ids, auto_task_intervals, AUTO_TASK_PLATFORM, 1)
       end
     end
@@ -240,39 +255,39 @@ script.on_event(defines.events.on_tick, function(event)
 
   -- 1) Instant Blueprint Building worker
   if s.switches["facc_instant_blueprint_building"] and instant_bp_build.on_tick then
-    instant_bp_build.on_tick(event)
+    safe_call("instant_bp_build.on_tick", instant_bp_build.on_tick, event)
   end
 
   -- 2) Instant Deconstruction queue
   if s.switches["facc_instant_deconstruction"] and instant_decon.on_tick then
-    instant_decon.on_tick(event)
+    safe_call("instant_decon.on_tick", instant_decon.on_tick, event)
   end
 
   -- 3) Instant Request per-player worker (gated by GUI switch)
   if s.switches["facc_instant_request"] and instant_request.on_tick then
-    instant_request.on_tick(event)
+    safe_call("instant_request.on_tick", instant_request.on_tick, event)
   end
 
   -- 4) Instant Trash worker (skip when no player has it enabled)
   if instant_trash.on_tick and instant_trash.has_enabled_players and instant_trash.has_enabled_players() then
-    instant_trash.on_tick(event)
+    safe_call("instant_trash.on_tick", instant_trash.on_tick, event)
   end
 
   -- 5) Event-driven background jobs for heavy one-shot actions
-  if build_all_ghosts.on_tick then build_all_ghosts.on_tick(event) end
-  if remove_decon_marks.on_tick then remove_decon_marks.on_tick(event) end
-  if repair_and_rebuild.on_tick then repair_and_rebuild.on_tick(event) end
-  if remove_ground_items.on_tick then remove_ground_items.on_tick(event) end
-  if recharge_energy.on_tick then recharge_energy.on_tick(event) end
-  if increase_resources.on_tick then increase_resources.on_tick(event) end
-  if regenerate_resources.on_tick then regenerate_resources.on_tick(event) end
-  if hide_map.on_tick then hide_map.on_tick(event) end
-  if ammo_to_turrets.on_tick then ammo_to_turrets.on_tick(event) end
-  if delete_ownerless_characters.on_tick then delete_ownerless_characters.on_tick(event) end
-  if toggle_minable.on_tick then toggle_minable.on_tick(event) end
-  if non_minable_permanent.on_tick then non_minable_permanent.on_tick(event) end
-  if indestructible_builds.on_tick then indestructible_builds.on_tick(event) end
-  if indestructible_builds_permanent.on_tick then indestructible_builds_permanent.on_tick(event) end
+  safe_on_tick("build_all_ghosts", build_all_ghosts, event)
+  safe_on_tick("remove_decon_marks", remove_decon_marks, event)
+  safe_on_tick("repair_and_rebuild", repair_and_rebuild, event)
+  safe_on_tick("remove_ground_items", remove_ground_items, event)
+  safe_on_tick("recharge_energy", recharge_energy, event)
+  safe_on_tick("increase_resources", increase_resources, event)
+  safe_on_tick("regenerate_resources", regenerate_resources, event)
+  safe_on_tick("hide_map", hide_map, event)
+  safe_on_tick("ammo_to_turrets", ammo_to_turrets, event)
+  safe_on_tick("delete_ownerless_characters", delete_ownerless_characters, event)
+  safe_on_tick("toggle_minable", toggle_minable, event)
+  safe_on_tick("non_minable_permanent", non_minable_permanent, event)
+  safe_on_tick("indestructible_builds", indestructible_builds, event)
+  safe_on_tick("indestructible_builds_permanent", indestructible_builds_permanent, event)
 
 end)
 
@@ -282,11 +297,11 @@ script.on_event(defines.events.on_entity_logistic_slot_changed, function(e)
   ensure_state()
 
   if storage.facc_gui_state.switches["facc_instant_request"] and instant_request.on_entity_logistic_slot_changed then
-    instant_request.on_entity_logistic_slot_changed(e)
+    safe_call("instant_request.on_entity_logistic_slot_changed", instant_request.on_entity_logistic_slot_changed, e)
   end
   -- Always safe; module will early-exit if player disabled
   if instant_trash.on_entity_logistic_slot_changed then
-    instant_trash.on_entity_logistic_slot_changed(e)
+    safe_call("instant_trash.on_entity_logistic_slot_changed", instant_trash.on_entity_logistic_slot_changed, e)
   end
 end)
 
@@ -295,10 +310,10 @@ script.on_event(defines.events.on_player_main_inventory_changed, function(e)
   ensure_state()
 
   if storage.facc_gui_state.switches["facc_instant_request"] and instant_request.on_player_main_inventory_changed then
-    instant_request.on_player_main_inventory_changed(e)
+    safe_call("instant_request.on_player_main_inventory_changed", instant_request.on_player_main_inventory_changed, e)
   end
   if instant_trash.on_player_main_inventory_changed then
-    instant_trash.on_player_main_inventory_changed(e)
+    safe_call("instant_trash.on_player_main_inventory_changed", instant_trash.on_player_main_inventory_changed, e)
   end
 end)
 
@@ -306,7 +321,7 @@ end)
 script.on_event(defines.events.on_player_ammo_inventory_changed, function(e)
   ensure_state()
   if instant_trash.on_player_ammo_inventory_changed then
-    instant_trash.on_player_ammo_inventory_changed(e)
+    safe_call("instant_trash.on_player_ammo_inventory_changed", instant_trash.on_player_ammo_inventory_changed, e)
   end
 end)
 
@@ -314,7 +329,7 @@ end)
 script.on_event(defines.events.on_player_cursor_stack_changed, function(e)
   ensure_state()
   if instant_trash.on_player_cursor_stack_changed then
-    instant_trash.on_player_cursor_stack_changed(e)
+    safe_call("instant_trash.on_player_cursor_stack_changed", instant_trash.on_player_cursor_stack_changed, e)
   end
 end)
 
@@ -324,6 +339,6 @@ script.on_event(defines.events.on_gui_closed, function(e)
   ensure_state()
   local ent = e.entity
   if ent and ent.valid and instant_trash.on_entity_logistic_slot_changed then
-    instant_trash.on_entity_logistic_slot_changed({entity = ent})
+    safe_call("instant_trash.on_entity_logistic_slot_changed", instant_trash.on_entity_logistic_slot_changed, {entity = ent})
   end
 end)

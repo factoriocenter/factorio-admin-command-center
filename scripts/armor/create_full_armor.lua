@@ -5,6 +5,7 @@
 -- • Base only → standard power-armor-mk2
 
 local M = {}
+local compat = require("scripts/utils/mod_compat")
 
 --- Inserts a fully-equipped armor into the first free inventory slot.
 -- @param player LuaPlayer
@@ -15,8 +16,8 @@ function M.run(player)
   end
 
   -- Detect mods
-  local quality_enabled   = script.active_mods["quality"]    ~= nil
-  local space_age_enabled = script.active_mods["space-age"] ~= nil
+  local quality_enabled   = compat.is_mod_active("quality")
+  local space_age_enabled = compat.is_mod_active("space-age")
 
   -- Choose armor and layout
   local armor_name, armor_quality, layout
@@ -181,23 +182,32 @@ function M.run(player)
 
   -- Helper: place equipment into the grid
   local function apply_layout(grid)
+    if not (grid and grid.valid) then
+      return
+    end
     for _, e in ipairs(layout) do
       local entry = { name = e[1], position = {e[2], e[3]} }
       if armor_quality then entry.quality = armor_quality end
-      grid.put(entry)
+      compat.safe_grid_put(grid, entry)
     end
   end
 
   -- Insert armor and apply layout
   local inv = player.get_main_inventory()
+  if not inv then
+    player.print({"facc.create-full-armor-failure"})
+    return
+  end
+
   for i = 1, #inv do
     if not inv[i].valid_for_read then
       local stack = { name = armor_name, count = 1 }
       if armor_quality then stack.quality = armor_quality end
-      inv[i].set_stack(stack)
-      apply_layout(inv[i].grid)
-      player.print({"facc.create-full-armor-success"})
-      return
+      if compat.safe_set_stack(inv[i], stack) then
+        apply_layout(inv[i].grid)
+        player.print({"facc.create-full-armor-success"})
+        return
+      end
     end
   end
 

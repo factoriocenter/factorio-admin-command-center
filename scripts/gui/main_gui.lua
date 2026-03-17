@@ -21,6 +21,7 @@ local infinite_resources_enabled = settings.startup["facc-infinite-resources"]
 -- UI layout constants
 --------------------------------------------------------------------------------
 local SPACING = 12
+local PLANET_TELEPORT_PREFIX = "facc_teleport_planet__"
 
 local CONFIRM_BUTTON_EXCLUDED = {
   facc_set_platform_distance = true,
@@ -346,6 +347,12 @@ local TABS = {
         switch  = true
       },
       {
+        name    = "facc_surface_no_enemies_mode",
+        caption = {"facc.surface-no-enemies"},
+        tooltip = {"tooltip.surface-no-enemies"},
+        switch  = true
+      },
+      {
         name    = "facc_always_day",
         caption = {"facc.always-day"},
         tooltip = {"tooltip.always-day"},
@@ -586,6 +593,24 @@ function M.ensure_persistent_state()
   if type(s.is_open) ~= "boolean" then s.is_open = false end
 end
 
+local function sync_surface_switch_states(player)
+  if not (player and player.valid and player.surface and player.surface.valid) then
+    return
+  end
+  M.ensure_persistent_state()
+
+  local switches = storage.facc_gui_state.switches
+  switches.facc_surface_freeze_daytime = player.surface.freeze_daytime == true
+  switches.facc_surface_peaceful_mode = player.surface.peaceful_mode == true
+
+  local ok, value = pcall(function()
+    return player.surface.no_enemies_mode
+  end)
+  if ok then
+    switches.facc_surface_no_enemies_mode = value == true
+  end
+end
+
 --------------------------------------------------------------------------------
 -- Save all slider values recursively
 --------------------------------------------------------------------------------
@@ -611,7 +636,27 @@ local function surface_supports_property(player, property_name)
   return ok
 end
 
+local function surface_supports_no_enemies_mode(player)
+  if not (player and player.valid and player.surface and player.surface.valid) then
+    return false
+  end
+  local ok = pcall(function()
+    return player.surface.no_enemies_mode
+  end)
+  return ok
+end
+
 local function is_feature_enabled(name, player)
+  if string.sub(name, 1, #PLANET_TELEPORT_PREFIX) == PLANET_TELEPORT_PREFIX then
+    local planet_name = string.sub(name, #PLANET_TELEPORT_PREFIX + 1)
+    if planet_name == "nauvis" then
+      return true
+    end
+    return space_age_enabled
+  end
+  if name == "facc_surface_no_enemies_mode" then
+    return surface_supports_no_enemies_mode(player)
+  end
   if name == "facc_surface_pressure" then
     return space_age_enabled and surface_supports_property(player, "pressure")
   end
@@ -810,6 +855,81 @@ local function add_function_block(parent, elem, player)
   end
 end
 
+local function add_separator(parent)
+  flib_gui.add(parent, {
+    type = "line",
+    direction = "horizontal",
+    style_mods = {
+      horizontally_stretchable = true
+    }
+  })
+end
+
+local function add_planet_teleport_blocks(parent, player)
+  local planet_progress_order = {
+    nauvis = 1,
+    vulcanus = 2,
+    fulgora = 3,
+    gleba = 4,
+    aquilo = 5
+  }
+
+  local known_planets = {
+    nauvis = true,
+    vulcanus = true,
+    fulgora = true,
+    gleba = true,
+    aquilo = true
+  }
+
+  local planet_names = {"nauvis", "vulcanus", "fulgora", "gleba", "aquilo"}
+  if game.planets then
+    for name in pairs(game.planets) do
+      if not known_planets[name] then
+        planet_names[#planet_names + 1] = name
+        known_planets[name] = true
+      end
+    end
+  end
+
+  table.sort(planet_names, function(a, b)
+    local ia = planet_progress_order[a]
+    local ib = planet_progress_order[b]
+    if ia and ib then
+      return ia < ib
+    end
+    if ia then
+      return true
+    end
+    if ib then
+      return false
+    end
+    return a < b
+  end)
+
+  local has_previous_elements = #parent.children > 0
+
+  for _, planet_name in ipairs(planet_names) do
+    local planet = game.planets and game.planets[planet_name]
+    local display_name = string.upper(string.sub(planet_name, 1, 1)) .. string.sub(planet_name, 2)
+    if planet and planet.valid and planet.prototype and planet.prototype.valid then
+      display_name = planet.prototype.localised_name
+    end
+
+    if has_previous_elements then
+      add_separator(parent)
+    end
+
+    add_function_block(parent, {
+      name = PLANET_TELEPORT_PREFIX .. planet_name,
+      caption = {"facc.teleport-to-planet", display_name},
+      tooltip = {"tooltip.teleport-to-planet"}
+    }, player)
+
+    has_previous_elements = true
+  end
+end
+
 --------------------------------------------------------------------------------
 -- Build & display the GUI
 --------------------------------------------------------------------------------
@@ -822,6 +942,7 @@ local function open_gui(player)
     return
   end
   M.ensure_persistent_state()
+  sync_surface_switch_states(player)
 
   if player.gui.screen["facc_main_frame"] then
     player.gui.screen["facc_main_frame"].destroy()
@@ -989,15 +1110,13 @@ local function open_gui(player)
     sec.visible = (key == storage.facc_gui_state.tab)
     for i, elem in ipairs(TABS[key].elements) do
       if i > 1 then
-        flib_gui.add(sec, {
-          type = "line",
-          direction = "horizontal",
-          style_mods = {
-            horizontally_stretchable = true
-          }
-        })
+        add_separator(sec)
       end
       add_function_block(sec, elem, player)
+    end
+
+    if key == "planets" then
+      add_planet_teleport_blocks(sec, player)
     end
   end
 end

@@ -8,9 +8,10 @@
 local M = {}
 local flib_table = require("__flib__.table")
 local chunk_jobs = require("scripts/utils/chunk_job_runner")
+local compat = require("scripts/utils/mod_compat")
 
 -- Detect whether the Space Age DLC/mod is active
-local space_age_enabled = script.active_mods["space-age"] ~= nil
+local space_age_enabled = compat.is_mod_active("space-age")
 local JOBS_KEY = "facc_jobs_ammo_to_turrets"
 local CHUNKS_PER_TICK = 8
 local STATUS_OPTIONS = {
@@ -55,19 +56,27 @@ function M.on_tick(_event)
         local ammo_name = nil
         local ammo_count = 0
         if turret.name == "gun-turret" then
-          ammo_name, ammo_count = "uranium-rounds-magazine", 100
+          ammo_name = compat.find_first_existing("item_prototypes", {
+            "uranium-rounds-magazine",
+            "piercing-rounds-magazine",
+            "firearm-magazine"
+          })
+          ammo_count = 100
         elseif turret.name == "artillery-turret" then
           ammo_name, ammo_count = "artillery-shell", 5
         elseif space_age_enabled and turret.name == "rocket-turret" then
-          ammo_name, ammo_count = "rocket", 100
+          ammo_name = compat.find_first_existing("item_prototypes", {"rocket", "explosive-rocket"})
+          ammo_count = 100
         elseif space_age_enabled and turret.name == "railgun-turret" then
           ammo_name, ammo_count = "railgun-ammo", 10
         end
 
-        if ammo_name then
+        if ammo_name and compat.prototype_exists("item_prototypes", ammo_name) then
           local inv = turret.get_inventory(defines.inventory.turret_ammo)
           if inv and inv.is_empty() then
-            inv.insert{ name = ammo_name, count = ammo_count }
+            pcall(function()
+              inv.insert{ name = ammo_name, count = ammo_count }
+            end)
           end
         end
       end)

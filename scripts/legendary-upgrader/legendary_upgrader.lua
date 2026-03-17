@@ -11,6 +11,20 @@ script.on_event(defines.events.on_player_selected_area, function(event)
 
   local player = game.get_player(event.player_index)
   if not is_allowed(player) then return end
+  if not player then return end
+
+  local quality_active = script.active_mods["quality"] ~= nil
+  local legendary_quality = quality_active
+    and player.force
+    and player.force.valid
+    and player.force.technologies
+    and player.force.technologies["legendary-quality"]
+  local researched = legendary_quality and legendary_quality.valid and legendary_quality.researched == true
+
+  if not (quality_active and researched) then
+    player.print({ "facc.legendary-upgrader-research-required" })
+    return
+  end
 
   local surface = player.surface
   local force   = player.force

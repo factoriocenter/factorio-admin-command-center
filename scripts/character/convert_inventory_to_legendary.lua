@@ -3,6 +3,7 @@
 -- Ignores blueprints, blueprint books, and both vanilla planners (upgrade and deconstruction)
 
 local M = {}
+local compat = require("scripts/utils/mod_compat")
 
 --- Runs the conversion to legendary quality.
 -- Checks for valid player.character before proceeding.
@@ -25,23 +26,37 @@ function M.run(player)
 
   -- Safely insert item into inventory or store in a chest
   local function safe_insert_or_store(item)
-    if player.can_insert(item) then
-      player.insert(item)
-    else
-      local chest = player.surface.find_entity("steel-chest", player.position)
-      if not chest then
-        chest = player.surface.create_entity{
-          name = "steel-chest",
-          position = {player.position.x + 1, player.position.y},
-          force = player.force
-        }
-      end
+    if compat.safe_player_insert(player, item) > 0 then
+      return
+    end
+
+    local chest_name = compat.find_first_existing("entity_prototypes", {
+      "steel-chest",
+      "iron-chest",
+      "wooden-chest"
+    })
+    if not chest_name then
+      return
+    end
+
+    local chest = player.surface.find_entity(chest_name, player.position)
+    if not chest then
+      chest = player.surface.create_entity{
+        name = chest_name,
+        position = {player.position.x + 1, player.position.y},
+        force = player.force
+      }
+    end
+    if chest and chest.valid then
       chest.insert(item)
     end
   end
 
   -- Convert items in given inventory, skipping blueprints and planners
   local function convert_inventory(inv)
+    if not inv then
+      return
+    end
     for i = 1, #inv do
       local stack = inv[i]
       if stack.valid_for_read and stack.quality ~= "legendary" and stack.count > 0 then
@@ -56,10 +71,8 @@ function M.run(player)
           local count = stack.count
           local removed = inv.remove{name = name, count = count}
           if removed > 0 then
-            local success = pcall(function()
-              player.insert{name = name, count = removed, quality = "legendary"}
-            end)
-            if not success then
+            local inserted = compat.safe_player_insert(player, {name = name, count = removed, quality = "legendary"})
+            if inserted <= 0 then
               safe_insert_or_store({name = name, count = removed})
             end
           end
@@ -75,6 +88,11 @@ function M.run(player)
 
   -- Handle armor and equipment grid
   local armor_inv = player.get_inventory(defines.inventory.character_armor)
+  if not armor_inv then
+    player.character_inventory_slots_bonus = original_bonus
+    player.print({"facc.convert-inventory-msg"})
+    return
+  end
   local armor_stack = armor_inv[1]
   local equipment_buffer = {}
 
@@ -92,10 +110,8 @@ function M.run(player)
   if armor_stack.valid_for_read and armor_stack.quality ~= "legendary" then
     local name = armor_stack.name
     armor_inv.remove{name = name, count = 1}
-    local success = pcall(function()
-      player.insert{name = name, count = 1, quality = "legendary"}
-    end)
-    if not success then
+    local inserted = compat.safe_player_insert(player, {name = name, count = 1, quality = "legendary"})
+    if inserted <= 0 then
       safe_insert_or_store({name = name, count = 1})
     end
   end
@@ -105,9 +121,7 @@ function M.run(player)
   if new_armor.valid_for_read and new_armor.grid then
     table.sort(equipment_buffer, function(a, b) return a.size > b.size end)
     for _, eq in pairs(equipment_buffer) do
-      local ok = pcall(function()
-        new_armor.grid.put{name = eq.name, quality = "legendary"}
-      end)
+      local ok = compat.safe_grid_put(new_armor.grid, {name = eq.name, quality = "legendary"})
       if not ok then
         safe_insert_or_store({name = eq.name, count = 1})
       end

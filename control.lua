@@ -8,6 +8,15 @@ _G.is_allowed = permissions.is_allowed
 local flib_on_tick_n = require("__flib__.on-tick-n")
 local flib_table = require("__flib__.table")
 
+local function safe_control_call(label, fn, ...)
+  local ok, err = pcall(fn, ...)
+  if not ok then
+    log("[FACC][CONTROL] " .. tostring(label) .. " failed: " .. tostring(err))
+    return false
+  end
+  return true
+end
+
 -- Alias the persistent global table so every module can use the shorter `storage`
 -- name (historically used by the mod) while still relying on Factorio's official
 -- persistence table. This keeps saves compatible across updates/load.
@@ -119,10 +128,20 @@ end
 --------------------------------------------------------------------------------
 -- Hide or show the Legendary Upgrader shortcut based on Quality mod presence
 --------------------------------------------------------------------------------
+local function is_legendary_quality_module_researched(force)
+  if not (force and force.valid and force.technologies) then
+    return false
+  end
+
+  local legendary_quality = force.technologies["legendary-quality"]
+  return legendary_quality and legendary_quality.valid and legendary_quality.researched == true
+end
+
 local function update_legendary_shortcut_availability()
   local quality_active = script.active_mods["quality"] ~= nil
   flib_table.for_each(game.players, function(player)
-    player.set_shortcut_available("facc_give_legendary_upgrader", quality_active)
+    local researched = is_legendary_quality_module_researched(player.force)
+    player.set_shortcut_available("facc_give_legendary_upgrader", quality_active and researched)
   end)
 end
 --------------------------------------------------------------------------------
@@ -160,13 +179,13 @@ script.on_configuration_changed(function(event)
           admin = true,
           print = function() end
         }
-        regenerate_finite.run(ctx)
+        safe_control_call("regenerate_finite.run", regenerate_finite.run, ctx)
       end)
     end
     -- If infinite-resources is enabled, top up every existing surface to N× once
     if settings.startup["facc-infinite-resources"].value then
       flib_table.for_each(game.surfaces, function(surface)
-        regenerate_infinite.run_on_surface(surface)
+        safe_control_call("regenerate_infinite.run_on_surface", regenerate_infinite.run_on_surface, surface)
       end)
     end
   end
@@ -180,6 +199,18 @@ script.on_event(defines.events.on_player_joined_game, function(e)
   local p = game.get_player(e.player_index)
   if p then invincible_player.apply_saved(p) end
 end)
+
+script.on_event(defines.events.on_research_finished, function()
+  update_legendary_shortcut_availability()
+end)
+
+script.on_event(defines.events.on_technology_effects_reset, function()
+  update_legendary_shortcut_availability()
+end)
+
+script.on_event(defines.events.on_player_changed_force, function()
+  update_legendary_shortcut_availability()
+end)
 --------------------------------------------------------------------------------
 -- Reapply invincibility on respawn (if previously enabled via switch)
 --------------------------------------------------------------------------------
@@ -192,7 +223,7 @@ end)
 --------------------------------------------------------------------------------
 script.on_event(defines.events.on_chunk_generated, function(event)
   if settings.startup["facc-infinite-resources"].value then
-    top_up_area(event.surface, event.area)
+    safe_control_call("top_up_area", top_up_area, event.surface, event.area)
   end
 end)
 --------------------------------------------------------------------------------
@@ -201,7 +232,7 @@ end)
 script.on_event(defines.events.on_surface_created, function(event)
   if settings.startup["facc-infinite-resources"].value then
     local surf = game.surfaces[event.surface_index]
-    regenerate_infinite.run_on_surface(surf)
+    safe_control_call("regenerate_infinite.run_on_surface", regenerate_infinite.run_on_surface, surf)
   end
 end)
 --------------------------------------------------------------------------------
@@ -229,7 +260,7 @@ local console_gui = require("scripts/gui/console_gui")
 script.on_event(defines.events.on_player_changed_surface, function(e)
   local player = game.get_player(e.player_index)
   if player and main_gui and main_gui.refresh_open_gui then
-    main_gui.refresh_open_gui(player)
+    safe_control_call("main_gui.refresh_open_gui", main_gui.refresh_open_gui, player)
   end
 end)
 
@@ -248,8 +279,14 @@ script.on_event(defines.events.on_lua_shortcut, function(e)
     main_gui.toggle_main_gui(player)
   elseif e.prototype_name == "facc_give_legendary_upgrader" then
     if is_allowed(player) then
+      if script.active_mods["quality"] == nil or not is_legendary_quality_module_researched(player.force) then
+        player.print({ "facc.legendary-upgrader-research-required" })
+        return
+      end
       player.clear_cursor()
-      player.cursor_stack.set_stack({ name = "facc_legendary_upgrader" })
+      pcall(function()
+        player.cursor_stack.set_stack({ name = "facc_legendary_upgrader" })
+      end)
       player.print({ "facc.legendary-upgrader-equipped" })
     end
   end

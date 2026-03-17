@@ -19,6 +19,7 @@ local indestructible_builds  = require("scripts/combat/indestructible_builds")
 
 local toggle_minable         = require("scripts/mining/toggle_minable")
 local set_platform_distance  = require("scripts/transportation/set_platform_distance")
+local teleport_to_planet     = require("scripts/planets/teleport_to_planet")
 
 local toggle_trains          = require("scripts/trains/toggle_trains")
 local distance_bonus         = require("scripts/character/distance_bonus")
@@ -63,6 +64,23 @@ end
 local function get_state()
   ensure_state()
   return storage and storage.facc_gui_state or nil
+end
+
+local function safe_call(action_name, fn, ...)
+  local ok, result_or_err = pcall(fn, ...)
+  if not ok then
+    log("[FACC][GUI] " .. tostring(action_name) .. " failed: " .. tostring(result_or_err))
+    return false
+  end
+  return true, result_or_err
+end
+
+local function safe_call_player(player, action_name, fn, ...)
+  local ok = safe_call(action_name, fn, ...)
+  if not ok and player and player.valid then
+    player.print({"facc.runtime-compat-error", action_name})
+  end
+  return ok
 end
 
 local FACC_BUTTONS = {
@@ -164,6 +182,7 @@ local FACC_SWITCHES = {
   facc_instant_trash = true,
   facc_surface_freeze_daytime = true,
   facc_surface_peaceful_mode = true,
+  facc_surface_no_enemies_mode = true,
 }
 
 local DISTANCE_SLIDERS = {
@@ -227,9 +246,16 @@ local function on_gui_click(event)
   local player, element = game.get_player(event.player_index), event.element
   if not (player and element and element.valid) then return end
   local name = element.name
-  if not FACC_BUTTONS[name] then return end
+  local is_planet_teleport_button = string.sub(name, 1, 22) == "facc_teleport_planet__"
+  if not FACC_BUTTONS[name] and not is_planet_teleport_button then return end
   local state = get_state()
   if not state then return end
+
+  if is_planet_teleport_button then
+    local planet_name = string.sub(name, 23)
+    safe_call_player(player, "teleport_to_planet", teleport_to_planet.run, player, planet_name)
+    return
+  end
 
   if name == "facc_main_button" or name == "facc_close_main_gui" then
     if main_gui_api and main_gui_api.toggle_main_gui then
@@ -266,49 +292,51 @@ local function on_gui_click(event)
     if name == "facc_reveal_map"           then radius = sliders["slider_reveal_map"] or 150 end
     if name == "facc_convert_to_legendary" then radius = sliders["slider_convert_to_legendary"] or 75 end
 
-    if radius then handler.run(player, radius)
-    else           handler.run(player)
+    if radius then
+      safe_call_player(player, name, handler.run, player, radius)
+    else
+      safe_call_player(player, name, handler.run, player)
     end
     return
   end
 
   if name == "facc_set_platform_distance" then
     local raw = state.sliders["slider_platform_distance"] or 0.99
-    set_platform_distance.run(player, raw)
+    safe_call_player(player, name, set_platform_distance.run, player, raw)
     return
   end
 
   if name == "facc_surface_daytime" then
     local daytime_pct = state.sliders["slider_surface_daytime"] or 50
-    surface_properties.set_daytime(player, daytime_pct / 100)
+    safe_call_player(player, name, surface_properties.set_daytime, player, daytime_pct / 100)
     return
   end
 
   if name == "facc_surface_daytime_midday" then
-    surface_properties.set_midday(player)
+    safe_call_player(player, name, surface_properties.set_midday, player)
     return
   end
 
   if name == "facc_surface_daytime_midnight" then
-    surface_properties.set_midnight(player)
+    safe_call_player(player, name, surface_properties.set_midnight, player)
     return
   end
 
   if name == "facc_surface_pressure" then
     local pressure = state.sliders["slider_surface_pressure"] or 1000
-    surface_properties.set_property(player, "pressure", pressure)
+    safe_call_player(player, name, surface_properties.set_property, player, "pressure", pressure)
     return
   end
 
   if name == "facc_surface_magnetic_field" then
     local magnetic = state.sliders["slider_surface_magnetic_field"] or 90
-    surface_properties.set_property(player, "magnetic-field", magnetic)
+    safe_call_player(player, name, surface_properties.set_property, player, "magnetic-field", magnetic)
     return
   end
 
   if name == "facc_surface_gravity" then
     local gravity = state.sliders["slider_surface_gravity"] or 10
-    surface_properties.set_property(player, "gravity", gravity)
+    safe_call_player(player, name, surface_properties.set_property, player, "gravity", gravity)
   end
 end
 
@@ -323,7 +351,7 @@ local function on_gui_value_changed(event)
   if elem.name == "slider_increase_robot_speed" then
     local old = state.sliders["slider_increase_robot_speed"] or 0
     local new = elem.slider_value
-    increase_robot_speed.apply(player, old, new)
+    safe_call_player(player, elem.name, increase_robot_speed.apply, player, old, new)
     state.sliders["slider_increase_robot_speed"] = new
     local box = elem.parent[elem.name .. "_value"]
     if box and box.valid then box.text = tostring(new) end
@@ -334,7 +362,7 @@ local function on_gui_value_changed(event)
   if distance_property then
     local old = state.sliders[elem.name] or 0
     local new = elem.slider_value
-    distance_bonus.apply(player, distance_property, old, new)
+    safe_call_player(player, elem.name, distance_bonus.apply, player, distance_property, old, new)
     state.sliders[elem.name] = new
     local box = elem.parent[elem.name .. "_value"]
     if box and box.valid then box.text = tostring(new) end
@@ -344,7 +372,7 @@ local function on_gui_value_changed(event)
   if elem.name == "slider_ammo_damage_boost" then
     local old = state.sliders["slider_ammo_damage_boost"] or 0
     local new = elem.slider_value
-    ammo_damage_boost.apply(player, old, new)
+    safe_call_player(player, elem.name, ammo_damage_boost.apply, player, old, new)
     state.sliders["slider_ammo_damage_boost"] = new
     local box = elem.parent["slider_ammo_damage_boost_value"]
     if box and box.valid then box.text = tostring(new) end
@@ -354,7 +382,7 @@ local function on_gui_value_changed(event)
   if elem.name == "slider_turret_damage_boost" then
     local old = state.sliders["slider_turret_damage_boost"] or 0
     local new = elem.slider_value
-    turret_damage_boost.apply(player, old, new)
+    safe_call_player(player, elem.name, turret_damage_boost.apply, player, old, new)
     state.sliders["slider_turret_damage_boost"] = new
     local box = elem.parent["slider_turret_damage_boost_value"]
     if box and box.valid then box.text = tostring(new) end
@@ -374,7 +402,7 @@ local function on_gui_value_changed(event)
   if elem.name == "slider_set_crafting_speed" then
     local old = state.sliders["slider_set_crafting_speed"] or 0
     local new = elem.slider_value
-    set_crafting_speed.run(player, old, new)
+    safe_call_player(player, elem.name, set_crafting_speed.run, player, old, new)
     state.sliders["slider_set_crafting_speed"] = new
     local box = elem.parent[elem.name .. "_value"]
     if box and box.valid then box.text = tostring(new) end
@@ -389,14 +417,14 @@ local function on_gui_value_changed(event)
     local speeds = {0.25, 0.5, 1, 2, 4, 8, 16, 32, 64}
     local idx = math_util.floor(elem.slider_value)
     local speed = speeds[idx] or 1
-    set_game_speed.run(player, speed)
+    safe_call_player(player, elem.name, set_game_speed.run, player, speed)
     if box and box.valid then box.text = tostring(speed) end
   elseif elem.name == "slider_set_mining_speed" then
-    set_mining_speed.run(player, elem.slider_value)
+    safe_call_player(player, elem.name, set_mining_speed.run, player, elem.slider_value)
   elseif elem.name == "slider_platform_distance" then
-    set_platform_distance.run(player, elem.slider_value)
+    safe_call_player(player, elem.name, set_platform_distance.run, player, elem.slider_value)
   elseif elem.name == "slider_run_faster" then
-    run_faster.run(player, elem.slider_value)
+    safe_call_player(player, elem.name, run_faster.run, player, elem.slider_value)
   end
 end
 
@@ -411,28 +439,29 @@ local function on_gui_switch_state_changed(event)
 
   if     elem.name == "facc_auto_clean_pollution"   then
     flib_table.for_each(game.players, function(p)
-      clean_pollution.run(p)
+      safe_call_player(p, elem.name, clean_pollution.run, p)
     end)
   elseif elem.name == "facc_auto_instant_research"  then
     flib_table.for_each(game.players, function(p)
-      instant_research.run(p)
+      safe_call_player(p, elem.name, instant_research.run, p)
     end)
-  elseif elem.name == "facc_cheat_mode"             then cheat_mode.run(player, on)
-  elseif elem.name == "facc_always_day"             then always_day.run(player, on)
-  elseif elem.name == "facc_disable_pollution"      then disable_pollution.run(player, on)
-  elseif elem.name == "facc_disable_friendly_fire"  then disable_friendly_fire.run(player, on)
-  elseif elem.name == "facc_indestructible_builds"  then indestructible_builds.run(player, on)
-  elseif elem.name == "facc_peaceful_mode"          then peaceful_mode.run(player, on)
-  elseif elem.name == "facc_enemy_expansion"        then enemy_expansion.run(player, on)
-  elseif elem.name == "facc_toggle_minable"         then toggle_minable.run(player, on)
-  elseif elem.name == "facc_toggle_trains"          then toggle_trains.run(player, on)
-  elseif elem.name == "facc_ghost_mode"             then ghost_toggle.run(player, on)
-  elseif elem.name == "facc_invincible_player"      then invincible_player.run(player, on)
-  elseif elem.name == "facc_repair_mined_item"      then repair_mined_item.toggle_player(player, on)
-  elseif elem.name == "facc_instant_request"        then instant_request.toggle_player(player, on)
-  elseif elem.name == "facc_instant_trash"          then instant_trash.toggle_player(player, on)
-  elseif elem.name == "facc_surface_freeze_daytime" then surface_properties.set_freeze_daytime(player, on)
-  elseif elem.name == "facc_surface_peaceful_mode"  then surface_properties.set_peaceful_mode(player, on)
+  elseif elem.name == "facc_cheat_mode"             then safe_call_player(player, elem.name, cheat_mode.run, player, on)
+  elseif elem.name == "facc_always_day"             then safe_call_player(player, elem.name, always_day.run, player, on)
+  elseif elem.name == "facc_disable_pollution"      then safe_call_player(player, elem.name, disable_pollution.run, player, on)
+  elseif elem.name == "facc_disable_friendly_fire"  then safe_call_player(player, elem.name, disable_friendly_fire.run, player, on)
+  elseif elem.name == "facc_indestructible_builds"  then safe_call_player(player, elem.name, indestructible_builds.run, player, on)
+  elseif elem.name == "facc_peaceful_mode"          then safe_call_player(player, elem.name, peaceful_mode.run, player, on)
+  elseif elem.name == "facc_enemy_expansion"        then safe_call_player(player, elem.name, enemy_expansion.run, player, on)
+  elseif elem.name == "facc_toggle_minable"         then safe_call_player(player, elem.name, toggle_minable.run, player, on)
+  elseif elem.name == "facc_toggle_trains"          then safe_call_player(player, elem.name, toggle_trains.run, player, on)
+  elseif elem.name == "facc_ghost_mode"             then safe_call_player(player, elem.name, ghost_toggle.run, player, on)
+  elseif elem.name == "facc_invincible_player"      then safe_call_player(player, elem.name, invincible_player.run, player, on)
+  elseif elem.name == "facc_repair_mined_item"      then safe_call_player(player, elem.name, repair_mined_item.toggle_player, player, on)
+  elseif elem.name == "facc_instant_request"        then safe_call_player(player, elem.name, instant_request.toggle_player, player, on)
+  elseif elem.name == "facc_instant_trash"          then safe_call_player(player, elem.name, instant_trash.toggle_player, player, on)
+  elseif elem.name == "facc_surface_freeze_daytime" then safe_call_player(player, elem.name, surface_properties.set_freeze_daytime, player, on)
+  elseif elem.name == "facc_surface_peaceful_mode"  then safe_call_player(player, elem.name, surface_properties.set_peaceful_mode, player, on)
+  elseif elem.name == "facc_surface_no_enemies_mode" then safe_call_player(player, elem.name, surface_properties.set_no_enemies_mode, player, on)
   end
 end
 
