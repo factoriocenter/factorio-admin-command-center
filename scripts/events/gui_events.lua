@@ -46,6 +46,7 @@ local flib_table             = require("__flib__.table")
 
 local main_gui_api = nil
 local console_gui_api = nil
+local teleport_gui_api = nil
 
 function M.set_main_gui_api(api)
   main_gui_api = api
@@ -53,6 +54,10 @@ end
 
 function M.set_console_gui_api(api)
   console_gui_api = api
+end
+
+function M.set_teleport_gui_api(api)
+  teleport_gui_api = api
 end
 
 local function ensure_state()
@@ -233,9 +238,18 @@ end
 
 local function on_menu_selection_state_changed(event)
   local elem = event.element
-  if not (elem and elem.valid and elem.name == "facc_menu_list") then return end
   local player = game.get_player(event.player_index)
   if not (player and player.valid) then return end
+
+  local name = elem and elem.valid and elem.name or ""
+  if string.sub(name, 1, 8) == "facc_tp_" then
+    if teleport_gui_api and teleport_gui_api.handle_selection_state_changed then
+      teleport_gui_api.handle_selection_state_changed(player, elem)
+    end
+    return
+  end
+
+  if not (elem and elem.valid and elem.name == "facc_menu_list") then return end
   ensure_state()
   if main_gui_api and main_gui_api.handle_tab_selection then
     main_gui_api.handle_tab_selection(player, elem.selected_index)
@@ -246,6 +260,13 @@ local function on_gui_click(event)
   local player, element = game.get_player(event.player_index), event.element
   if not (player and element and element.valid) then return end
   local name = element.name
+  local is_teleport_gui_button = string.sub(name, 1, 8) == "facc_tp_"
+  if is_teleport_gui_button then
+    if teleport_gui_api and teleport_gui_api.handle_click then
+      teleport_gui_api.handle_click(player, element)
+    end
+    return
+  end
   local is_planet_teleport_button = string.sub(name, 1, 22) == "facc_teleport_planet__"
   if not FACC_BUTTONS[name] and not is_planet_teleport_button then return end
   local state = get_state()

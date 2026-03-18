@@ -138,6 +138,20 @@ data:extend({
 })
 
 --------------------------------------------------------------------------------
+-- 5.1) Custom input: Toggle Fast Teleport Manager (Ctrl + Shift + T)
+--------------------------------------------------------------------------------
+data:extend({
+  {
+    type                  = "custom-input",
+    name                  = "facc_toggle_fast_teleport",
+    key_sequence          = "CONTROL + SHIFT + T",
+    consuming             = "game-only",
+    localised_name        = {"controls.facc_toggle_fast_teleport"},
+    localised_description = {"controls.facc_toggle_fast_teleport_description"}
+  }
+})
+
+--------------------------------------------------------------------------------
 -- 6) Only if the Cheat tab is ON, register all of its recipes
 --------------------------------------------------------------------------------
 if show_cheat_tab then

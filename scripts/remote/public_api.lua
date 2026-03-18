@@ -3,6 +3,7 @@
 
 local main_gui = require("scripts/gui/main_gui")
 local console_gui = require("scripts/gui/console_gui")
+local teleport_gui = require("scripts/gui/teleport_gui")
 local flib_table = require("__flib__.table")
 local math_util = require("scripts/utils/flib_math")
 
@@ -344,6 +345,9 @@ local SIMPLE_ACTIONS = {
   facc_refresh_main_gui = function(player, _args)
     return call_safe(main_gui.refresh_open_gui, player)
   end,
+  facc_tp_open = function(player, _args)
+    return call_safe(teleport_gui.toggle_teleport_gui, player)
+  end,
 }
 
 local ACTION_SPEC = {
@@ -382,7 +386,7 @@ local ACTION_SPEC = {
   simple = {
     "facc_surface_daytime_midday", "facc_surface_daytime_midnight",
     "facc_teleport_to_planet", "facc_console_exec", "facc_console",
-    "facc_toggle_main_gui", "facc_refresh_main_gui"
+    "facc_toggle_main_gui", "facc_refresh_main_gui", "facc_tp_open"
   }
 }
 
@@ -440,6 +444,7 @@ local ACTION_SCHEMA = {
   facc_auto_instant_research_interval = { value = "number seconds [1..300]" },
   facc_teleport_to_planet = { planet_name = "string (or use value)" },
   facc_console_exec = { code = "string (Lua code)" },
+  facc_tp_open = {},
 }
 
 local function run_action_impl(action, player_index, args)
@@ -597,6 +602,76 @@ local API_FUNCTIONS = {
     if not player then return { ok = false, error = err } end
     local ok, call_err = call_safe(console_gui.toggle_console_gui, player)
     return { ok = ok, error = call_err }
+  end,
+
+  toggle_teleport_gui = function(player_index)
+    local player, err = get_player(player_index)
+    if not player then return { ok = false, error = err } end
+    local ok, call_err = call_safe(teleport_gui.toggle_teleport_gui, player)
+    return { ok = ok, error = call_err }
+  end,
+
+  list_saved_teleports = function(player_index)
+    local player, err = get_player(player_index)
+    if not player then return { ok = false, error = err } end
+    local ok, call_err, points = teleport_gui.list_saved_points(player)
+    return { ok = ok, error = call_err, points = points or {} }
+  end,
+
+  save_current_teleport = function(player_index, name)
+    local player, err = get_player(player_index)
+    if not player then return { ok = false, error = err } end
+    local ok, call_err, point = teleport_gui.save_current_point(player, name)
+    return { ok = ok, error = call_err, point = point }
+  end,
+
+  rename_saved_teleport = function(player_index, point_id, new_name)
+    local player, err = get_player(player_index)
+    if not player then return { ok = false, error = err } end
+    local ok, call_err, point = teleport_gui.rename_saved_point(player, tonumber(point_id), new_name)
+    return { ok = ok, error = call_err, point = point }
+  end,
+
+  delete_saved_teleport = function(player_index, point_id)
+    local player, err = get_player(player_index)
+    if not player then return { ok = false, error = err } end
+    local ok, call_err = teleport_gui.delete_saved_point(player, tonumber(point_id))
+    return { ok = ok, error = call_err }
+  end,
+
+  teleport_to_saved = function(player_index, point_id)
+    local player, err = get_player(player_index)
+    if not player then return { ok = false, error = err } end
+    local ok, call_err, point = teleport_gui.teleport_to_saved_point(player, tonumber(point_id))
+    return { ok = ok, error = call_err, point = point }
+  end,
+
+  list_tag_teleports = function(player_index)
+    local player, err = get_player(player_index)
+    if not player then return { ok = false, error = err } end
+    local ok, call_err, tags = teleport_gui.list_visible_tags(player)
+    return { ok = ok, error = call_err, tags = tags or {} }
+  end,
+
+  teleport_to_tag = function(player_index, tag_number)
+    local player, err = get_player(player_index)
+    if not player then return { ok = false, error = err } end
+    local ok, call_err, tag = teleport_gui.teleport_to_tag(player, tonumber(tag_number))
+    return { ok = ok, error = call_err, tag = tag }
+  end,
+
+  hide_tag_teleport = function(player_index, tag_number)
+    local player, err = get_player(player_index)
+    if not player then return { ok = false, error = err } end
+    local ok, call_err, tag = teleport_gui.hide_tag(player, tonumber(tag_number))
+    return { ok = ok, error = call_err, tag = tag }
+  end,
+
+  unhide_tag_teleports = function(player_index)
+    local player, err = get_player(player_index)
+    if not player then return { ok = false, error = err } end
+    local ok, call_err, count = teleport_gui.unhide_all_tags(player)
+    return { ok = ok, error = call_err, count = count or 0 }
   end,
 }
 

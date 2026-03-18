@@ -512,6 +512,11 @@ local TABS = {
         name    = "facc_generate_planet_surfaces",
         caption = {"facc.generate-planet-surfaces"},
         tooltip = {"tooltip.generate-planet-surfaces"}
+      },
+      {
+        name    = "facc_tp_open",
+        caption = {"facc.tp-open"},
+        tooltip = {"tooltip.tp-open"}
       }
     }
   },

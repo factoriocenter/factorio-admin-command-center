@@ -123,3 +123,20 @@ commands.add_command("facc-demo-batch", "Run two FACC actions in batch", functio
     end
   end
 end)
+
+commands.add_command("facc-demo-fast-teleport-save", "Save current position through FACC Fast Teleport API", function(cmd)
+  local player = cmd.player_index and game.get_player(cmd.player_index)
+  if not player then return end
+
+  local result, err = facc_call("save_current_teleport", player.index, "Demo Point")
+  if not result then
+    player.print("FACC save teleport failed: " .. tostring(err))
+    return
+  end
+  if not result.ok then
+    player.print("FACC save teleport failed: " .. tostring(result.error))
+    return
+  end
+
+  player.print("Saved point id: " .. tostring(result.point and result.point.id))
+end)

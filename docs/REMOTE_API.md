@@ -201,6 +201,62 @@ Toggles FACC main GUI for the player.
 
 Toggles FACC console GUI for the player.
 
+### `toggle_teleport_gui(player_index) -> table`
+
+Toggles FACC Fast Teleport Manager GUI for the player.
+
+### `list_saved_teleports(player_index) -> table`
+
+Returns the player's saved custom teleport points:
+
+```lua
+{
+  ok = true,
+  points = {
+    {
+      id = number,
+      name = string,
+      position = { x = number, y = number },
+      surface_index = number,
+      surface_name = string,
+      caption = "Name (X,Y)"
+    }
+  }
+}
+```
+
+### `save_current_teleport(player_index, name) -> table`
+
+Saves current player location as a custom point.
+
+### `rename_saved_teleport(player_index, point_id, new_name) -> table`
+
+Renames one saved custom point by id.
+
+### `delete_saved_teleport(player_index, point_id) -> table`
+
+Deletes one saved custom point by id.
+
+### `teleport_to_saved(player_index, point_id) -> table`
+
+Teleports player to one saved custom point by id.
+
+### `list_tag_teleports(player_index) -> table`
+
+Lists visible map tags available as teleport destinations.
+
+### `teleport_to_tag(player_index, tag_number) -> table`
+
+Teleports player to one map tag by tag number.
+
+### `hide_tag_teleport(player_index, tag_number) -> table`
+
+Hides one map tag from Fast Teleport picker by tag number.
+
+### `unhide_tag_teleports(player_index) -> table`
+
+Restores all hidden map tags in Fast Teleport picker.
+
 ## 4. Action execution rules
 
 ### 4.1 Player validation
@@ -367,6 +423,7 @@ Use `get_capabilities().space_age` before calling Space Age specific behavior in
 | `facc_console` | yes | none | Toggles FACC console GUI. |
 | `facc_toggle_main_gui` | yes | none | Toggles FACC main window. |
 | `facc_refresh_main_gui` | yes | none | Refreshes currently open main GUI. |
+| `facc_tp_open` | yes | none | Toggles Fast Teleport Manager GUI. |
 
 ## 7. Error catalog
 
@@ -380,6 +437,12 @@ Known explicit errors from API wrapper:
 - `missing-code`
 - `invalid-calls-table`
 - `invalid-call-item`
+- `not-allowed`
+- `saved-point-not-found`
+- `name-empty`
+- `tag-not-found`
+- `surface-missing`
+- `teleport-failed`
 
 Additional errors can be raw Lua error strings from wrapped calls (`pcall` capture).
 

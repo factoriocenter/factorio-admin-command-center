@@ -245,6 +245,7 @@ for _, path in ipairs({
   "scripts/environment/remove_ground_items",
   "scripts/cheats/instant_research",
   "scripts/gui/console_gui",
+  "scripts/gui/teleport_gui",
   "scripts/remote/public_api",
   "scripts/events/gui_events",
   "scripts/legendary-upgrader/legendary_upgrader",
@@ -257,6 +258,7 @@ end
 --------------------------------------------------------------------------------
 local main_gui = require("scripts/gui/main_gui")
 local console_gui = require("scripts/gui/console_gui")
+local teleport_gui = require("scripts/gui/teleport_gui")
 
 script.on_event(defines.events.on_player_changed_surface, function(e)
   local player = game.get_player(e.player_index)
@@ -297,5 +299,13 @@ script.on_event("facc_console_exec_input", function(e)
   local player = game.get_player(e.player_index)
   if player and player.gui.screen.facc_console_frame then
     console_gui.exec_console_command(player)
+  end
+end)
+
+-- Toggle Fast Teleport Manager with Ctrl+Shift+T
+script.on_event("facc_toggle_fast_teleport", function(e)
+  local player = game.get_player(e.player_index)
+  if player then
+    teleport_gui.toggle_teleport_gui(player)
   end
 end)
