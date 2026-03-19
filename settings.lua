@@ -106,6 +106,177 @@ data:extend({
     order = "i",
     localised_name = {"mod-setting-name.facc-enable-background-optimization"},
     localised_description = {"mod-setting-description.facc-enable-background-optimization"}
+  },
+  {
+    type = "bool-setting",
+    name = "facc-stats-hud-enabled",
+    setting_type = "runtime-per-user",
+    default_value = false,
+    order = "j1",
+    localised_name = {"mod-setting-name.facc-stats-hud-enabled"},
+    localised_description = {"mod-setting-description.facc-stats-hud-enabled"}
+  },
+  {
+    type = "bool-setting",
+    name = "facc-stats-hud-single-line",
+    setting_type = "runtime-per-user",
+    default_value = false,
+    order = "j2",
+    localised_name = {"mod-setting-name.facc-stats-hud-single-line"},
+    localised_description = {"mod-setting-description.facc-stats-hud-single-line"}
+  },
+  {
+    type = "bool-setting",
+    name = "facc-stats-hud-adjust-for-fps-ups",
+    setting_type = "runtime-per-user",
+    default_value = false,
+    order = "j2a",
+    localised_name = {"mod-setting-name.facc-stats-hud-adjust-for-fps-ups"},
+    localised_description = {"mod-setting-description.facc-stats-hud-adjust-for-fps-ups"}
+  },
+  {
+    type = "bool-setting",
+    name = "facc-stats-hud-adjust-for-clock",
+    setting_type = "runtime-per-user",
+    default_value = false,
+    order = "j2b",
+    localised_name = {"mod-setting-name.facc-stats-hud-adjust-for-clock"},
+    localised_description = {"mod-setting-description.facc-stats-hud-adjust-for-clock"}
+  },
+  {
+    type = "bool-setting",
+    name = "facc-stats-hud-show-research-eta",
+    setting_type = "runtime-per-user",
+    default_value = false,
+    order = "j3",
+    localised_name = {"mod-setting-name.facc-stats-hud-show-research-eta"},
+    localised_description = {"mod-setting-description.facc-stats-hud-show-research-eta"}
+  },
+  {
+    type = "bool-setting",
+    name = "facc-stats-hud-show-coordinates",
+    setting_type = "runtime-per-user",
+    default_value = false,
+    order = "j4",
+    localised_name = {"mod-setting-name.facc-stats-hud-show-coordinates"},
+    localised_description = {"mod-setting-description.facc-stats-hud-show-coordinates"}
+  },
+  {
+    type = "bool-setting",
+    name = "facc-stats-hud-show-distance-from-point",
+    setting_type = "runtime-per-user",
+    default_value = false,
+    order = "j5",
+    localised_name = {"mod-setting-name.facc-stats-hud-show-distance-from-point"},
+    localised_description = {"mod-setting-description.facc-stats-hud-show-distance-from-point"}
+  },
+  {
+    type = "int-setting",
+    name = "facc-stats-hud-distance-origin-x",
+    setting_type = "runtime-per-user",
+    default_value = 0,
+    order = "j6",
+    localised_name = {"mod-setting-name.facc-stats-hud-distance-origin-x"},
+    localised_description = {"mod-setting-description.facc-stats-hud-distance-origin-x"}
+  },
+  {
+    type = "int-setting",
+    name = "facc-stats-hud-distance-origin-y",
+    setting_type = "runtime-per-user",
+    default_value = 0,
+    order = "j7",
+    localised_name = {"mod-setting-name.facc-stats-hud-distance-origin-y"},
+    localised_description = {"mod-setting-description.facc-stats-hud-distance-origin-y"}
+  },
+  {
+    type = "bool-setting",
+    name = "facc-stats-hud-show-evolution",
+    setting_type = "runtime-per-user",
+    default_value = false,
+    order = "j8",
+    localised_name = {"mod-setting-name.facc-stats-hud-show-evolution"},
+    localised_description = {"mod-setting-description.facc-stats-hud-show-evolution"}
+  },
+  {
+    type = "bool-setting",
+    name = "facc-stats-hud-show-pollution",
+    setting_type = "runtime-per-user",
+    default_value = false,
+    order = "j9",
+    localised_name = {"mod-setting-name.facc-stats-hud-show-pollution"},
+    localised_description = {"mod-setting-description.facc-stats-hud-show-pollution"}
+  },
+  {
+    type = "bool-setting",
+    name = "facc-stats-hud-show-playtime",
+    setting_type = "runtime-per-user",
+    default_value = false,
+    order = "j10",
+    localised_name = {"mod-setting-name.facc-stats-hud-show-playtime"},
+    localised_description = {"mod-setting-description.facc-stats-hud-show-playtime"}
+  },
+  {
+    type = "bool-setting",
+    name = "facc-stats-hud-show-playtime-days",
+    setting_type = "runtime-per-user",
+    default_value = false,
+    order = "j11",
+    localised_name = {"mod-setting-name.facc-stats-hud-show-playtime-days"},
+    localised_description = {"mod-setting-description.facc-stats-hud-show-playtime-days"}
+  },
+  {
+    type = "bool-setting",
+    name = "facc-stats-hud-show-daytime",
+    setting_type = "runtime-per-user",
+    default_value = false,
+    order = "j12",
+    localised_name = {"mod-setting-name.facc-stats-hud-show-daytime"},
+    localised_description = {"mod-setting-description.facc-stats-hud-show-daytime"}
+  },
+  {
+    type = "bool-setting",
+    name = "facc-stats-hud-show-movement-speed",
+    setting_type = "runtime-per-user",
+    default_value = false,
+    order = "j13",
+    localised_name = {"mod-setting-name.facc-stats-hud-show-movement-speed"},
+    localised_description = {"mod-setting-description.facc-stats-hud-show-movement-speed"}
+  },
+  {
+    type = "bool-setting",
+    name = "facc-stats-hud-show-player-max-speed",
+    setting_type = "runtime-per-user",
+    default_value = false,
+    order = "j14",
+    localised_name = {"mod-setting-name.facc-stats-hud-show-player-max-speed"},
+    localised_description = {"mod-setting-description.facc-stats-hud-show-player-max-speed"}
+  },
+  {
+    type = "bool-setting",
+    name = "facc-stats-hud-show-vehicle-max-speed",
+    setting_type = "runtime-per-user",
+    default_value = false,
+    order = "j15",
+    localised_name = {"mod-setting-name.facc-stats-hud-show-vehicle-max-speed"},
+    localised_description = {"mod-setting-description.facc-stats-hud-show-vehicle-max-speed"}
+  },
+  {
+    type = "bool-setting",
+    name = "facc-stats-hud-show-handcraft-timer",
+    setting_type = "runtime-per-user",
+    default_value = false,
+    order = "j16",
+    localised_name = {"mod-setting-name.facc-stats-hud-show-handcraft-timer"},
+    localised_description = {"mod-setting-description.facc-stats-hud-show-handcraft-timer"}
+  },
+  {
+    type = "bool-setting",
+    name = "facc-stats-hud-show-jetpack-fuel",
+    setting_type = "runtime-per-user",
+    default_value = false,
+    order = "j17",
+    localised_name = {"mod-setting-name.facc-stats-hud-show-jetpack-fuel"},
+    localised_description = {"mod-setting-description.facc-stats-hud-show-jetpack-fuel"}
   }
 })
 -- NOTE:

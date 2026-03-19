@@ -246,6 +246,7 @@ for _, path in ipairs({
   "scripts/cheats/instant_research",
   "scripts/gui/console_gui",
   "scripts/gui/teleport_gui",
+  "scripts/gui/stats_hud",
   "scripts/remote/public_api",
   "scripts/events/gui_events",
   "scripts/legendary-upgrader/legendary_upgrader",

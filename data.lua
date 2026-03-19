@@ -8,6 +8,102 @@
 local show_cheat_tab = settings.startup["facc-show-cheat-tab"].value
 
 --------------------------------------------------------------------------------
+-- 0.1) Stats HUD styles (mirrors StatsGui visuals)
+--------------------------------------------------------------------------------
+local styles = data.raw["gui-style"].default
+
+styles.facc_stats_hud_label = {
+  type = "label_style",
+  font = "default-game",
+  -- luacheck: ignore 113
+  font_color = default_font_color,
+}
+
+styles.facc_stats_hud_frame = {
+  type = "frame_style",
+  parent = "invisible_frame",
+  horizontal_flow_style = {
+    type = "horizontal_flow_style",
+    horizontal_spacing = 20,
+    horizontal_align = "right",
+    horizontally_stretchable = "on",
+    top_padding = 10,
+    right_padding = 287 + 180,
+  },
+  vertical_flow_style = {
+    type = "vertical_flow_style",
+    vertical_spacing = 0,
+    horizontal_align = "right",
+    horizontally_stretchable = "on",
+    top_padding = 38,
+    right_padding = 287,
+  },
+}
+
+styles.facc_stats_hud_frame_no_ups = {
+  type = "frame_style",
+  parent = "invisible_frame",
+  horizontal_flow_style = {
+    type = "horizontal_flow_style",
+    horizontal_spacing = 20,
+    horizontal_align = "right",
+    horizontally_stretchable = "on",
+    top_padding = 10,
+    right_padding = 287,
+  },
+  vertical_flow_style = {
+    type = "vertical_flow_style",
+    vertical_spacing = 0,
+    horizontal_align = "right",
+    horizontally_stretchable = "on",
+    top_padding = 10,
+    right_padding = 287,
+  },
+}
+
+styles.facc_stats_hud_frame_clock = {
+  type = "frame_style",
+  parent = "invisible_frame",
+  horizontal_flow_style = {
+    type = "horizontal_flow_style",
+    horizontal_spacing = 20,
+    horizontal_align = "right",
+    horizontally_stretchable = "on",
+    top_padding = 10,
+    right_padding = 287 + 180,
+  },
+  vertical_flow_style = {
+    type = "vertical_flow_style",
+    vertical_spacing = 0,
+    horizontal_align = "right",
+    horizontally_stretchable = "on",
+    top_padding = 50,
+    right_padding = 287,
+  },
+}
+
+styles.facc_stats_hud_frame_clock_no_ups = {
+  type = "frame_style",
+  parent = "invisible_frame",
+  horizontal_flow_style = {
+    type = "horizontal_flow_style",
+    horizontal_spacing = 20,
+    horizontal_align = "right",
+    horizontally_stretchable = "on",
+    top_padding = 10,
+    right_padding = 287,
+  },
+  vertical_flow_style = {
+    type = "vertical_flow_style",
+    vertical_spacing = 0,
+    horizontal_align = "right",
+    horizontally_stretchable = "on",
+    top_padding = 50,
+    right_padding = 287,
+  },
+}
+
+--------------------------------------------------------------------------------
 -- 1) If enabled, define new item-group and subgroup for Cheat Tools
 --------------------------------------------------------------------------------
 if show_cheat_tab then

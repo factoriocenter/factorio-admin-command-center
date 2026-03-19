@@ -205,6 +205,79 @@ Toggles FACC console GUI for the player.
 
 Toggles FACC Fast Teleport Manager GUI for the player.
 
+### `refresh_stats_hud(player_index) -> table`
+
+Forces an immediate refresh of the FACC Stats HUD for the player.
+
+### `get_stats_hud_snapshot(player_index) -> table`
+
+Returns the current Stats HUD snapshot:
+
+```lua
+{
+  ok = true,
+  snapshot = {
+    enabled = boolean,
+    settings = {
+      enabled = boolean,
+      single_line = boolean,
+      adjust_for_fps_ups = boolean,
+      adjust_for_clock = boolean,
+      show_coordinates = boolean,
+      show_distance = boolean,
+      show_daytime = boolean,
+      show_playtime = boolean,
+      show_playtime_days = boolean,
+      show_evolution = boolean,
+      show_pollution = boolean,
+      show_research_eta = boolean,
+      show_movement_speed = boolean,
+      show_player_max_speed = boolean,
+      show_vehicle_max_speed = boolean,
+      show_jetpack_fuel = boolean,
+      show_handcraft_timer = boolean,
+      distance_origin_x = number,
+      distance_origin_y = number
+    },
+    line_count = number,
+    lines = { LocalisedString, ... },
+    position = { x = number, y = number, surface = string }
+  }
+}
+```
+
+Current HUD line order (when enabled): `Coordinates/Distance`, `Day/Time`, `Playtime`, `Evolution`, `Pollution`, `Research ETA`, `Movement Speed`, `Handcraft Timer`.
+
+Addon-equivalent sensors from the ASD package are included:
+- StatsGui-CoordinatesDistance
+- StatsGui-HandcraftTimer
+- StatsGui-MovementSpeed (including optional Jetpack fuel line when Jetpack mod is active)
+
+### `get_stats_hud_capabilities() -> table`
+
+Returns HUD capability metadata for external mods:
+
+```lua
+{
+  ok = true,
+  order = { "coordinates_distance", "daytime", "playtime", "evolution", "pollution", "research_eta", "movement_speed", "handcraft_timer" },
+  sensors = {
+    coordinates_distance = true,
+    daytime = true,
+    playtime = true,
+    evolution = true,
+    pollution = true,
+    research_eta = true,
+    movement_speed = true,
+    movement_speed_player_max = true,
+    movement_speed_vehicle_max = true,
+    movement_speed_jetpack_fuel = boolean,
+    handcraft_timer = true
+  },
+  source_mods = { "StatsGui", "StatsGui-CoordinatesDistance", "StatsGui-HandcraftTimer", "StatsGui-MovementSpeed" }
+}
+```
+
 ### `list_saved_teleports(player_index) -> table`
 
 Returns the player's saved custom teleport points:
@@ -423,6 +496,7 @@ Use `get_capabilities().space_age` before calling Space Age specific behavior in
 | `facc_console` | yes | none | Toggles FACC console GUI. |
 | `facc_toggle_main_gui` | yes | none | Toggles FACC main window. |
 | `facc_refresh_main_gui` | yes | none | Refreshes currently open main GUI. |
+| `facc_refresh_stats_hud` | yes | none | Forces a Stats HUD refresh for the player. |
 | `facc_tp_open` | yes | none | Toggles Fast Teleport Manager GUI. |
 
 ## 7. Error catalog

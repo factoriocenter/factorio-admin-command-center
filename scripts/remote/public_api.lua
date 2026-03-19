@@ -4,6 +4,7 @@
 local main_gui = require("scripts/gui/main_gui")
 local console_gui = require("scripts/gui/console_gui")
 local teleport_gui = require("scripts/gui/teleport_gui")
+local stats_hud = require("scripts/gui/stats_hud")
 local flib_table = require("__flib__.table")
 local math_util = require("scripts/utils/flib_math")
 
@@ -345,6 +346,9 @@ local SIMPLE_ACTIONS = {
   facc_refresh_main_gui = function(player, _args)
     return call_safe(main_gui.refresh_open_gui, player)
   end,
+  facc_refresh_stats_hud = function(player, _args)
+    return call_safe(stats_hud.refresh_player, player)
+  end,
   facc_tp_open = function(player, _args)
     return call_safe(teleport_gui.toggle_teleport_gui, player)
   end,
@@ -386,7 +390,8 @@ local ACTION_SPEC = {
   simple = {
     "facc_surface_daytime_midday", "facc_surface_daytime_midnight",
     "facc_teleport_to_planet", "facc_console_exec", "facc_console",
-    "facc_toggle_main_gui", "facc_refresh_main_gui", "facc_tp_open"
+    "facc_toggle_main_gui", "facc_refresh_main_gui", "facc_refresh_stats_hud",
+    "facc_tp_open"
   }
 }
 
@@ -444,6 +449,7 @@ local ACTION_SCHEMA = {
   facc_auto_instant_research_interval = { value = "number seconds [1..300]" },
   facc_teleport_to_planet = { planet_name = "string (or use value)" },
   facc_console_exec = { code = "string (Lua code)" },
+  facc_refresh_stats_hud = {},
   facc_tp_open = {},
 }
 
@@ -609,6 +615,60 @@ local API_FUNCTIONS = {
     if not player then return { ok = false, error = err } end
     local ok, call_err = call_safe(teleport_gui.toggle_teleport_gui, player)
     return { ok = ok, error = call_err }
+  end,
+
+  refresh_stats_hud = function(player_index)
+    local player, err = get_player(player_index)
+    if not player then return { ok = false, error = err } end
+    local ok, call_err = call_safe(stats_hud.refresh_player, player)
+    return { ok = ok, error = call_err }
+  end,
+
+  get_stats_hud_snapshot = function(player_index)
+    local player, err = get_player(player_index)
+    if not player then return { ok = false, error = err } end
+
+    local ok, snapshot_or_err = pcall(stats_hud.get_snapshot, player)
+    if not ok then
+      return { ok = false, error = tostring(snapshot_or_err) }
+    end
+
+    return { ok = true, snapshot = snapshot_or_err or {} }
+  end,
+
+  get_stats_hud_capabilities = function()
+    return {
+      ok = true,
+      order = {
+        "coordinates_distance",
+        "daytime",
+        "playtime",
+        "evolution",
+        "pollution",
+        "research_eta",
+        "movement_speed",
+        "handcraft_timer",
+      },
+      sensors = {
+        coordinates_distance = true,
+        daytime = true,
+        playtime = true,
+        evolution = true,
+        pollution = true,
+        research_eta = true,
+        movement_speed = true,
+        movement_speed_player_max = true,
+        movement_speed_vehicle_max = true,
+        movement_speed_jetpack_fuel = script.active_mods["jetpack"] ~= nil,
+        handcraft_timer = true,
+      },
+      source_mods = {
+        "StatsGui",
+        "StatsGui-CoordinatesDistance",
+        "StatsGui-HandcraftTimer",
+        "StatsGui-MovementSpeed",
+      },
+    }
   end,
 
   list_saved_teleports = function(player_index)
