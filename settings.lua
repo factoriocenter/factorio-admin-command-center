@@ -277,6 +277,33 @@ data:extend({
     order = "j17",
     localised_name = {"mod-setting-name.facc-stats-hud-show-jetpack-fuel"},
     localised_description = {"mod-setting-description.facc-stats-hud-show-jetpack-fuel"}
+  },
+  {
+    type = "bool-setting",
+    name = "facc-stats-hud-offset-preset-one-info",
+    setting_type = "runtime-per-user",
+    default_value = true,
+    order = "j18",
+    localised_name = {"mod-setting-name.facc-stats-hud-offset-preset-one-info"},
+    localised_description = {"mod-setting-description.facc-stats-hud-offset-preset-one-info"}
+  },
+  {
+    type = "bool-setting",
+    name = "facc-stats-hud-offset-preset-two-infos",
+    setting_type = "runtime-per-user",
+    default_value = false,
+    order = "j19",
+    localised_name = {"mod-setting-name.facc-stats-hud-offset-preset-two-infos"},
+    localised_description = {"mod-setting-description.facc-stats-hud-offset-preset-two-infos"}
+  },
+  {
+    type = "bool-setting",
+    name = "facc-stats-hud-offset-preset-three-infos",
+    setting_type = "runtime-per-user",
+    default_value = false,
+    order = "j20",
+    localised_name = {"mod-setting-name.facc-stats-hud-offset-preset-three-infos"},
+    localised_description = {"mod-setting-description.facc-stats-hud-offset-preset-three-infos"}
   }
 })
 -- NOTE:

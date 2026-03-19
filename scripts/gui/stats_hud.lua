@@ -12,6 +12,9 @@ local UPDATE_EVERY_TICKS = 60
 local RESEARCH_SAMPLE_COUNT = 3
 local BASE_PLAYER_RUNNING_SPEED = 0.15
 local TICKS_PER_DAY = 60 * 60 * 60 * 24
+local Y_OFFSET_ONE_INFO = 22
+local Y_OFFSET_TWO_INFOS = 39
+local Y_OFFSET_THREE_INFOS = 60
 
 local function ensure_storage()
   local root = flib_table.get_or_insert(storage, "facc_stats_hud", {})
@@ -104,6 +107,9 @@ local function read_player_settings(player)
     show_vehicle_max_speed = read_setting(player, "facc-stats-hud-show-vehicle-max-speed", false) == true,
     show_jetpack_fuel = read_setting(player, "facc-stats-hud-show-jetpack-fuel", false) == true,
     show_handcraft_timer = read_setting(player, "facc-stats-hud-show-handcraft-timer", false) == true,
+    offset_preset_one_info = read_setting(player, "facc-stats-hud-offset-preset-one-info", true) == true,
+    offset_preset_two_infos = read_setting(player, "facc-stats-hud-offset-preset-two-infos", false) == true,
+    offset_preset_three_infos = read_setting(player, "facc-stats-hud-offset-preset-three-infos", false) == true,
   }
 
   local any_sensor_enabled = cfg.show_research_eta
@@ -123,6 +129,16 @@ local function read_player_settings(player)
   end
 
   return cfg
+end
+
+local function get_y_offset_from_preset(cfg)
+  if cfg.offset_preset_three_infos then
+    return Y_OFFSET_THREE_INFOS
+  end
+  if cfg.offset_preset_two_infos then
+    return Y_OFFSET_TWO_INFOS
+  end
+  return Y_OFFSET_ONE_INFO
 end
 
 local function destroy_frame(player)
@@ -604,10 +620,13 @@ local function update_player(player, root)
     and opened and opened.valid
     and opened.type == "locomotive"
   local in_cutscene = player.controller_type == defines.controllers.cutscene
+  local y_offset = get_y_offset_from_preset(cfg)
 
   local location = frame.location or { x = 0, y = 0 }
   location.x = 0
-  location.y = (player.controller_type == defines.controllers.remote) and math.floor(36 * player.display_scale) or 0
+  location.y = (player.controller_type == defines.controllers.remote)
+    and math.floor(36 * player.display_scale) + y_offset
+    or y_offset
   frame.location = location
   frame.style.width = math.floor(player.display_resolution.width / player.display_scale)
   frame.visible = (used > 0) and (not in_train_gui) and (not in_cutscene)

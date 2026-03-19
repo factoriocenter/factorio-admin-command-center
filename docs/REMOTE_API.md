@@ -236,6 +236,9 @@ Returns the current Stats HUD snapshot:
       show_vehicle_max_speed = boolean,
       show_jetpack_fuel = boolean,
       show_handcraft_timer = boolean,
+      offset_preset_one_info = boolean,
+      offset_preset_two_infos = boolean,
+      offset_preset_three_infos = boolean,
       distance_origin_x = number,
       distance_origin_y = number
     },
