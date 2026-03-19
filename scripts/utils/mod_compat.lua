@@ -3,6 +3,37 @@
 
 local M = {}
 
+local PROTOTYPE_COLLECTION_MAP = {
+  item_prototypes = "item",
+  entity_prototypes = "entity",
+  equipment_prototypes = "equipment",
+}
+
+local function get_runtime_prototype_collection(collection_name)
+  -- Factorio 2.x runtime API: global `prototypes` object.
+  if prototypes then
+    local mapped_name = PROTOTYPE_COLLECTION_MAP[collection_name] or collection_name
+    local ok, collection = pcall(function()
+      return prototypes[mapped_name]
+    end)
+    if ok and collection ~= nil then
+      return collection
+    end
+  end
+
+  -- Fallback for older APIs/modded environments exposing collections through `game`.
+  if game then
+    local ok, collection = pcall(function()
+      return game[collection_name]
+    end)
+    if ok and collection ~= nil then
+      return collection
+    end
+  end
+
+  return nil
+end
+
 function M.is_mod_active(mod_name)
   return script
     and script.active_mods
@@ -14,11 +45,16 @@ function M.prototype_exists(collection_name, prototype_name)
   if type(collection_name) ~= "string" or type(prototype_name) ~= "string" then
     return false
   end
-  if not game then
+
+  local collection = get_runtime_prototype_collection(collection_name)
+  if not collection then
     return false
   end
-  local collection = game[collection_name]
-  return type(collection) == "table" and collection[prototype_name] ~= nil
+
+  local ok, proto = pcall(function()
+    return collection[prototype_name]
+  end)
+  return ok and proto ~= nil
 end
 
 function M.find_first_existing(collection_name, candidates)

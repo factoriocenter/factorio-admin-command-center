@@ -6,7 +6,7 @@
 -- 0) Read startup setting to show/hide the Cheat Tools tab
 --------------------------------------------------------------------------------
 local show_cheat_tab = settings.startup["facc-show-cheat-tab"].value
-
+--------------------------------------------------------------------------------
 -- 0.1) Stats HUD styles (aligned with vanilla HUD look)
 --------------------------------------------------------------------------------
 local styles = data.raw["gui-style"].default
@@ -267,10 +267,10 @@ if show_cheat_tab then
   -- 6.1) Infinity Chest
   --------------------------------------------------------------------------------
   local inf_chest_ingredients = {
-    {type="item", name="steel-chest",        amount=100},
-    {type="item", name="electronic-circuit", amount=100},
-    {type="item", name="advanced-circuit",   amount=100},
-    {type="item", name="processing-unit",    amount=100},
+    {type="item", name="steel-chest",        amount=1000},
+    {type="item", name="electronic-circuit", amount=1000},
+    {type="item", name="advanced-circuit",   amount=1000},
+    {type="item", name="processing-unit",    amount=1000},
   }
   if data.raw.recipe["infinity-chest"] then
     local r = data.raw.recipe["infinity-chest"]
@@ -294,10 +294,10 @@ if show_cheat_tab then
   -- 6.2) Infinity Pipe
   --------------------------------------------------------------------------------
   local inf_pipe_ingredients = {
-    {type="item", name="pipe",               amount=100},
-    {type="item", name="electronic-circuit", amount=100},
-    {type="item", name="advanced-circuit",   amount=100},
-    {type="item", name="processing-unit",    amount=100},
+    {type="item", name="pipe",               amount=1000},
+    {type="item", name="electronic-circuit", amount=1000},
+    {type="item", name="advanced-circuit",   amount=1000},
+    {type="item", name="processing-unit",    amount=1000},
   }
   if data.raw.recipe["infinity-pipe"] then
     local r = data.raw.recipe["infinity-pipe"]
@@ -321,9 +321,9 @@ if show_cheat_tab then
   -- 6.3) Heat Interface
   --------------------------------------------------------------------------------
   local heat_ingredients = {
-    {type="item", name="copper-plate", amount=100},
-    {type="item", name="steel-plate",  amount=100},
-    {type="item", name="pipe",         amount=100},
+    {type="item", name="copper-plate", amount=1000},
+    {type="item", name="steel-plate",  amount=1000},
+    {type="item", name="pipe",         amount=1000},
   }
   if data.raw.recipe["heat-interface"] then
     local r = data.raw.recipe["heat-interface"]
@@ -348,10 +348,10 @@ if show_cheat_tab then
   -- 6.4) Electric Energy Interface
   --------------------------------------------------------------------------------
   local eei_ingredients = {
-    {type="item", name="accumulator",        amount=100},
-    {type="item", name="electronic-circuit", amount=100},
-    {type="item", name="advanced-circuit",   amount=100},
-    {type="item", name="processing-unit",    amount=100},
+    {type="item", name="accumulator",        amount=1000},
+    {type="item", name="electronic-circuit", amount=1000},
+    {type="item", name="advanced-circuit",   amount=1000},
+    {type="item", name="processing-unit",    amount=1000},
   }
   if data.raw.recipe["electric-energy-interface"] then
     local r = data.raw.recipe["electric-energy-interface"]
@@ -378,22 +378,22 @@ if show_cheat_tab then
     local base = {
       loader = {
         ingredients = {
-          {type="item", name="iron-plate",      amount=100},
-          {type="item", name="iron-gear-wheel", amount=100},
+          {type="item", name="iron-plate",      amount=1000},
+          {type="item", name="iron-gear-wheel", amount=1000},
         }
       },
       ["fast-loader"] = {
         ingredients = {
-          {type="item", name="iron-gear-wheel", amount=100},
+          {type="item", name="iron-gear-wheel", amount=1000},
           {type="item", name="loader",          amount=1},
         }
       },
       ["express-loader"] = {
         category    = "crafting-with-fluid",
         ingredients = {
-          {type="item",  name="iron-gear-wheel", amount=100},
+          {type="item",  name="iron-gear-wheel", amount=1000},
           {type="item",  name="fast-loader",     amount=1},
-          {type="fluid", name="lubricant",       amount=100},
+          {type="fluid", name="lubricant",       amount=1000},
         }
       }
     }
@@ -417,9 +417,9 @@ if show_cheat_tab then
         category        = "crafting-with-fluid",
         energy_required = 0.5,
         ingredients     = {
-          {type="item",  name="tungsten-plate", amount=100},
+          {type="item",  name="tungsten-plate", amount=1000},
           {type="item",  name="express-loader", amount=1},
-          {type="fluid", name="lubricant",      amount=100},
+          {type="fluid", name="lubricant",      amount=1000},
         },
         results         = {{type="item", name="turbo-loader", amount=1}}
       }
@@ -437,10 +437,10 @@ if show_cheat_tab then
       name            = "linked-chest",
       energy_required = 0.5,
       ingredients     = {
-        {type="item", name="active-provider-chest",  amount=100},
-        {type="item", name="passive-provider-chest", amount=100},
-        {type="item", name="buffer-chest",           amount=100},
-        {type="item", name="requester-chest",        amount=100},
+        {type="item", name="active-provider-chest",  amount=1000},
+        {type="item", name="passive-provider-chest", amount=1000},
+        {type="item", name="buffer-chest",           amount=1000},
+        {type="item", name="requester-chest",        amount=1000},
       },
       results         = {{type="item", name="linked-chest", amount=1}}
     }
@@ -457,7 +457,7 @@ if show_cheat_tab then
       name            = "lane-splitter",
       energy_required = 0.5,
       ingredients     = {
-        {type="item", name="splitter",         amount=100},
+        {type="item", name="splitter",         amount=1000},
         {type="item", name="fast-splitter",    amount=1},
         {type="item", name="express-splitter", amount=1},
         {type="item", name="turbo-splitter",   amount=1},
@@ -472,8 +472,8 @@ if show_cheat_tab then
       name            = "lane-splitter",
       energy_required = 0.5,
       ingredients     = {
-        {type="item", name="splitter",         amount=100},
-        {type="item", name="fast-splitter",    amount=100},
+        {type="item", name="splitter",         amount=1000},
+        {type="item", name="fast-splitter",    amount=1000},
         {type="item", name="express-splitter", amount=1},
       },
       results         = {{type="item", name="lane-splitter", amount=1}}
@@ -491,10 +491,10 @@ if show_cheat_tab then
       name            = "infinity-cargo-wagon",
       energy_required = 0.5,
       ingredients     = {
-        {type="item", name="cargo-wagon",     amount=25},
-        {type="item", name="iron-plate",      amount=100},
-        {type="item", name="steel-plate",     amount=100},
-        {type="item", name="iron-gear-wheel", amount=100},
+        {type="item", name="cargo-wagon",     amount=250},
+        {type="item", name="iron-plate",      amount=1000},
+        {type="item", name="steel-plate",     amount=1000},
+        {type="item", name="iron-gear-wheel", amount=1000},
       },
       results         = {{type="item", name="infinity-cargo-wagon", amount=1}}
     }
@@ -511,10 +511,10 @@ if show_cheat_tab then
       name            = "burner-generator",
       energy_required = 0.5,
       ingredients     = {
-        {type="item", name="steam-engine",    amount=25},
-        {type="item", name="iron-plate",      amount=100},
-        {type="item", name="iron-gear-wheel", amount=100},
-        {type="item", name="pipe",            amount=100},
+        {type="item", name="steam-engine",    amount=250},
+        {type="item", name="iron-plate",      amount=1000},
+        {type="item", name="iron-gear-wheel", amount=1000},
+        {type="item", name="pipe",            amount=1000},
       },
       results         = {{type="item", name="burner-generator", amount=1}}
     }

@@ -18,7 +18,7 @@ local function get_trains_for_player(player, surface)
         force = force
       })
     end)
-    if ok and type(result) == "table" then
+    if ok and result ~= nil then
       return result
     end
   end
@@ -28,7 +28,7 @@ local function get_trains_for_player(player, surface)
     local ok, result = pcall(function()
       return force.get_trains(surface)
     end)
-    if ok and type(result) == "table" then
+    if ok and result ~= nil then
       return result
     end
   end
