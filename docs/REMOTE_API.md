@@ -220,9 +220,6 @@ Returns the current Stats HUD snapshot:
     enabled = boolean,
     settings = {
       enabled = boolean,
-      single_line = boolean,
-      adjust_for_fps_ups = boolean,
-      adjust_for_clock = boolean,
       show_coordinates = boolean,
       show_distance = boolean,
       show_daytime = boolean,
@@ -238,9 +235,7 @@ Returns the current Stats HUD snapshot:
       show_handcraft_timer = boolean,
       offset_preset_one_info = boolean,
       offset_preset_two_infos = boolean,
-      offset_preset_three_infos = boolean,
-      distance_origin_x = number,
-      distance_origin_y = number
+      offset_preset_three_infos = boolean
     },
     line_count = number,
     lines = { LocalisedString, ... },

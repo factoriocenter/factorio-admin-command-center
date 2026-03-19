@@ -118,33 +118,6 @@ data:extend({
   },
   {
     type = "bool-setting",
-    name = "facc-stats-hud-single-line",
-    setting_type = "runtime-per-user",
-    default_value = false,
-    order = "j2",
-    localised_name = {"mod-setting-name.facc-stats-hud-single-line"},
-    localised_description = {"mod-setting-description.facc-stats-hud-single-line"}
-  },
-  {
-    type = "bool-setting",
-    name = "facc-stats-hud-adjust-for-fps-ups",
-    setting_type = "runtime-per-user",
-    default_value = false,
-    order = "j2a",
-    localised_name = {"mod-setting-name.facc-stats-hud-adjust-for-fps-ups"},
-    localised_description = {"mod-setting-description.facc-stats-hud-adjust-for-fps-ups"}
-  },
-  {
-    type = "bool-setting",
-    name = "facc-stats-hud-adjust-for-clock",
-    setting_type = "runtime-per-user",
-    default_value = false,
-    order = "j2b",
-    localised_name = {"mod-setting-name.facc-stats-hud-adjust-for-clock"},
-    localised_description = {"mod-setting-description.facc-stats-hud-adjust-for-clock"}
-  },
-  {
-    type = "bool-setting",
     name = "facc-stats-hud-show-research-eta",
     setting_type = "runtime-per-user",
     default_value = false,
@@ -169,24 +142,6 @@ data:extend({
     order = "j5",
     localised_name = {"mod-setting-name.facc-stats-hud-show-distance-from-point"},
     localised_description = {"mod-setting-description.facc-stats-hud-show-distance-from-point"}
-  },
-  {
-    type = "int-setting",
-    name = "facc-stats-hud-distance-origin-x",
-    setting_type = "runtime-per-user",
-    default_value = 0,
-    order = "j6",
-    localised_name = {"mod-setting-name.facc-stats-hud-distance-origin-x"},
-    localised_description = {"mod-setting-description.facc-stats-hud-distance-origin-x"}
-  },
-  {
-    type = "int-setting",
-    name = "facc-stats-hud-distance-origin-y",
-    setting_type = "runtime-per-user",
-    default_value = 0,
-    order = "j7",
-    localised_name = {"mod-setting-name.facc-stats-hud-distance-origin-y"},
-    localised_description = {"mod-setting-description.facc-stats-hud-distance-origin-y"}
   },
   {
     type = "bool-setting",
@@ -282,7 +237,7 @@ data:extend({
     type = "bool-setting",
     name = "facc-stats-hud-offset-preset-one-info",
     setting_type = "runtime-per-user",
-    default_value = true,
+    default_value = false,
     order = "j18",
     localised_name = {"mod-setting-name.facc-stats-hud-offset-preset-one-info"},
     localised_description = {"mod-setting-description.facc-stats-hud-offset-preset-one-info"}

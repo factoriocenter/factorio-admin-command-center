@@ -88,15 +88,9 @@ end
 local function read_player_settings(player)
   local cfg = {
     enabled = read_setting(player, "facc-stats-hud-enabled", false) == true,
-    -- Keep vertical list layout to match expected StatsGui behavior.
-    single_line = false,
-    adjust_for_fps_ups = read_setting(player, "facc-stats-hud-adjust-for-fps-ups", false) == true,
-    adjust_for_clock = read_setting(player, "facc-stats-hud-adjust-for-clock", false) == true,
     show_research_eta = read_setting(player, "facc-stats-hud-show-research-eta", false) == true,
     show_coordinates = read_setting(player, "facc-stats-hud-show-coordinates", false) == true,
     show_distance = read_setting(player, "facc-stats-hud-show-distance-from-point", false) == true,
-    distance_origin_x = tonumber(read_setting(player, "facc-stats-hud-distance-origin-x", 0)) or 0,
-    distance_origin_y = tonumber(read_setting(player, "facc-stats-hud-distance-origin-y", 0)) or 0,
     show_evolution = read_setting(player, "facc-stats-hud-show-evolution", false) == true,
     show_pollution = read_setting(player, "facc-stats-hud-show-pollution", false) == true,
     show_playtime = read_setting(player, "facc-stats-hud-show-playtime", false) == true,
@@ -107,7 +101,7 @@ local function read_player_settings(player)
     show_vehicle_max_speed = read_setting(player, "facc-stats-hud-show-vehicle-max-speed", false) == true,
     show_jetpack_fuel = read_setting(player, "facc-stats-hud-show-jetpack-fuel", false) == true,
     show_handcraft_timer = read_setting(player, "facc-stats-hud-show-handcraft-timer", false) == true,
-    offset_preset_one_info = read_setting(player, "facc-stats-hud-offset-preset-one-info", true) == true,
+    offset_preset_one_info = read_setting(player, "facc-stats-hud-offset-preset-one-info", false) == true,
     offset_preset_two_infos = read_setting(player, "facc-stats-hud-offset-preset-two-infos", false) == true,
     offset_preset_three_infos = read_setting(player, "facc-stats-hud-offset-preset-three-infos", false) == true,
   }
@@ -149,18 +143,11 @@ local function destroy_frame(player)
 end
 
 local function get_frame_style_name(cfg)
-  local style = "facc_stats_hud_frame"
-  if cfg.adjust_for_clock then
-    style = style .. "_clock"
-  end
-  if not cfg.adjust_for_fps_ups then
-    style = style .. "_no_ups"
-  end
-  return style
+  return "facc_stats_hud_frame_no_ups"
 end
 
 local function get_or_build_frame(player, cfg)
-  local direction = cfg.single_line and "horizontal" or "vertical"
+  local direction = "vertical"
   local style_name = get_frame_style_name(cfg)
   local frame = player.gui.screen[FRAME_NAME]
   if frame and frame.valid then
@@ -249,8 +236,9 @@ local function build_coordinates_distance_line(player, cfg)
   end
 
   if cfg.show_distance then
-    local dx = pos.x - cfg.distance_origin_x
-    local dy = pos.y - cfg.distance_origin_y
+    -- Distance is intentionally always from world origin (0,0).
+    local dx = pos.x
+    local dy = pos.y
     local distance = math.sqrt(dx * dx + dy * dy)
     if cfg.show_coordinates then
       parts[#parts + 1] = string.format("D=%.1f", round_1_decimal(distance))
