@@ -659,7 +659,8 @@ local API_FUNCTIONS = {
         movement_speed = true,
         movement_speed_player_max = true,
         movement_speed_vehicle_max = true,
-        movement_speed_jetpack_fuel = script.active_mods["jetpack"] ~= nil,
+        movement_speed_vehicle_fuel = true,
+        platform_propellant = true,
         handcraft_timer = true,
       },
       source_mods = {

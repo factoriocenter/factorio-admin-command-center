@@ -231,7 +231,7 @@ Returns the current Stats HUD snapshot:
       show_movement_speed = boolean,
       show_player_max_speed = boolean,
       show_vehicle_max_speed = boolean,
-      show_jetpack_fuel = boolean,
+      show_vehicle_fuel = boolean,
       show_handcraft_timer = boolean,
       offset_preset_one_info = boolean,
       offset_preset_two_infos = boolean,
@@ -249,7 +249,7 @@ Current HUD line order (when enabled): `Coordinates/Distance`, `Day/Time`, `Play
 Addon-equivalent sensors from the ASD package are included:
 - StatsGui-CoordinatesDistance
 - StatsGui-HandcraftTimer
-- StatsGui-MovementSpeed (including optional Jetpack fuel line when Jetpack mod is active)
+- StatsGui-MovementSpeed (with generic vehicle/platform fuel integration)
 
 ### `get_stats_hud_capabilities() -> table`
 
@@ -269,7 +269,8 @@ Returns HUD capability metadata for external mods:
     movement_speed = true,
     movement_speed_player_max = true,
     movement_speed_vehicle_max = true,
-    movement_speed_jetpack_fuel = boolean,
+    movement_speed_vehicle_fuel = boolean,
+    platform_propellant = boolean,
     handcraft_timer = true
   },
   source_mods = { "StatsGui", "StatsGui-CoordinatesDistance", "StatsGui-HandcraftTimer", "StatsGui-MovementSpeed" }

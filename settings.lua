@@ -226,12 +226,12 @@ data:extend({
   },
   {
     type = "bool-setting",
-    name = "facc-stats-hud-show-jetpack-fuel",
+    name = "facc-stats-hud-show-vehicle-fuel",
     setting_type = "runtime-per-user",
     default_value = false,
     order = "j17",
-    localised_name = {"mod-setting-name.facc-stats-hud-show-jetpack-fuel"},
-    localised_description = {"mod-setting-description.facc-stats-hud-show-jetpack-fuel"}
+    localised_name = {"mod-setting-name.facc-stats-hud-show-vehicle-fuel"},
+    localised_description = {"mod-setting-description.facc-stats-hud-show-vehicle-fuel"}
   },
   {
     type = "bool-setting",

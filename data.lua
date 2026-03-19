@@ -14,9 +14,12 @@ local styles = data.raw["gui-style"].default
 
 styles.facc_stats_hud_label = {
   type = "label_style",
-  font = "default-game",
+  font = "default",
   -- luacheck: ignore 113
   font_color = default_font_color,
+  top_margin = 0,
+  bottom_margin = 0,
+  single_line = true,
 }
 
 styles.facc_stats_hud_frame = {

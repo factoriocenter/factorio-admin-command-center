@@ -99,7 +99,7 @@ local function read_player_settings(player)
     show_movement_speed = read_setting(player, "facc-stats-hud-show-movement-speed", false) == true,
     show_player_max_speed = read_setting(player, "facc-stats-hud-show-player-max-speed", false) == true,
     show_vehicle_max_speed = read_setting(player, "facc-stats-hud-show-vehicle-max-speed", false) == true,
-    show_jetpack_fuel = read_setting(player, "facc-stats-hud-show-jetpack-fuel", false) == true,
+    show_vehicle_fuel = read_setting(player, "facc-stats-hud-show-vehicle-fuel", false) == true,
     show_handcraft_timer = read_setting(player, "facc-stats-hud-show-handcraft-timer", false) == true,
     offset_preset_one_info = read_setting(player, "facc-stats-hud-offset-preset-one-info", false) == true,
     offset_preset_two_infos = read_setting(player, "facc-stats-hud-offset-preset-two-infos", false) == true,
@@ -364,47 +364,90 @@ local function short_energy(e)
   return string.format("%.2f%s", value, suffix)
 end
 
-local function get_jetpack_energy_in_inventory(player)
-  if not script.active_mods["jetpack"] then
+local function get_burner_total_energy(entity)
+  if not (entity and entity.valid and entity.burner and entity.burner.valid) then
     return nil
   end
 
-  local ok_is_jetpacking, is_jetpacking = pcall(remote.call, "jetpack", "is_jetpacking", player)
-  if not ok_is_jetpacking or not is_jetpacking then
-    return nil
-  end
-
-  local ok_current_fuel, current_fuel = pcall(remote.call, "jetpack", "get_current_fuel_for_character", player)
-  if not ok_current_fuel or not current_fuel then
-    return nil
-  end
-
-  local ok_fuels, fuels = pcall(remote.call, "jetpack", "get_fuels")
-  if not ok_fuels or type(fuels) ~= "table" then
-    return nil
-  end
-
-  local main_inventory = player.get_inventory(defines.inventory.character_main)
-  if not main_inventory then
-    return nil
-  end
-
-  local energy = 0
-  for _, fuel in pairs(fuels) do
-    local fuel_name = fuel and fuel.fuel_name
-    if type(fuel_name) == "string" then
-      local proto = prototypes.item and prototypes.item[fuel_name]
-      if proto then
-        local count = main_inventory.get_item_count(fuel_name)
-        if count > 0 then
-          energy = energy + count * (proto.fuel_value or 0)
+  local burner = entity.burner
+  local total = burner.remaining_burning_fuel or 0
+  local inventory = burner.inventory
+  if inventory and inventory.valid then
+    for i = 1, #inventory do
+      local stack = inventory[i]
+      if stack and stack.valid_for_read then
+        local proto = prototypes.item and prototypes.item[stack.name]
+        if proto and proto.fuel_value then
+          total = total + (proto.fuel_value * (stack.count or 0))
         end
       end
     end
   end
 
-  energy = energy + (current_fuel.energy or 0)
-  return energy
+  if total <= 0 then
+    return nil
+  end
+  return total
+end
+
+local function get_grid_total_energy(entity)
+  if not (entity and entity.valid and entity.grid and entity.grid.valid) then
+    return nil
+  end
+
+  local total = 0
+  for _, equipment in pairs(entity.grid.equipment) do
+    if equipment and equipment.valid and equipment.energy then
+      total = total + (equipment.energy or 0)
+    end
+  end
+
+  if total <= 0 then
+    return nil
+  end
+  return total
+end
+
+local function get_vehicle_energy_text(vehicle)
+  local burner_energy = get_burner_total_energy(vehicle)
+  if burner_energy then
+    return short_energy(burner_energy)
+  end
+
+  local grid_energy = get_grid_total_energy(vehicle)
+  if grid_energy then
+    return short_energy(grid_energy)
+  end
+
+  return nil
+end
+
+local function get_platform_propellant_text(surface)
+  if not (surface and surface.valid and surface.platform and surface.platform.valid) then
+    return nil
+  end
+
+  local ok_find, thrusters = pcall(surface.find_entities_filtered, surface, { type = "thruster" })
+  if not ok_find or type(thrusters) ~= "table" or #thrusters == 0 then
+    return nil
+  end
+
+  local total = 0
+  for _, thruster in pairs(thrusters) do
+    if thruster and thruster.valid and thruster.fluidbox then
+      for i = 1, #thruster.fluidbox do
+        local fluid = thruster.fluidbox[i]
+        if fluid and fluid.amount then
+          total = total + fluid.amount
+        end
+      end
+    end
+  end
+
+  if total <= 0 then
+    return nil
+  end
+  return string.format("%.0f", total)
 end
 
 local function build_movement_speed_line(player, root, cfg)
@@ -435,33 +478,26 @@ local function build_movement_speed_line(player, root, cfg)
 
   local current_speed = string.format("%03.0f", speed_kmh)
   if player.vehicle and player.vehicle.valid then
-    local text = current_speed .. " km/h"
+    local caption = { "", { "facc.stats-hud-speed-vehicle" }, ": ", current_speed, " km/h" }
     if cfg.show_vehicle_max_speed then
       local max_speed = compute_vehicle_max_speed(player.vehicle)
       if max_speed > 0 then
-        text = string.format("%s/%03.0f km/h", current_speed, max_speed)
+        caption = { "", { "facc.stats-hud-speed-vehicle" }, ": ", string.format("%s/%03.0f km/h", current_speed, max_speed) }
       end
     end
-    return { "", { "facc.stats-hud-speed-vehicle" }, ": ", text }
+    if cfg.show_vehicle_fuel then
+      local energy_text = get_vehicle_energy_text(player.vehicle)
+      if energy_text then
+        caption[#caption + 1] = " | "
+        caption[#caption + 1] = { "facc.stats-hud-fuel" }
+        caption[#caption + 1] = ": "
+        caption[#caption + 1] = energy_text
+      end
+    end
+    return caption
   end
 
   if player.controller_type == defines.controllers.character and player.character and player.character.valid then
-    if cfg.show_jetpack_fuel then
-      local jet_energy = get_jetpack_energy_in_inventory(player)
-      if jet_energy then
-        return {
-          "",
-          { "facc.stats-hud-speed-jet" },
-          ": ",
-          current_speed,
-          " km/h | ",
-          { "facc.stats-hud-jet-fuel" },
-          ": ",
-          short_energy(jet_energy),
-        }
-      end
-    end
-
     local text = current_speed .. " km/h"
     if cfg.show_player_max_speed then
       local max_speed = (player.character_running_speed or 0) * 60 * 3.6
@@ -474,6 +510,27 @@ local function build_movement_speed_line(player, root, cfg)
   end
 
   return { "", { "facc.stats-hud-speed-player" }, ": 000 km/h" }
+end
+
+local function build_platform_propellant_line(player, cfg)
+  if not cfg.show_vehicle_fuel then
+    return nil
+  end
+  if player.vehicle and player.vehicle.valid then
+    return nil
+  end
+
+  local propellant_text = get_platform_propellant_text(player.surface)
+  if not propellant_text then
+    return nil
+  end
+
+  return {
+    "",
+    { "facc.stats-hud-platform-propellant" },
+    ": ",
+    propellant_text,
+  }
 end
 
 local function build_handcraft_timer_line(player, cfg)
@@ -544,6 +601,7 @@ local function collect_lines(player, root, cfg)
     function() return build_pollution_line(player, cfg) end,
     function() return build_research_line(player, root, cfg) end,
     function() return build_movement_speed_line(player, root, cfg) end,
+    function() return build_platform_propellant_line(player, cfg) end,
     function() return build_handcraft_timer_line(player, cfg) end,
   }
 
