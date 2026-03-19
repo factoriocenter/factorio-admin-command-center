@@ -97,6 +97,16 @@ data:extend({
   },
   {
     type = "bool-setting",
+    name = "facc-remove-fuel-usage",
+    setting_type = "startup",
+    default_value = false,
+    order = "i1",
+    per_user = false,
+    localised_name = {"mod-setting-name.facc-remove-fuel-usage"},
+    localised_description = {"mod-setting-description.facc-remove-fuel-usage"}
+  },
+  {
+    type = "bool-setting",
     name = "facc-ignore-recipe-inputs",
     setting_type = "startup",
     default_value = false,

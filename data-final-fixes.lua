@@ -68,6 +68,12 @@ if settings.startup["facc-remove-electricity-usage"]
   require("scripts/startup-settings/remove_electricity_usage")
 end
 
+-- Optional: remove fuel requirements from supported burner/fluid entities
+if settings.startup["facc-remove-fuel-usage"]
+    and settings.startup["facc-remove-fuel-usage"].value then
+  require("scripts/startup-settings/remove_fuel_usage")
+end
+
 -- Optional: remove all recipe ingredient inputs
 if settings.startup["facc-ignore-recipe-inputs"]
     and settings.startup["facc-ignore-recipe-inputs"].value then
