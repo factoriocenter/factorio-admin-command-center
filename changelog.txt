@@ -1,4 +1,32 @@
 ---------------------------------------------------------------------------------------------------
+Version: 4.1.0
+Date: 2026-03-18
+  Major Features:
+    - Added the new Fast Teleport Manager window (save points, map tags, rename/delete, and quick teleport).
+    - Added the public Remote API with documentation for other mods to call FACC features.
+  Features:
+    - Added Repair Mined Item.
+    - Added separate Distance Cheats as bonus-based controls (adds on top of existing values).
+    - Added Surface Properties Editor controls.
+    - Added per-surface toggle for "Do not spawn enemies".
+    - Added Planets Teleport support following game progression (Nauvis, Vulcanus, Fulgora, Gleba, Aquilo).
+    - Added Stats HUD module with sensors (coordinates, time/day, playtime, evolution, pollution, research ETA, speed, fuel/propellant, handcraft timer).
+  Control:
+    - Added event-driven background processing mode for heavy actions, with progress updates and completion messages.
+  Gui:
+    - Organized action order to match the project pattern (switches, slider+switch, buttons, slider+button, sliders).
+    - Added proper disabled state for unsupported actions instead of hiding options.
+    - Added hotkey support for opening the teleport module faster.
+  Optimizations:
+    - Improved heavy operations for large saves with optional async processing.
+    - Kept instant mode available through settings for players who prefer the old behavior.
+  Translation:
+    - Updated and expanded EN and pt-BR strings for new modules and HUD messages.
+    - Synced placeholder-based texts for consistent value formatting.
+  Compatibility:
+    - Improved checks for Space Age/Quality-dependent actions and kept unsupported options disabled.
+    - Improved planet/surface detection to better adapt with modded content.
+---------------------------------------------------------------------------------------------------
 Version: 4.0.0
 Date: 2026-03-12
   Major Features:

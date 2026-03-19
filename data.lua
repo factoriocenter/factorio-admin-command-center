@@ -7,8 +7,7 @@
 --------------------------------------------------------------------------------
 local show_cheat_tab = settings.startup["facc-show-cheat-tab"].value
 
---------------------------------------------------------------------------------
--- 0.1) Stats HUD styles (mirrors StatsGui visuals)
+-- 0.1) Stats HUD styles (aligned with vanilla HUD look)
 --------------------------------------------------------------------------------
 local styles = data.raw["gui-style"].default
 
@@ -17,8 +16,8 @@ styles.facc_stats_hud_label = {
   font = "default-game",
   -- luacheck: ignore 113
   font_color = default_font_color,
-  top_margin = 0,
-  bottom_margin = 0,
+  top_margin = -2,
+  bottom_margin = -2,
   single_line = true,
 }
 
