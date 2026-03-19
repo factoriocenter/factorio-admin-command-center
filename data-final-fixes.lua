@@ -48,7 +48,7 @@ end
 -- Optional: make assembling machines/furnaces craft instantly
 if settings.startup["facc-instant-crafting-machines"]
     and settings.startup["facc-instant-crafting-machines"].value then
-  local multiplier = 1000
+  local multiplier = 1000000 -- force machine crafts to finish in ~1 tick
   -- Prototype types that expose crafting_speed
   local crafting_types = { "assembling-machine", "furnace", "rocket-silo" }
   for _, type_name in ipairs(crafting_types) do
@@ -60,4 +60,16 @@ if settings.startup["facc-instant-crafting-machines"]
       end
     end
   end
+end
+
+-- Optional: remove electricity requirements from supported electric entities
+if settings.startup["facc-remove-electricity-usage"]
+    and settings.startup["facc-remove-electricity-usage"].value then
+  require("scripts/startup-settings/remove_electricity_usage")
+end
+
+-- Optional: remove all recipe ingredient inputs
+if settings.startup["facc-ignore-recipe-inputs"]
+    and settings.startup["facc-ignore-recipe-inputs"].value then
+  require("scripts/startup-settings/ignore_recipe_inputs")
 end

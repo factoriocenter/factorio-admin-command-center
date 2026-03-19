@@ -85,6 +85,26 @@ data:extend({
     localised_name = {"mod-setting-name.facc-instant-crafting-machines"},
     localised_description = {"mod-setting-description.facc-instant-crafting-machines"}
   },
+  {
+    type = "bool-setting",
+    name = "facc-remove-electricity-usage",
+    setting_type = "startup",
+    default_value = false,
+    order = "i",
+    per_user = false,
+    localised_name = {"mod-setting-name.facc-remove-electricity-usage"},
+    localised_description = {"mod-setting-description.facc-remove-electricity-usage"}
+  },
+  {
+    type = "bool-setting",
+    name = "facc-ignore-recipe-inputs",
+    setting_type = "startup",
+    default_value = false,
+    order = "j",
+    per_user = false,
+    localised_name = {"mod-setting-name.facc-ignore-recipe-inputs"},
+    localised_description = {"mod-setting-description.facc-ignore-recipe-inputs"}
+  },
   -- Map settings (no restart, affect the current save)
   {
     -- Disable automatic resource regeneration when infinite-resources setting changes
