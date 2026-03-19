@@ -16,8 +16,8 @@ styles.facc_stats_hud_label = {
   font = "default-game",
   -- luacheck: ignore 113
   font_color = default_font_color,
-  top_margin = -2,
-  bottom_margin = -2,
+  top_margin = -3,
+  bottom_margin = -3,
   single_line = true,
 }
 
