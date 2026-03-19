@@ -12,9 +12,9 @@ local UPDATE_EVERY_TICKS = 60
 local RESEARCH_SAMPLE_COUNT = 3
 local BASE_PLAYER_RUNNING_SPEED = 0.15
 local TICKS_PER_DAY = 60 * 60 * 60 * 24
-local Y_OFFSET_ONE_INFO = 22
-local Y_OFFSET_TWO_INFOS = 39
-local Y_OFFSET_THREE_INFOS = 60
+local Y_OFFSET_ONE_INFO = 23
+local Y_OFFSET_TWO_INFOS = 43
+local Y_OFFSET_THREE_INFOS = 63
 
 local function ensure_storage()
   local root = flib_table.get_or_insert(storage, "facc_stats_hud", {})
