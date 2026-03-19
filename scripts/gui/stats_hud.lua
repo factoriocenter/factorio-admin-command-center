@@ -487,12 +487,10 @@ local function build_movement_speed_line(player, root, cfg)
     end
     if cfg.show_vehicle_fuel then
       local energy_text = get_vehicle_energy_text(player.vehicle)
-      if energy_text then
-        caption[#caption + 1] = " | "
-        caption[#caption + 1] = { "facc.stats-hud-fuel" }
-        caption[#caption + 1] = ": "
-        caption[#caption + 1] = energy_text
-      end
+      caption[#caption + 1] = " | "
+      caption[#caption + 1] = { "facc.stats-hud-fuel" }
+      caption[#caption + 1] = ": "
+      caption[#caption + 1] = energy_text or "-"
     end
     return caption
   end
@@ -520,10 +518,7 @@ local function build_platform_propellant_line(player, cfg)
     return nil
   end
 
-  local propellant_text = get_platform_propellant_text(player.surface)
-  if not propellant_text then
-    return nil
-  end
+  local propellant_text = get_platform_propellant_text(player.surface) or "-"
 
   return {
     "",
