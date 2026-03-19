@@ -185,10 +185,24 @@ function M.run(player)
     if not (grid and grid.valid) then
       return
     end
+
+    local function fill_equipment_energy(equipment)
+      if not (equipment and equipment.valid) then
+        return
+      end
+      pcall(function()
+        local max_energy = equipment.max_energy
+        if max_energy and max_energy > 0 then
+          equipment.energy = max_energy
+        end
+      end)
+    end
+
     for _, e in ipairs(layout) do
       local entry = { name = e[1], position = {e[2], e[3]} }
       if armor_quality then entry.quality = armor_quality end
-      compat.safe_grid_put(grid, entry)
+      local placed = compat.safe_grid_put(grid, entry)
+      fill_equipment_energy(placed)
     end
   end
 

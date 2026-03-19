@@ -17,6 +17,42 @@ local CHUNKS_PER_TICK = 8
 local STATUS_OPTIONS = {
   process_name = {"facc.ammo-turrets"}
 }
+local cached_target_turret_names = nil
+
+local function get_target_turret_names()
+  if cached_target_turret_names then
+    return cached_target_turret_names
+  end
+
+  local names = {}
+  local function add_if_exists(name)
+    if compat.prototype_exists("entity_prototypes", name) then
+      names[#names + 1] = name
+    end
+  end
+
+  add_if_exists("gun-turret")
+  add_if_exists("artillery-turret")
+  if space_age_enabled then
+    add_if_exists("rocket-turret")
+    add_if_exists("railgun-turret")
+  end
+
+  cached_target_turret_names = names
+  return cached_target_turret_names
+end
+
+local function get_turret_ammo_inventory(turret)
+  if not (turret and turret.valid) then
+    return nil
+  end
+
+  if turret.name == "artillery-turret" and defines.inventory.artillery_turret_ammo then
+    return turret.get_inventory(defines.inventory.artillery_turret_ammo)
+  end
+
+  return turret.get_inventory(defines.inventory.turret_ammo)
+end
 
 function M.run(player)
   if not is_allowed(player) then
@@ -44,10 +80,15 @@ function M.on_tick(_event)
     JOBS_KEY,
     CHUNKS_PER_TICK,
     function(job, surface, _chunk, area)
+      local target_turret_names = get_target_turret_names()
+      if #target_turret_names == 0 then
+        return
+      end
+
       flib_table.for_each(surface.find_entities_filtered{
         area = area,
         force = job.force_name,
-        type = "turret"
+        name = target_turret_names
       }, function(turret)
         if not turret.valid then
           return
@@ -72,7 +113,7 @@ function M.on_tick(_event)
         end
 
         if ammo_name and compat.prototype_exists("item_prototypes", ammo_name) then
-          local inv = turret.get_inventory(defines.inventory.turret_ammo)
+          local inv = get_turret_ammo_inventory(turret)
           if inv and inv.is_empty() then
             pcall(function()
               inv.insert{ name = ammo_name, count = ammo_count }

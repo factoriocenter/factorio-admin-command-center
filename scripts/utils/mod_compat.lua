@@ -127,29 +127,29 @@ end
 
 function M.safe_grid_put(grid, equipment)
   if not (grid and grid.valid and type(equipment) == "table" and type(equipment.name) == "string") then
-    return false
+    return nil
   end
   if not M.prototype_exists("equipment_prototypes", equipment.name) then
-    return false
+    return nil
   end
 
-  local ok = pcall(function()
-    grid.put(equipment)
+  local ok, placed = pcall(function()
+    return grid.put(equipment)
   end)
-  if ok then
-    return true
+  if ok and placed and placed.valid then
+    return placed
   end
 
   if equipment.quality ~= nil then
-    ok = pcall(function()
-      grid.put({ name = equipment.name, position = equipment.position })
+    ok, placed = pcall(function()
+      return grid.put({ name = equipment.name, position = equipment.position })
     end)
-    if ok then
-      return true
+    if ok and placed and placed.valid then
+      return placed
     end
   end
 
-  return false
+  return nil
 end
 
 return M
