@@ -1,5 +1,5 @@
 -- scripts/mining/non_minable_permanent.lua
--- Event-driven permanent non-minable apply for all surfaces.
+-- Event-driven permanent non-minable apply for current surface.
 
 local M = {}
 local flib_table = require("__flib__.table")
@@ -22,7 +22,7 @@ function M.run(player)
   chunk_jobs.enqueue_job(JOBS_KEY, {
     player_index = player.index,
     force_name = player.force.name,
-    surface_indices = chunk_jobs.collect_all_surface_indices(),
+    surface_indices = chunk_jobs.collect_single_surface_indices(player.surface),
     surface_cursor = 1,
     chunks = nil,
     chunk_cursor = 1
@@ -42,8 +42,8 @@ function M.on_tick(_event)
         area = area,
         force = job.force_name
       }, function(entity)
-        if entity.valid and entity.minable ~= nil then
-          entity.minable = false
+        if entity.valid then
+          entity.minable_flag = false
         end
       end)
     end,

@@ -48,7 +48,7 @@ function M.on_tick(_event)
         force = job.force_name
       }, function(entity)
         if entity.valid then
-          entity.minable = job.target_minable
+          entity.minable_flag = job.target_minable
         end
       end)
     end,
