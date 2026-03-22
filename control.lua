@@ -134,14 +134,26 @@ local function is_legendary_quality_module_researched(force)
   end
 
   local legendary_quality = force.technologies["legendary-quality"]
-  return legendary_quality and legendary_quality.valid and legendary_quality.researched == true
+  if not (legendary_quality and legendary_quality.valid) then
+    return false
+  end
+  return legendary_quality.researched == true
 end
 
 local function update_legendary_shortcut_availability()
   local quality_active = script.active_mods["quality"] ~= nil
   flib_table.for_each(game.players, function(player)
+    if not (player and player.valid) then
+      return
+    end
     local researched = is_legendary_quality_module_researched(player.force)
-    player.set_shortcut_available("facc_give_legendary_upgrader", quality_active and researched)
+    local available = (quality_active and researched) == true
+    local ok, err = pcall(function()
+      player.set_shortcut_available("facc_give_legendary_upgrader", available)
+    end)
+    if not ok then
+      log("[FACC][CONTROL] set_shortcut_available failed: " .. tostring(err))
+    end
   end)
 end
 --------------------------------------------------------------------------------

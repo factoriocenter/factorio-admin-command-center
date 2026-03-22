@@ -1,4 +1,20 @@
 ---------------------------------------------------------------------------------------------------
+Version: 4.2.0
+Date: 2026-03-22
+  Features:
+    - Added startup option to let machines work without electricity.
+    - Added startup option to let machines and vehicles work without fuel.
+    - Added startup option to craft recipes without ingredient input.
+  Changes:
+    - Non-mineable tools now apply only to the current surface (both switch and permanent button).
+    - Updated related messages and tooltips to match this behavior.
+  Bugfixes:
+    - Fixed the Full Armor action so it works correctly again on Factorio 2.0.76.
+    - Fixed a Legendary Upgrader shortcut crash in modded setups where Quality technology is removed or altered.
+  Translation:
+    - Synced EN and pt-BR strings for the new settings and non-mineable behavior.
+
+---------------------------------------------------------------------------------------------------
 Version: 4.1.0
 Date: 2026-03-18
   Major Features:
