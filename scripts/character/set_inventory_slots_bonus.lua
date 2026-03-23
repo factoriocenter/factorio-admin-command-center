@@ -9,15 +9,12 @@ local TOOLBELT_MINIMUM = 10
 local BASE_MINIMUM = 0
 local MAX_BONUS = 65535
 
-local function get_minimum_bonus(force)
+local function is_toolbelt_researched(force)
   if not (force and force.valid) then
-    return BASE_MINIMUM
+    return false
   end
   local tech = force.technologies and force.technologies[TOOLBELT_TECH]
-  if tech and tech.researched then
-    return TOOLBELT_MINIMUM
-  end
-  return BASE_MINIMUM
+  return tech and tech.researched == true
 end
 
 --- Set force inventory slots bonus from a user-supplied value.
@@ -38,7 +35,8 @@ function M.run(player, raw_value)
     return nil, BASE_MINIMUM
   end
 
-  local minimum = get_minimum_bonus(force)
+  local toolbelt_researched = is_toolbelt_researched(force)
+  local minimum = toolbelt_researched and TOOLBELT_MINIMUM or BASE_MINIMUM
   local n = tonumber(raw_value)
   if n == nil then
     player.print({"facc.set-inventory-slots-bonus-invalid"})
@@ -47,11 +45,20 @@ function M.run(player, raw_value)
 
   local value = math.floor(n)
   if value < minimum then
-    player.print({"facc.set-inventory-slots-bonus-minimum", minimum})
+    if toolbelt_researched then
+      player.print({"facc.set-inventory-slots-bonus-minimum-toolbelt", minimum, {"technology-name." .. TOOLBELT_TECH}})
+    else
+      player.print({"facc.set-inventory-slots-bonus-minimum", minimum})
+    end
     return nil, minimum
   end
 
-  value = math_util.clamp_number(value, minimum, MAX_BONUS, minimum)
+  local clamped = math_util.clamp_number(value, minimum, MAX_BONUS, minimum)
+  if clamped ~= value then
+    player.print({"facc.set-inventory-slots-bonus-clamped-max", MAX_BONUS})
+  end
+
+  value = clamped
   force.character_inventory_slots_bonus = value
   player.print({"facc.set-inventory-slots-bonus-msg", value})
   return value, minimum
