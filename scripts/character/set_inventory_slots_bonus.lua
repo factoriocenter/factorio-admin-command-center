@@ -1,4 +1,4 @@
--- scripts/storage/set_inventory_slots_bonus.lua
+-- scripts/character/set_inventory_slots_bonus.lua
 -- Sets force inventory slots bonus with toolbelt-aware minimum guard.
 
 local M = {}
