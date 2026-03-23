@@ -72,7 +72,6 @@ local quality_enabled = script.active_mods["quality"] ~= nil
 if quality_enabled then
   features.facc_convert_inventory = require("scripts/character/convert_inventory_to_legendary")
   features.facc_upgrade_blueprints = require("scripts/blueprints/upgrade_blueprints_to_legendary")
-  features.facc_convert_to_legendary = require("scripts/blueprints/convert_constructions_to_legendary")
 end
 
 local function ensure_state()
@@ -160,7 +159,6 @@ local function handle_feature_action(action, player, args)
   if action == "facc_remove_cliffs" then radius = to_number(args.radius, 50) end
   if action == "facc_remove_nests" then radius = to_number(args.radius, 50) end
   if action == "facc_reveal_map" then radius = to_number(args.radius, 150) end
-  if action == "facc_convert_to_legendary" then radius = to_number(args.radius, 75) end
 
   if radius ~= nil then
     return call_safe(handler.run, player, radius)
@@ -408,7 +406,6 @@ local ACTION_SPEC = {
 if quality_enabled then
   ACTION_SPEC.run[#ACTION_SPEC.run + 1] = "facc_convert_inventory"
   ACTION_SPEC.run[#ACTION_SPEC.run + 1] = "facc_upgrade_blueprints"
-  ACTION_SPEC.run[#ACTION_SPEC.run + 1] = "facc_convert_to_legendary"
 end
 
 local NO_PLAYER_ACTIONS = {
@@ -436,7 +433,6 @@ local ACTION_SCHEMA = {
   facc_remove_cliffs = { radius = "number (default 50)" },
   facc_remove_nests = { radius = "number (default 50)" },
   facc_reveal_map = { radius = "number (default 150)" },
-  facc_convert_to_legendary = { radius = "number (default 75)" },
   facc_set_game_speed = { value = "number" },
   facc_set_mining_speed = { value = "number" },
   facc_run_faster = { value = "number" },

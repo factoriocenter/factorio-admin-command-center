@@ -5,6 +5,7 @@ Date: 2026-03-22
     - Added "Set Inventory Slots Bonus" in the Character tab with numeric input and apply button.
   Changes:
     - Added Toolbelt-aware minimum validation for inventory slots bonus (minimum 0, or 10 after researching Toolbelt).
+    - Removed "Convert to Legendary Quality (Quality)" action from Blueprints, keeping Legendary Upgrader as the official path.
   Compatibility:
     - Added safe clamp for inventory slots bonus values (0 to 65535).
   Translation:

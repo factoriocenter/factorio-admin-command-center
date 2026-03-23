@@ -7,7 +7,7 @@ A compact admin toolkit for Factorio 2.0 with a category-based GUI, live sliders
 
 ## Current Version
 
-- 🏷️ Version: `4.0.0`
+- 🏷️ Version: `4.3.0`
 - 📝 Changelog: [changelog.txt](changelog.txt)
 
 ## Features (All Current)
@@ -23,8 +23,10 @@ A compact admin toolkit for Factorio 2.0 with a category-based GUI, live sliders
 - 💰 `Receive Coins (Tight spot or Rocket rush)`
 - ⏱️ `Auto Instant Research`
 - ⚡ `Adjust Game Speed`
+
 ### 🛡️ Armor:
 - 🤖 `Create Full Armor`
+
 ### 📐 Blueprints:
 - 👻 `Enable ghosts on entity death`
 - 🏗️ `Instant Blueprint Building`
@@ -35,14 +37,22 @@ A compact admin toolkit for Factorio 2.0 with a category-based GUI, live sliders
 - 🔧 `Repair and Rebuild`
 - 🚧 `Remove Marked Structures`
 - 💎 `Upgrade Inventory Blueprints to Legendary (Quality)`
-- 🌟 `Convert to Legendary Quality (Quality)`
+
 ### 🚶 Character:
 - 👻 `Ghost Mode`
 - 🛡️ `Invincible Player`
+- 🩹 `Repair Mined Item`
 - ✂️ `Delete Orphaned Characters`
 - 🎒 `Convert Inventory to Legendary (Quality)`
+- 🎛️ `Set Inventory Slots Bonus`
 - 🏃 `Run Faster`
-- 🤚 `Long Reach`
+- 📐 `Build Distance`
+- 🤚 `Reach Distance`
+- ⛏️ `Resource Reach Distance`
+- 📦 `Item Drop Distance`
+- 🤲 `Item Pickup Distance`
+- 🧲 `Loot Pickup Distance`
+
 ### ⚔️ Combat:
 - 🚫 `Disable Friendly Fire`
 - 🔒 `Indestructible Builds`
@@ -51,37 +61,57 @@ A compact admin toolkit for Factorio 2.0 with a category-based GUI, live sliders
 - 🎯 `Fill Empty Turrets`
 - 💥 `Ammo Damage Boost`
 - 🔫 `Turret Damage Boost`
+
 ### 👾 Enemies:
 - 🛑 `Disable Enemy Expansion`
 - 💣 `Remove Enemy Nests`
+
 ### 🌍 Environment:
+- ⏸️ `Freeze Daytime (Surface)`
+- ☮️ `Peaceful Mode (Surface)`
+- 🚫 `Don't Generate Enemies (Surface)`
 - ☀️ `Perpetual Day`
 - 🚫 `Disable Pollution`
+- ♻️ `Auto Clean Pollution`
+- 🌞 `Set Midday (Surface)`
+- 🌚 `Set Midnight (Surface)`
 - 🧽 `Clear Pollution`
 - 🌫️ `Hide Map`
 - 🗑️ `Remove Ground Items`
-- ♻️ `Auto Clean Pollution`
+- 🕒 `Set Daytime (Surface)`
+- 🌬️ `Set Surface Pressure (Space Age)`
+- 🧲 `Set Surface Magnetic Field (Space Age)`
+- 🌌 `Set Surface Gravity (Space Age)`
 - 🔍 `Reveal Map`
 - ⛰️ `Remove Cliffs`
+
 ### 🤖 Logistic Network:
 - 📦 `Instant Personal Logistics`
 - 🗑️ `Instant Trash`
 - 🤖 `Add Robots`
 - 🐇 `Increase worker robot speed`
+
 ### 🏭 Manufacturing:
 - ⚙️ `Adjust Crafting Speed`
+
 ### ⛏️ Mining:
 - ⛏️ `Entity Minability`
-- 🚫 `Non-minable Builds (Permanent)`
+- 🚫 `Non-minable Builds (Permanent, Current Surface)`
 - 🏎️ `Adjust Mining Speed`
+
 ### 🪐 Planets:
 - ♻️ `Regenerate Resources`
 - 📈 `Increase Resources`
 - 🗺️ `Generate Planets Surfaces and Chart Area (Space Age)`
-- ⚡ Power:
+- 🌍 `Teleport to Planets (Space Age progression)`
+- 🧭 `Fast Teleport Manager`
+
+### ⚡ Power:
 - 🔋 `Recharge Energy`
+
 ### 🚂 Trains:
 - 🚆 `Automatic Trains`
+
 ### 🛰️ Transportation:
 - ⛽ `Refuel Platform Thrusters (Space Age)`
 - 📏 `Platform Distance (Space Age)`
@@ -90,39 +120,48 @@ A compact admin toolkit for Factorio 2.0 with a category-based GUI, live sliders
 
 - 🔘 Toolbar shortcut: open/close Admin GUI.
 - 🧰 Toolbar shortcut: equip `Legendary Upgrader (Quality)`.
+- 🧭 Hotkey for Fast Teleport Manager (`Ctrl + Shift + T` by default).
+- 📊 Stats HUD (coordinates, time/day, playtime, evolution, pollution, research ETA, movement/vehicle speed, fuel, handcraft timer).
+- 🌐 Public Remote API for mod integrations: [`docs/REMOTE_API.md`](docs/REMOTE_API.md)
 - 💻 Lua console window with `Ctrl + Enter` execution.
 - 📦 Optional `Cheat Tools` crafting tab (startup setting) with recipes for: `infinity-chest`, `infinity-pipe`, `heat-interface`, `electric-energy-interface`, `loader`/`fast-loader`/`express-loader`/`turbo-loader` (when available), `linked-chest`, `lane-splitter`, `infinity-cargo-wagon`, `burner-generator`.
 
 ## Startup Settings
-
 - 📋 `Show Cheat Tools tab`
 - 🏆 `Enable achievement overrides`
 - 🧩 `Show internal names`
 - ♾️ `Infinite Resources`
 - 🪨 `Infinite Resources Multiplier (Solid)`
 - 💧 `Infinite Resources Multiplier (Fluid)`
-- 🔄 `Enable auto resource regeneration`
 - ⛏️ `Instant mining drills`
 - 🏭 `Instant crafting machines`
+- ⚡ `Remove electricity requirement from machines`
+- ⛽ `Remove fuel requirement from machines and vehicles`
+- 🧪 `Ignore recipe ingredient inputs`
+- 🔄 `Enable auto resource regeneration`
+- 🧵 `Enable background optimization for heavy actions`
+- 📊 `Stats HUD toggles and layout presets`
 
 ## Controls
 
 - ⌨️ `Ctrl + .` -> Toggle Admin GUI
 - ⌨️ `Ctrl + Enter` -> Execute Lua console command
-- ⚙️ Both shortcuts are rebindable in `Settings -> Controls -> Mods`
+- ⌨️ `Ctrl + Shift + T` -> Toggle Fast Teleport Manager
+- ⚙️ All shortcuts are rebindable in `Settings -> Controls -> Mods`
 
 ## Compatibility
 
-- 🎮 Factorio: `2.0` (base `>= 2.0.72`)
+- 🎮 Factorio: `2.0` (base `>= 2.0.76`)
 - 📚 Required library: `flib >= 0.16.5`
-- 🔌 Optional integrations: `quality`, `space-age`, `factorio-admin-command-center-locales`
+- 🔌 Optional integrations: `quality >= 2.0.76`, `space-age >= 2.0.76`, `elevated-rails >= 2.0.76`
+- 🌍 Optional locale pack: `factorio-admin-command-center-locales >= 1.3.8`
 - 👥 In multiplayer, admin tools are available to admins only.
-
 
 ## Languages
 
 - 🇺🇸 English
 - 🇧🇷 Portuguese (Brazil)
+- 🌐 Additional languages are available via the optional companion locales mod.
 
 ## Installation
 

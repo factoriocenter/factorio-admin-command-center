@@ -384,7 +384,6 @@ When `script.active_mods["quality"]` is active, these extra run actions are expo
 
 - `facc_convert_inventory`
 - `facc_upgrade_blueprints`
-- `facc_convert_to_legendary`
 
 If Quality is not active, these actions are absent from `list_actions()` and `has_action()` returns false.
 
@@ -429,7 +428,6 @@ Use `get_capabilities().space_age` before calling Space Age specific behavior in
 | `facc_non_minable_permanent` | yes | none | Permanent non-minable entities mode. |
 | `facc_convert_inventory` | yes | none | Quality-only action. |
 | `facc_upgrade_blueprints` | yes | none | Quality-only action. |
-| `facc_convert_to_legendary` | yes | `radius:number` default `75` | Quality-only area conversion. |
 
 ### 6.2 Toggle actions
 

@@ -147,7 +147,6 @@ local FACC_BUTTONS = {
   -- Legendary features (Quality DLC)
   facc_convert_inventory=true,
   facc_upgrade_blueprints=true,
-  facc_convert_to_legendary=true,
   -- Platform distance confirm
   facc_set_platform_distance=true,
   facc_fill_platform_thrusters=true,
@@ -168,7 +167,6 @@ local FACC_SLIDERS = {
   slider_remove_cliffs=true,
   slider_remove_nests=true,
   slider_reveal_map=true,
-  slider_convert_to_legendary=true,
   slider_auto_clean_pollution=true,
   slider_auto_instant_research=true,
   slider_increase_robot_speed=true,
@@ -256,7 +254,6 @@ local quality_enabled = script.active_mods["quality"] ~= nil
 if quality_enabled then
   features.facc_convert_inventory    = require("scripts/character/convert_inventory_to_legendary")
   features.facc_upgrade_blueprints   = require("scripts/blueprints/upgrade_blueprints_to_legendary")
-  features.facc_convert_to_legendary = require("scripts/blueprints/convert_constructions_to_legendary")
 end
 
 local function on_menu_selection_state_changed(event)
@@ -363,7 +360,6 @@ local function on_gui_click(event)
     if name == "facc_remove_cliffs"        then radius = sliders["slider_remove_cliffs"] or 50 end
     if name == "facc_remove_nests"         then radius = sliders["slider_remove_nests"] or 50 end
     if name == "facc_reveal_map"           then radius = sliders["slider_reveal_map"] or 150 end
-    if name == "facc_convert_to_legendary" then radius = sliders["slider_convert_to_legendary"] or 75 end
 
     if radius then
       safe_call_player(player, name, handler.run, player, radius)

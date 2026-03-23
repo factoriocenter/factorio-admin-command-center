@@ -137,13 +137,7 @@ local TABS = {
         name    = "facc_upgrade_blueprints",
         caption = {"facc.upgrade-blueprints"},
         tooltip = {"tooltip.upgrade-blueprints"}
-      },
-      {
-        name    = "facc_convert_to_legendary",
-        caption = {"facc.convert-to-legendary"},
-        tooltip = {"tooltip.convert-to-legendary"},
-        slider  = { name="slider_convert_to_legendary", min=1, max=150, default=75 }
-      },
+      }
     }
   },
   character = {
@@ -700,8 +694,7 @@ local function is_feature_enabled(name, player)
   if name == "facc_fill_platform_thrusters" then return space_age_enabled end
   if name == "facc_generate_planet_surfaces" then return space_age_enabled end
   if name == "facc_convert_inventory"
-      or name == "facc_upgrade_blueprints"
-      or name == "facc_convert_to_legendary" then
+      or name == "facc_upgrade_blueprints" then
     return quality_enabled
   end
   return true
