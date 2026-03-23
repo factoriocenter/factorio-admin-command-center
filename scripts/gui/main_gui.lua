@@ -64,6 +64,17 @@ local TAB_ORDER = {
   "transportation"
 }
 
+local function get_inventory_slots_bonus_min(player)
+  if not (player and player.valid and player.force and player.force.valid) then
+    return 0
+  end
+  local tech = player.force.technologies and player.force.technologies["toolbelt"]
+  if tech and tech.researched then
+    return 10
+  end
+  return 0
+end
+
 local TABS = {
   armor = {
     label    = {"facc.tab-armor"},
@@ -165,6 +176,19 @@ local TABS = {
         name    = "facc_convert_inventory",
         caption = {"facc.convert-inventory"},
         tooltip = {"tooltip.convert-inventory"}
+      },
+      {
+        name    = "facc_set_inventory_slots_bonus",
+        caption = {"facc.set-inventory-slots-bonus"},
+        tooltip = {"tooltip.set-inventory-slots-bonus"},
+        input   = {
+          name = "input_inventory_slots_bonus",
+          default = 0,
+          min = 0,
+          max = 65535,
+          width = 96,
+          get_minimum = get_inventory_slots_bonus_min
+        }
       },
       {
         name    = "facc_run_faster",
@@ -572,6 +596,7 @@ function M.ensure_persistent_state()
   if not (s.tab and TABS[s.tab]) then s.tab = "cheats" end
   if type(s.sliders) ~= "table" then s.sliders = {} end
   if type(s.switches) ~= "table" then s.switches = {} end
+  if type(s.inputs) ~= "table" then s.inputs = {} end
 
   local old_long_reach = s.sliders["slider_long_reach"]
   if old_long_reach ~= nil then
@@ -759,6 +784,58 @@ local function add_function_block(parent, elem, player)
     }
   end
 
+  if elem.input then
+    local input_name = elem.input.name
+    local min_value = tonumber(elem.input.min) or 0
+    if type(elem.input.get_minimum) == "function" then
+      local ok, dynamic_min = pcall(elem.input.get_minimum, player)
+      if ok and tonumber(dynamic_min) then
+        min_value = tonumber(dynamic_min)
+      end
+    end
+    local max_value = tonumber(elem.input.max)
+    local fallback = tonumber(elem.input.default)
+    if fallback == nil then
+      fallback = min_value
+    end
+
+    local init = tonumber(storage.facc_gui_state.inputs[input_name])
+    if init == nil then
+      init = fallback
+    end
+    init = math.floor(init)
+    if init < min_value then
+      init = min_value
+    end
+    if max_value and init > max_value then
+      init = max_value
+    end
+
+    storage.facc_gui_state.inputs[input_name] = tostring(init)
+
+    left_children[#left_children + 1] = {
+      type = "flow",
+      direction = "horizontal",
+      style_mods = {
+        horizontal_spacing = SPACING,
+        vertical_align = "center"
+      },
+      children = {
+        {
+          type = "textfield",
+          name = input_name,
+          text = tostring(init),
+          numeric = true,
+          style = "short_number_textfield",
+          style_mods = {
+            width = elem.input.width or 96
+          },
+          handler = { [defines.events.on_gui_text_changed] = gui_events.handlers.console_text_changed }
+        }
+      }
+    }
+  end
+
   local row_children = {
     {
       type = "flow",
@@ -832,6 +909,13 @@ local function add_function_block(parent, elem, player)
       if box and box.valid then
         box.enabled = false
       end
+    end
+  end
+
+  if elem.input then
+    local input = created[elem.input.name]
+    if input and input.valid then
+      input.enabled = enabled
     end
   end
 

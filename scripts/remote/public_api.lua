@@ -30,6 +30,7 @@ local set_crafting_speed = require("scripts/manufacturing/set_crafting_speed")
 local set_mining_speed = require("scripts/mining/set_mining_speed")
 local run_faster = require("scripts/character/run_faster")
 local increase_robot_speed = require("scripts/logistic-network/increase_robot_speed")
+local set_inventory_slots_bonus = require("scripts/storage/set_inventory_slots_bonus")
 local console_exec = require("scripts/cheats/console")
 local ghost_toggle = require("scripts/character/toggle_ghost_character")
 local invincible_player = require("scripts/character/invincible_player")
@@ -318,6 +319,14 @@ local VALUE_HANDLERS = {
     set_slider_state("slider_auto_instant_research", value)
     return true, nil
   end,
+  facc_set_inventory_slots_bonus = function(player, args)
+    local value = to_number(args.value, 0)
+    local ok, err = call_safe(set_inventory_slots_bonus.run, player, value)
+    if not ok then
+      return false, err
+    end
+    return true, nil
+  end,
 }
 
 local SIMPLE_ACTIONS = {
@@ -385,7 +394,8 @@ local ACTION_SPEC = {
     "facc_reach_distance", "facc_resource_reach_distance", "facc_item_drop_distance",
     "facc_item_pickup_distance", "facc_loot_pickup_distance", "facc_surface_daytime",
     "facc_surface_pressure", "facc_surface_magnetic_field", "facc_surface_gravity",
-    "facc_auto_clean_pollution_interval", "facc_auto_instant_research_interval"
+    "facc_auto_clean_pollution_interval", "facc_auto_instant_research_interval",
+    "facc_set_inventory_slots_bonus"
   },
   simple = {
     "facc_surface_daytime_midday", "facc_surface_daytime_midnight",
@@ -447,6 +457,7 @@ local ACTION_SCHEMA = {
   facc_surface_gravity = { value = "number" },
   facc_auto_clean_pollution_interval = { value = "number seconds [1..300]" },
   facc_auto_instant_research_interval = { value = "number seconds [1..300]" },
+  facc_set_inventory_slots_bonus = { value = "number [0..65535], min 10 if toolbelt researched" },
   facc_teleport_to_planet = { planet_name = "string (or use value)" },
   facc_console_exec = { code = "string (Lua code)" },
   facc_refresh_stats_hud = {},

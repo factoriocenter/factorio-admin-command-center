@@ -1,4 +1,16 @@
 ---------------------------------------------------------------------------------------------------
+Version: 4.3.0
+Date: 2026-03-22
+  Features:
+    - Added "Set Inventory Slots Bonus" in the Character tab with numeric input and apply button.
+  Changes:
+    - Added Toolbelt-aware minimum validation for inventory slots bonus (minimum 0, or 10 after researching Toolbelt).
+  Compatibility:
+    - Added safe clamp for inventory slots bonus values (0 to 65535).
+  Translation:
+    - Added EN, pt-BR, and external locale names, messages, and tooltip for the new option.
+
+---------------------------------------------------------------------------------------------------
 Version: 4.2.0
 Date: 2026-03-22
   Features:

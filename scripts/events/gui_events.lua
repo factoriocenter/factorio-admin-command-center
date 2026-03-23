@@ -32,6 +32,7 @@ local set_crafting_speed     = require("scripts/manufacturing/set_crafting_speed
 local set_mining_speed       = require("scripts/mining/set_mining_speed")
 local run_faster             = require("scripts/character/run_faster")
 local increase_robot_speed   = require("scripts/logistic-network/increase_robot_speed")
+local set_inventory_slots_bonus = require("scripts/storage/set_inventory_slots_bonus")
 
 -- Character features
 local ghost_toggle           = require("scripts/character/toggle_ghost_character")
@@ -81,11 +82,31 @@ local function safe_call(action_name, fn, ...)
 end
 
 local function safe_call_player(player, action_name, fn, ...)
-  local ok = safe_call(action_name, fn, ...)
+  local ok, result_a, result_b = safe_call(action_name, fn, ...)
   if not ok and player and player.valid then
     player.print({"facc.runtime-compat-error", action_name})
   end
-  return ok
+  return ok, result_a, result_b
+end
+
+local function find_descendant(root, name)
+  if not (root and root.valid and type(name) == "string" and name ~= "") then
+    return nil
+  end
+  if root.children then
+    for _, child in pairs(root.children) do
+      if child and child.valid then
+        if child.name == name then
+          return child
+        end
+        local nested = find_descendant(child, name)
+        if nested then
+          return nested
+        end
+      end
+    end
+  end
+  return nil
 end
 
 local FACC_BUTTONS = {
@@ -121,6 +142,7 @@ local FACC_BUTTONS = {
   facc_add_infinite_research_levels = true,
   facc_indestructible_builds_permanent = true,
   facc_non_minable_permanent = true,
+  facc_set_inventory_slots_bonus = true,
   facc_ghost_on_death = true,
   -- Legendary features (Quality DLC)
   facc_convert_inventory=true,
@@ -227,6 +249,7 @@ local features = {
   facc_ghost_on_death = require("scripts/blueprints/enable_ghost_on_death"),
   facc_indestructible_builds_permanent = require("scripts/combat/indestructible_builds_permanent"),
   facc_non_minable_permanent = require("scripts/mining/non_minable_permanent"),
+  facc_set_inventory_slots_bonus = set_inventory_slots_bonus,
 }
 
 local quality_enabled = script.active_mods["quality"] ~= nil
@@ -306,6 +329,35 @@ local function on_gui_click(event)
 
   local handler = features[name]
   if handler then
+    if name == "facc_set_inventory_slots_bonus" then
+      if type(state.inputs) ~= "table" then
+        state.inputs = {}
+      end
+
+      local raw_value = state.inputs["input_inventory_slots_bonus"] or "0"
+      local ok, applied_value, min_value = safe_call_player(player, name, handler.run, player, raw_value)
+      if not ok then
+        return
+      end
+
+      local normalized_value = applied_value
+      if normalized_value == nil and type(min_value) == "number" then
+        normalized_value = min_value
+      end
+
+      if normalized_value ~= nil then
+        local text_value = tostring(math.floor(tonumber(normalized_value) or 0))
+        state.inputs["input_inventory_slots_bonus"] = text_value
+        local frame = player.gui.screen["facc_main_frame"]
+        local input = find_descendant(frame, "input_inventory_slots_bonus")
+        if input and input.valid then
+          input.text = text_value
+        end
+      end
+
+      return
+    end
+
     local sliders = state.sliders
     local radius
     if name == "facc_remove_cliffs"        then radius = sliders["slider_remove_cliffs"] or 50 end
@@ -488,10 +540,25 @@ end
 
 local function on_console_text_changed(event)
   local elem = event.element
-  if not (elem and elem.valid and elem.name == "facc_textbox") then
+  if not (elem and elem.valid) then
     return
   end
-  storage.facc_last_command = elem.text or ""
+
+  if elem.name == "facc_textbox" then
+    storage.facc_last_command = elem.text or ""
+    return
+  end
+
+  if elem.name == "input_inventory_slots_bonus" then
+    local state = get_state()
+    if not state then
+      return
+    end
+    if type(state.inputs) ~= "table" then
+      state.inputs = {}
+    end
+    state.inputs[elem.name] = elem.text or ""
+  end
 end
 
 M.handlers = {
