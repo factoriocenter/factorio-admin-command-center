@@ -5,6 +5,23 @@
 local M = {}
 local compat = require("scripts/utils/mod_compat")
 
+local function is_legendary_quality(quality)
+  if quality == nil then
+    return false
+  end
+  if type(quality) == "string" then
+    return quality == "legendary"
+  end
+  return quality.name == "legendary"
+end
+
+local function stack_is_legendary(stack)
+  if not (stack and stack.valid_for_read) then
+    return false
+  end
+  return is_legendary_quality(stack.quality)
+end
+
 --- Runs the conversion to legendary quality.
 -- Checks for valid player.character before proceeding.
 -- @param player LuaPlayer
@@ -52,6 +69,85 @@ function M.run(player)
     end
   end
 
+  local function convert_stack_to_legendary(stack)
+    if not (stack and stack.valid_for_read) then
+      return false
+    end
+    if stack_is_legendary(stack) then
+      return true
+    end
+    local ok, changed = pcall(function()
+      return stack.set_stack({ name = stack.name, count = stack.count, quality = "legendary" })
+    end)
+    return ok and changed == true
+  end
+
+  local function convert_armor_stack_preserve_grid(stack)
+    if not (stack and stack.valid_for_read) then
+      return true
+    end
+    if stack_is_legendary(stack) then
+      return true
+    end
+
+    local equipment_snapshot = {}
+    if stack.grid then
+      for _, eq in pairs(stack.grid.equipment) do
+        equipment_snapshot[#equipment_snapshot + 1] = {
+          name = eq.name,
+          position = { x = eq.position.x, y = eq.position.y },
+          size = (eq.shape.width or 1) * (eq.shape.height or 1)
+        }
+      end
+    end
+
+    local converted = convert_stack_to_legendary(stack)
+    if not converted then
+      return false
+    end
+
+    if #equipment_snapshot == 0 then
+      return true
+    end
+
+    local grid = stack.grid
+    if not grid then
+      local ok, created_grid = pcall(function()
+        return stack.create_grid()
+      end)
+      if ok then
+        grid = created_grid
+      end
+    end
+
+    if not grid then
+      for _, eq in pairs(equipment_snapshot) do
+        safe_insert_or_store({ name = eq.name, count = 1, quality = "legendary" })
+      end
+      return true
+    end
+
+    table.sort(equipment_snapshot, function(a, b) return a.size > b.size end)
+    for _, eq in pairs(equipment_snapshot) do
+      local placed = compat.safe_grid_put(grid, {
+        name = eq.name,
+        quality = "legendary",
+        position = eq.position
+      })
+      if not placed then
+        placed = compat.safe_grid_put(grid, {
+          name = eq.name,
+          position = eq.position
+        })
+      end
+      if not placed then
+        safe_insert_or_store({ name = eq.name, count = 1, quality = "legendary" })
+      end
+    end
+
+    return true
+  end
+
   -- Convert items in given inventory, skipping blueprints and planners
   local function convert_inventory(inv)
     if not inv then
@@ -59,21 +155,34 @@ function M.run(player)
     end
     for i = 1, #inv do
       local stack = inv[i]
-      if stack.valid_for_read and stack.quality ~= "legendary" and stack.count > 0 then
+      if stack.valid_for_read and not stack_is_legendary(stack) and stack.count > 0 then
         -- Skip blueprint, blueprint book, upgrade planner, and deconstruction planner
         if stack.is_blueprint or stack.is_blueprint_book
            or stack.name == "upgrade-planner"
            or stack.name == "deconstruction-planner" then
           -- do nothing
         else
-          -- Convert normal item to legendary
-          local name = stack.name
-          local count = stack.count
-          local removed = inv.remove{name = name, count = count}
-          if removed > 0 then
-            local inserted = compat.safe_player_insert(player, {name = name, count = removed, quality = "legendary"})
-            if inserted <= 0 then
-              safe_insert_or_store({name = name, count = removed})
+          -- Preserve equipment grids for armor stacks in normal inventories.
+          if stack.grid and stack.count == 1 then
+            local ok = convert_armor_stack_preserve_grid(stack)
+            if not ok then
+              -- Do not fallback remove/insert for armor-with-grid, to avoid
+              -- item-data loss or accidental duplication. Keep original stack.
+              player.print({ "facc.runtime-compat-error", "facc_convert_inventory_armor_stack" })
+            end
+          else
+            local ok = convert_stack_to_legendary(stack)
+            if not ok then
+              -- Fallback conversion path for stack types that reject set_stack.
+              local name = stack.name
+              local count = stack.count
+              local removed = inv.remove({ name = name, count = count })
+              if removed > 0 then
+                local inserted = compat.safe_player_insert(player, { name = name, count = removed, quality = "legendary" })
+                if inserted < removed then
+                  safe_insert_or_store({ name = name, count = (removed - inserted), quality = "legendary" })
+                end
+              end
             end
           end
         end
@@ -93,38 +202,14 @@ function M.run(player)
     player.print({"facc.convert-inventory-msg"})
     return
   end
+
+  -- Convert equipped armor (and preserve its grid) if needed.
   local armor_stack = armor_inv[1]
-  local equipment_buffer = {}
-
-  if armor_stack.valid_for_read and armor_stack.grid then
-    -- Remove and buffer equipment
-    for _, eq in pairs(armor_stack.grid.equipment) do
-      table.insert(equipment_buffer, {name = eq.name, size = (eq.shape.width or 1) * (eq.shape.height or 1)})
-    end
-    for _, eq in pairs(equipment_buffer) do
-      pcall(function() armor_stack.grid.take{name = eq.name, count = 1} end)
-    end
-  end
-
-  -- Convert armor itself
-  if armor_stack.valid_for_read and armor_stack.quality ~= "legendary" then
-    local name = armor_stack.name
-    armor_inv.remove{name = name, count = 1}
-    local inserted = compat.safe_player_insert(player, {name = name, count = 1, quality = "legendary"})
-    if inserted <= 0 then
-      safe_insert_or_store({name = name, count = 1})
-    end
-  end
-
-  -- Re-insert buffered equipment into new legendary armor
-  local new_armor = armor_inv[1]
-  if new_armor.valid_for_read and new_armor.grid then
-    table.sort(equipment_buffer, function(a, b) return a.size > b.size end)
-    for _, eq in pairs(equipment_buffer) do
-      local ok = compat.safe_grid_put(new_armor.grid, {name = eq.name, quality = "legendary"})
-      if not ok then
-        safe_insert_or_store({name = eq.name, count = 1})
-      end
+  if armor_stack.valid_for_read and not stack_is_legendary(armor_stack) then
+    local ok = convert_armor_stack_preserve_grid(armor_stack)
+    if not ok then
+      -- Last-resort fallback: keep the original armor untouched instead of risking duplication/loss.
+      player.print({ "facc.runtime-compat-error", "facc_convert_inventory_armor" })
     end
   end
 
