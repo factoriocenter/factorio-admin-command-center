@@ -5,7 +5,7 @@
 local M = {}
 local compat = require("scripts/utils/mod_compat")
 
-local space_age_enabled = compat.is_mod_active("space-age")
+local space_age_enabled = compat.is_space_age_stack_active()
 
 local function get_required_fluid_name(fluidbox, index)
   local ok_proto, proto = pcall(function() return fluidbox.get_prototype(index) end)

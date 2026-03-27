@@ -7,6 +7,7 @@ local permissions = require("scripts/utils/permissions")
 _G.is_allowed = permissions.is_allowed
 local flib_on_tick_n = require("__flib__.on-tick-n")
 local flib_table = require("__flib__.table")
+local compat = require("scripts/utils/mod_compat")
 
 local function safe_control_call(label, fn, ...)
   local ok, err = pcall(fn, ...)
@@ -141,7 +142,7 @@ local function is_legendary_quality_module_researched(force)
 end
 
 local function update_legendary_shortcut_availability()
-  local quality_active = script.active_mods["quality"] ~= nil
+  local quality_active = compat.is_quality_active()
   flib_table.for_each(game.players, function(player)
     if not (player and player.valid) then
       return
@@ -295,7 +296,7 @@ script.on_event(defines.events.on_lua_shortcut, function(e)
     main_gui.toggle_main_gui(player)
   elseif e.prototype_name == "facc_give_legendary_upgrader" then
     if is_allowed(player) then
-      if script.active_mods["quality"] == nil or not is_legendary_quality_module_researched(player.force) then
+      if not compat.is_quality_active() or not is_legendary_quality_module_researched(player.force) then
         player.print({ "facc.legendary-upgrader-research-required" })
         return
       end

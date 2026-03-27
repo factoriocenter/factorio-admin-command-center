@@ -33,6 +33,7 @@ local set_mining_speed       = require("scripts/mining/set_mining_speed")
 local run_faster             = require("scripts/character/run_faster")
 local increase_robot_speed   = require("scripts/logistic-network/increase_robot_speed")
 local set_inventory_slots_bonus = require("scripts/character/set_inventory_slots_bonus")
+local compat                 = require("scripts/utils/mod_compat")
 
 -- Character features
 local ghost_toggle           = require("scripts/character/toggle_ghost_character")
@@ -250,7 +251,7 @@ local features = {
   facc_set_inventory_slots_bonus = set_inventory_slots_bonus,
 }
 
-local quality_enabled = script.active_mods["quality"] ~= nil
+local quality_enabled = compat.is_quality_active()
 if quality_enabled then
   features.facc_convert_inventory    = require("scripts/character/convert_inventory_to_legendary")
   features.facc_upgrade_blueprints   = require("scripts/blueprints/upgrade_blueprints_to_legendary")

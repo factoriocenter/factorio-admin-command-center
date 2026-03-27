@@ -7,12 +7,13 @@ local M = {}
 local flib_gui = require("__flib__.gui")
 local flib_table = require("__flib__.table")
 local gui_events = require("scripts/events/gui_events")
+local compat = require("scripts/utils/mod_compat")
 
 --------------------------------------------------------------------------------
 -- Mod detection
 --------------------------------------------------------------------------------
-local quality_enabled   = script.active_mods["quality"]   ~= nil
-local space_age_enabled = script.active_mods["space-age"] ~= nil
+local quality_enabled   = compat.is_quality_active()
+local space_age_enabled = compat.is_space_age_stack_active()
 -- Disable “Increase Resources” when infinite resources is active
 local infinite_resources_enabled = settings.startup["facc-infinite-resources"]
     and settings.startup["facc-infinite-resources"].value

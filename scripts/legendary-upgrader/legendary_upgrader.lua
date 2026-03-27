@@ -3,6 +3,7 @@
 
 local TOOL_NAME = "facc_legendary_upgrader"
 local QUALITY   = "legendary"  -- hard-coded legendary quality
+local compat = require("scripts/utils/mod_compat")
 
 -- Main upgrader: triggered when player selects an area with our tool
 script.on_event(defines.events.on_player_selected_area, function(event)
@@ -13,7 +14,7 @@ script.on_event(defines.events.on_player_selected_area, function(event)
   if not is_allowed(player) then return end
   if not player then return end
 
-  local quality_active = script.active_mods["quality"] ~= nil
+  local quality_active = compat.is_quality_active()
   local legendary_quality = quality_active
     and player.force
     and player.force.valid

@@ -41,6 +41,27 @@ function M.is_mod_active(mod_name)
     and script.active_mods[mod_name] ~= nil
 end
 
+function M.is_quality_active()
+  return M.is_mod_active("quality")
+end
+
+function M.is_space_age_active()
+  return M.is_mod_active("space-age")
+end
+
+function M.is_elevated_rails_active()
+  return M.is_mod_active("elevated-rails")
+end
+
+-- Space Age gameplay stack as shipped by the base game.
+-- In normal setups, Space Age depends on both Quality and Elevated Rails.
+-- This helper is useful in modded environments that may alter dependencies.
+function M.is_space_age_stack_active()
+  return M.is_space_age_active()
+    and M.is_quality_active()
+    and M.is_elevated_rails_active()
+end
+
 function M.prototype_exists(collection_name, prototype_name)
   if type(collection_name) ~= "string" or type(prototype_name) ~= "string" then
     return false

@@ -48,7 +48,7 @@ function M.run(player, planet_name)
     display_name = "Nauvis"
     surface = game.surfaces["nauvis"] or (player.surface and player.surface.valid and player.surface) or nil
   else
-    if not compat.is_mod_active("space-age") then
+    if not compat.is_space_age_stack_active() then
       player.print({"facc.teleport-to-planet-no-space-age"})
       return
     end

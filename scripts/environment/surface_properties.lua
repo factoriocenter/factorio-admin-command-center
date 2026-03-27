@@ -3,6 +3,7 @@
 
 local M = {}
 local math_util = require("scripts/utils/flib_math")
+local compat = require("scripts/utils/mod_compat")
 
 local SPACE_AGE_REQUIRED_KEYS = {
   pressure = true,
@@ -127,7 +128,7 @@ function M.set_property(player, property_name, raw_value)
     return
   end
 
-  if SPACE_AGE_REQUIRED_KEYS[property_name] and script.active_mods["space-age"] == nil then
+  if SPACE_AGE_REQUIRED_KEYS[property_name] and not compat.is_space_age_stack_active() then
     player.print({"facc.surface-property-no-space-age"})
     return
   end

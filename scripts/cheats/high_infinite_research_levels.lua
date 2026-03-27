@@ -5,6 +5,7 @@
 local M = {}
 local flib_technology = require("__flib__.technology")
 local research_targets = require("scripts/cheats/research_targets")
+local compat = require("scripts/utils/mod_compat")
 
 local function is_multilevel(tech)
     local ok, result = pcall(flib_technology.is_multilevel, tech)
@@ -23,7 +24,7 @@ function M.run(player)
     end
 
     local force = player.force
-    local space_age_enabled = script.active_mods["space-age"] ~= nil
+    local space_age_enabled = compat.is_space_age_stack_active()
 
     local tech_names = research_targets.get(space_age_enabled)
 

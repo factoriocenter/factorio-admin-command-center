@@ -16,8 +16,8 @@ function M.run(player)
   end
 
   -- Detect mods
-  local quality_enabled   = compat.is_mod_active("quality")
-  local space_age_enabled = compat.is_mod_active("space-age")
+  local quality_enabled   = compat.is_quality_active()
+  local space_age_enabled = compat.is_space_age_stack_active()
 
   -- Choose armor and layout
   local armor_name, armor_quality, layout

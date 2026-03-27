@@ -11,7 +11,7 @@ local chunk_jobs = require("scripts/utils/chunk_job_runner")
 local compat = require("scripts/utils/mod_compat")
 
 -- Detect whether the Space Age DLC/mod is active
-local space_age_enabled = compat.is_mod_active("space-age")
+local space_age_enabled = compat.is_space_age_stack_active()
 local JOBS_KEY = "facc_jobs_ammo_to_turrets"
 local CHUNKS_PER_TICK = 8
 local STATUS_OPTIONS = {

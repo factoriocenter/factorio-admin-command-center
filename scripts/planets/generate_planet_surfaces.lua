@@ -11,7 +11,7 @@ function M.run(player)
     return
   end
 
-  if not compat.is_mod_active("space-age") or not game.planets then
+  if not compat.is_space_age_stack_active() or not game.planets then
     player.print({"facc.generate-planet-surfaces-no-space-age"})
     return
   end

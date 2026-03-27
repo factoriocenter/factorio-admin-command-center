@@ -7,6 +7,7 @@ local teleport_gui = require("scripts/gui/teleport_gui")
 local stats_hud = require("scripts/gui/stats_hud")
 local flib_table = require("__flib__.table")
 local math_util = require("scripts/utils/flib_math")
+local compat = require("scripts/utils/mod_compat")
 
 local clean_pollution = require("scripts/environment/clean_pollution")
 local instant_research = require("scripts/cheats/instant_research")
@@ -68,7 +69,7 @@ local features = {
   facc_non_minable_permanent = require("scripts/mining/non_minable_permanent")
 }
 
-local quality_enabled = script.active_mods["quality"] ~= nil
+local quality_enabled = compat.is_quality_active()
 if quality_enabled then
   features.facc_convert_inventory = require("scripts/character/convert_inventory_to_legendary")
   features.facc_upgrade_blueprints = require("scripts/blueprints/upgrade_blueprints_to_legendary")
@@ -507,6 +508,10 @@ local INTERFACE_NAME = "facc"
 local INTERFACE_ALIAS = "factorio_admin_command_center"
 local INTERFACE_VERSION = 1
 local function list_planets()
+  if not compat.is_space_age_stack_active() or not game.planets then
+    return { "nauvis" }
+  end
+
   local result = {}
   local seen = {}
   local base_order = { "nauvis", "vulcanus", "fulgora", "gleba", "aquilo" }
@@ -518,12 +523,10 @@ local function list_planets()
     end
   end
 
-  if game.planets then
-    for name in pairs(game.planets) do
-      if not seen[name] then
-        seen[name] = true
-        result[#result + 1] = name
-      end
+  for name in pairs(game.planets) do
+    if not seen[name] then
+      seen[name] = true
+      result[#result + 1] = name
     end
   end
 
@@ -541,8 +544,10 @@ local API_FUNCTIONS = {
 
   get_capabilities = function()
     return {
-      quality = script.active_mods["quality"] ~= nil,
-      space_age = script.active_mods["space-age"] ~= nil,
+      quality = compat.is_quality_active(),
+      space_age = compat.is_space_age_active(),
+      elevated_rails = compat.is_elevated_rails_active(),
+      space_age_stack = compat.is_space_age_stack_active(),
       planets = list_planets()
     }
   end,
