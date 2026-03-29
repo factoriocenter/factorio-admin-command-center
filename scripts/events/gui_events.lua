@@ -25,6 +25,13 @@ local toggle_trains          = require("scripts/trains/toggle_trains")
 local distance_bonus         = require("scripts/character/distance_bonus")
 local ammo_damage_boost      = require("scripts/combat/ammo_damage_boost")
 local turret_damage_boost    = require("scripts/combat/turret_damage_boost")
+local gun_speed_boost        = require("scripts/combat/gun_speed_boost")
+local artillery_range_boost  = require("scripts/combat/artillery_range_boost")
+local character_health_bonus = require("scripts/character/character_health_bonus")
+local robot_storage_bonus    = require("scripts/logistic-network/robot_storage_bonus")
+local robot_battery_bonus    = require("scripts/logistic-network/robot_battery_bonus")
+local following_robot_lifetime_bonus = require("scripts/logistic-network/following_robot_lifetime_bonus")
+local solar_power_multiplier = require("scripts/environment/solar_power_multiplier")
 
 -- live auto-run sliders
 local set_game_speed         = require("scripts/cheats/set_game_speed")
@@ -33,6 +40,7 @@ local set_mining_speed       = require("scripts/mining/set_mining_speed")
 local run_faster             = require("scripts/character/run_faster")
 local increase_robot_speed   = require("scripts/logistic-network/increase_robot_speed")
 local set_inventory_slots_bonus = require("scripts/character/set_inventory_slots_bonus")
+local set_character_trash_slot_bonus = require("scripts/character/set_character_trash_slot_bonus")
 local compat                 = require("scripts/utils/mod_compat")
 
 -- Character features
@@ -144,6 +152,7 @@ local FACC_BUTTONS = {
   facc_indestructible_builds_permanent = true,
   facc_non_minable_permanent = true,
   facc_set_inventory_slots_bonus = true,
+  facc_character_trash_slot_bonus = true,
   facc_ghost_on_death = true,
   -- Legendary features (Quality DLC)
   facc_convert_inventory=true,
@@ -156,7 +165,8 @@ local FACC_BUTTONS = {
   facc_surface_daytime_midnight=true,
   facc_surface_pressure=true,
   facc_surface_magnetic_field=true,
-  facc_surface_gravity=true
+  facc_surface_gravity=true,
+  facc_surface_solar_power_multiplier=true,
 }
 
 local FACC_SLIDERS = {
@@ -164,6 +174,7 @@ local FACC_SLIDERS = {
   slider_set_crafting_speed=true,
   slider_set_mining_speed=true,
   slider_run_faster=true,
+  slider_character_health_bonus=true,
   slider_platform_distance=true,
   slider_remove_cliffs=true,
   slider_remove_nests=true,
@@ -171,6 +182,9 @@ local FACC_SLIDERS = {
   slider_auto_clean_pollution=true,
   slider_auto_instant_research=true,
   slider_increase_robot_speed=true,
+  slider_robot_storage_bonus=true,
+  slider_robot_battery_bonus=true,
+  slider_following_robot_lifetime_bonus=true,
   slider_build_distance=true,
   slider_reach_distance=true,
   slider_resource_reach_distance=true,
@@ -179,10 +193,13 @@ local FACC_SLIDERS = {
   slider_loot_pickup_distance=true,
   slider_ammo_damage_boost=true,
   slider_turret_damage_boost=true,
+  slider_gun_speed_boost=true,
+  slider_artillery_range_boost=true,
   slider_surface_daytime=true,
   slider_surface_pressure=true,
   slider_surface_magnetic_field=true,
   slider_surface_gravity=true,
+  slider_surface_solar_power_multiplier=true,
 }
 
 local FACC_SWITCHES = {
@@ -249,6 +266,7 @@ local features = {
   facc_indestructible_builds_permanent = require("scripts/combat/indestructible_builds_permanent"),
   facc_non_minable_permanent = require("scripts/mining/non_minable_permanent"),
   facc_set_inventory_slots_bonus = set_inventory_slots_bonus,
+  facc_character_trash_slot_bonus = set_character_trash_slot_bonus,
 }
 
 local quality_enabled = compat.is_quality_active()
@@ -332,22 +350,61 @@ local function on_gui_click(event)
         state.inputs = {}
       end
 
+      local bonus_state_key = "input_inventory_slots_bonus_bonus"
+      local old_bonus = state.sliders[bonus_state_key]
+      if old_bonus == nil then
+        old_bonus = tonumber(state.inputs["input_inventory_slots_bonus"]) or 0
+      end
       local raw_value = state.inputs["input_inventory_slots_bonus"] or "0"
-      local ok, applied_value, min_value = safe_call_player(player, name, handler.run, player, raw_value)
+      local ok, applied_value, _minimum, applied_bonus = safe_call_player(player, name, handler.run, player, old_bonus, raw_value)
       if not ok then
         return
       end
 
-      local normalized_value = applied_value
-      if normalized_value == nil and type(min_value) == "number" then
-        normalized_value = min_value
-      end
-
-      if normalized_value ~= nil then
-        local text_value = tostring(math.floor(tonumber(normalized_value) or 0))
+      if applied_value ~= nil then
+        local display_bonus = tonumber(applied_bonus)
+        if display_bonus == nil then
+          display_bonus = tonumber(raw_value) or 0
+        end
+        local text_value = tostring(math.floor(display_bonus))
         state.inputs["input_inventory_slots_bonus"] = text_value
+        state.sliders[bonus_state_key] = math.floor(display_bonus)
         local frame = player.gui.screen["facc_main_frame"]
         local input = find_descendant(frame, "input_inventory_slots_bonus")
+        if input and input.valid then
+          input.text = text_value
+        end
+      end
+
+      return
+    end
+
+    if name == "facc_character_trash_slot_bonus" then
+      if type(state.inputs) ~= "table" then
+        state.inputs = {}
+      end
+
+      local bonus_state_key = "input_character_trash_slot_bonus_bonus"
+      local old_bonus = state.sliders[bonus_state_key]
+      if old_bonus == nil then
+        old_bonus = tonumber(state.inputs["input_character_trash_slot_bonus"]) or 0
+      end
+      local raw_value = state.inputs["input_character_trash_slot_bonus"] or "0"
+      local ok, applied_value, _minimum, applied_bonus = safe_call_player(player, name, handler.run, player, old_bonus, raw_value)
+      if not ok then
+        return
+      end
+
+      if applied_value ~= nil then
+        local display_bonus = tonumber(applied_bonus)
+        if display_bonus == nil then
+          display_bonus = tonumber(raw_value) or 0
+        end
+        local text_value = tostring(math.floor(display_bonus))
+        state.inputs["input_character_trash_slot_bonus"] = text_value
+        state.sliders[bonus_state_key] = math.floor(display_bonus)
+        local frame = player.gui.screen["facc_main_frame"]
+        local input = find_descendant(frame, "input_character_trash_slot_bonus")
         if input and input.valid then
           input.text = text_value
         end
@@ -407,6 +464,12 @@ local function on_gui_click(event)
   if name == "facc_surface_gravity" then
     local gravity = state.sliders["slider_surface_gravity"] or 10
     safe_call_player(player, name, surface_properties.set_property, player, "gravity", gravity)
+    return
+  end
+
+  if name == "facc_surface_solar_power_multiplier" then
+    local multiplier = state.sliders["slider_surface_solar_power_multiplier"] or 1
+    safe_call_player(player, name, solar_power_multiplier.run, player, multiplier)
   end
 end
 
@@ -424,6 +487,46 @@ local function on_gui_value_changed(event)
     safe_call_player(player, elem.name, increase_robot_speed.apply, player, old, new)
     state.sliders["slider_increase_robot_speed"] = new
     local box = elem.parent[elem.name .. "_value"]
+    if box and box.valid then box.text = tostring(new) end
+    return
+  end
+
+  if elem.name == "slider_character_health_bonus" then
+    local old = state.sliders["slider_character_health_bonus"] or 0
+    local new = elem.slider_value
+    safe_call_player(player, elem.name, character_health_bonus.apply, player, old, new)
+    state.sliders["slider_character_health_bonus"] = new
+    local box = elem.parent["slider_character_health_bonus_value"]
+    if box and box.valid then box.text = tostring(new) end
+    return
+  end
+
+  if elem.name == "slider_robot_storage_bonus" then
+    local old = state.sliders["slider_robot_storage_bonus"] or 0
+    local new = elem.slider_value
+    safe_call_player(player, elem.name, robot_storage_bonus.apply, player, old, new)
+    state.sliders["slider_robot_storage_bonus"] = new
+    local box = elem.parent["slider_robot_storage_bonus_value"]
+    if box and box.valid then box.text = tostring(new) end
+    return
+  end
+
+  if elem.name == "slider_robot_battery_bonus" then
+    local old = state.sliders["slider_robot_battery_bonus"] or 0
+    local new = elem.slider_value
+    safe_call_player(player, elem.name, robot_battery_bonus.apply, player, old, new)
+    state.sliders["slider_robot_battery_bonus"] = new
+    local box = elem.parent["slider_robot_battery_bonus_value"]
+    if box and box.valid then box.text = tostring(new) end
+    return
+  end
+
+  if elem.name == "slider_following_robot_lifetime_bonus" then
+    local old = state.sliders["slider_following_robot_lifetime_bonus"] or 0
+    local new = elem.slider_value
+    safe_call_player(player, elem.name, following_robot_lifetime_bonus.apply, player, old, new)
+    state.sliders["slider_following_robot_lifetime_bonus"] = new
+    local box = elem.parent["slider_following_robot_lifetime_bonus_value"]
     if box and box.valid then box.text = tostring(new) end
     return
   end
@@ -455,6 +558,26 @@ local function on_gui_value_changed(event)
     safe_call_player(player, elem.name, turret_damage_boost.apply, player, old, new)
     state.sliders["slider_turret_damage_boost"] = new
     local box = elem.parent["slider_turret_damage_boost_value"]
+    if box and box.valid then box.text = tostring(new) end
+    return
+  end
+
+  if elem.name == "slider_gun_speed_boost" then
+    local old = state.sliders["slider_gun_speed_boost"] or 0
+    local new = elem.slider_value
+    safe_call_player(player, elem.name, gun_speed_boost.apply, player, old, new)
+    state.sliders["slider_gun_speed_boost"] = new
+    local box = elem.parent["slider_gun_speed_boost_value"]
+    if box and box.valid then box.text = tostring(new) end
+    return
+  end
+
+  if elem.name == "slider_artillery_range_boost" then
+    local old = state.sliders["slider_artillery_range_boost"] or 0
+    local new = elem.slider_value
+    safe_call_player(player, elem.name, artillery_range_boost.apply, player, old, new)
+    state.sliders["slider_artillery_range_boost"] = new
+    local box = elem.parent["slider_artillery_range_boost_value"]
     if box and box.valid then box.text = tostring(new) end
     return
   end
@@ -546,7 +669,7 @@ local function on_console_text_changed(event)
     return
   end
 
-  if elem.name == "input_inventory_slots_bonus" then
+  if elem.name == "input_inventory_slots_bonus" or elem.name == "input_character_trash_slot_bonus" then
     local state = get_state()
     if not state then
       return

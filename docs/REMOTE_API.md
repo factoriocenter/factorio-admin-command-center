@@ -463,10 +463,10 @@ Use `get_capabilities().space_age` before calling Space Age specific behavior in
 |---|---|---|---|
 | `facc_set_game_speed` | yes | `value:number` | Sets game speed. |
 | `facc_set_mining_speed` | yes | `value:number` | Mining speed bonus value. |
-| `facc_set_inventory_slots_bonus` | yes | `value:number` | Sets `LuaForce.character_inventory_slots_bonus` with clamp `0..65535`, and min `10` when `toolbelt` is researched. |
+| `facc_set_inventory_slots_bonus` | yes | `value:number` | Delta-style bonus input for `LuaForce.character_inventory_slots_bonus` (preserves research/base), clamped to `0..65535`; total never goes below `10` when `toolbelt` is researched. |
 | `facc_run_faster` | yes | `value:number` | Running speed bonus value. |
 | `facc_set_platform_distance` | yes | `value:number` | Clamped to `[0..1]` in module. |
-| `facc_set_crafting_speed` | yes | `value:number`, `old_value?:number` | Delta style slider action. |
+| `facc_set_crafting_speed` | yes | `value:number`, `old_value?:number` | Delta slider for `LuaForce.manual_crafting_speed_modifier` (handcraft speed). |
 | `facc_increase_robot_speed` | yes | `value:number`, `old_value?:number` | Delta style slider action. |
 | `facc_ammo_damage_boost` | yes | `value:number`, `old_value?:number` | Delta style slider action. |
 | `facc_turret_damage_boost` | yes | `value:number`, `old_value?:number` | Delta style slider action. |

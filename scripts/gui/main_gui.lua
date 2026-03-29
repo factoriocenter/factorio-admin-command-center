@@ -30,7 +30,11 @@ local CONFIRM_BUTTON_EXCLUDED = {
   facc_set_crafting_speed = true,
   facc_set_mining_speed = true,
   facc_run_faster = true,
+  facc_character_health_bonus = true,
   facc_increase_robot_speed = true,
+  facc_robot_storage_bonus = true,
+  facc_robot_battery_bonus = true,
+  facc_following_robot_lifetime_bonus = true,
   facc_build_distance = true,
   facc_reach_distance = true,
   facc_resource_reach_distance = true,
@@ -38,7 +42,9 @@ local CONFIRM_BUTTON_EXCLUDED = {
   facc_item_pickup_distance = true,
   facc_loot_pickup_distance = true,
   facc_ammo_damage_boost = true,
-  facc_turret_damage_boost = true
+  facc_turret_damage_boost = true,
+  facc_gun_speed_boost = true,
+  facc_artillery_range_boost = true
 }
 
 --------------------------------------------------------------------------------
@@ -56,7 +62,6 @@ local TAB_ORDER = {
   -- "fluids",
   "logistic-network",
   -- "logistics",
-  "manufacturing",
   "mining",
   "planets",
   "power",
@@ -64,17 +69,6 @@ local TAB_ORDER = {
   "trains",
   "transportation"
 }
-
-local function get_inventory_slots_bonus_min(player)
-  if not (player and player.valid and player.force and player.force.valid) then
-    return 0
-  end
-  local tech = player.force.technologies and player.force.technologies["toolbelt"]
-  if tech and tech.researched then
-    return 10
-  end
-  return 0
-end
 
 local TABS = {
   armor = {
@@ -181,15 +175,44 @@ local TABS = {
           default = 0,
           min = 0,
           max = 65535,
-          width = 96,
-          get_minimum = get_inventory_slots_bonus_min
+          width = 96
         }
+      },
+      {
+        name    = "facc_character_trash_slot_bonus",
+        caption = {"facc.character-trash-slot-bonus"},
+        tooltip = {"tooltip.character-trash-slot-bonus"},
+        input   = {
+          name = "input_character_trash_slot_bonus",
+          default = 0,
+          min = 0,
+          max = 65535,
+          width = 96
+        }
+      },
+      {
+        name    = "facc_set_crafting_speed",
+        caption = {"facc.set-crafting-speed"},
+        tooltip = {"tooltip.set-crafting-speed"},
+        slider  = { name="slider_set_crafting_speed", min=0, max=1000, default=0 }
+      },
+      {
+        name    = "facc_set_mining_speed",
+        caption = {"facc.set-mining-speed"},
+        tooltip = {"tooltip.set-mining-speed"},
+        slider  = { name="slider_set_mining_speed", min=0, max=1000, default=0 }
       },
       {
         name    = "facc_run_faster",
         caption = {"facc.run-faster"},
         tooltip = {"tooltip.run-faster"},
         slider  = { name="slider_run_faster", min=0, max=10, default=0 }
+      },
+      {
+        name    = "facc_character_health_bonus",
+        caption = {"facc.character-health-bonus"},
+        tooltip = {"tooltip.character-health-bonus"},
+        slider  = { name="slider_character_health_bonus", min=0, max=1000, default=0 }
       },
       {
         name    = "facc_build_distance",
@@ -330,6 +353,18 @@ local TABS = {
         caption = {"facc.turret-damage-boost"},
         tooltip = {"tooltip.turret-damage-boost"},
         slider  = { name="slider_turret_damage_boost", min=0, max=1000, default=0 }
+      },
+      {
+        name    = "facc_gun_speed_boost",
+        caption = {"facc.gun-speed-boost"},
+        tooltip = {"tooltip.gun-speed-boost"},
+        slider  = { name="slider_gun_speed_boost", min=0, max=1000, default=0 }
+      },
+      {
+        name    = "facc_artillery_range_boost",
+        caption = {"facc.artillery-range-boost"},
+        tooltip = {"tooltip.artillery-range-boost"},
+        slider  = { name="slider_artillery_range_boost", min=0, max=1000, default=0 }
       }
     }
   },
@@ -440,6 +475,12 @@ local TABS = {
         slider  = { name="slider_surface_gravity", min=0, max=2000, default=10 }
       },
       {
+        name    = "facc_surface_solar_power_multiplier",
+        caption = {"facc.surface-solar-power-multiplier"},
+        tooltip = {"tooltip.surface-solar-power-multiplier"},
+        slider  = { name="slider_surface_solar_power_multiplier", min=0, max=20, default=1 }
+      },
+      {
         name    = "facc_reveal_map",
         caption = {"facc.reveal-map"},
         tooltip = {"tooltip.reveal-map"},
@@ -478,17 +519,24 @@ local TABS = {
         caption = {"facc.increase-robot-speed"},
         tooltip = {"tooltip.increase-robot-speed"},
         slider  = { name="slider_increase_robot_speed", min=0, max=50, default=0 }
-      }
-    }
-  },
-  manufacturing = {
-    label    = {"facc.tab-manufacturing"},
-    elements = {
+      },
       {
-        name    = "facc_set_crafting_speed",
-        caption = {"facc.set-crafting-speed"},
-        tooltip = {"tooltip.set-crafting-speed"},
-        slider  = { name="slider_set_crafting_speed", min=0, max=1000, default=0 }
+        name    = "facc_robot_storage_bonus",
+        caption = {"facc.robot-storage-bonus"},
+        tooltip = {"tooltip.robot-storage-bonus"},
+        slider  = { name="slider_robot_storage_bonus", min=0, max=1000, default=0 }
+      },
+      {
+        name    = "facc_robot_battery_bonus",
+        caption = {"facc.robot-battery-bonus"},
+        tooltip = {"tooltip.robot-battery-bonus"},
+        slider  = { name="slider_robot_battery_bonus", min=0, max=1000, default=0 }
+      },
+      {
+        name    = "facc_following_robot_lifetime_bonus",
+        caption = {"facc.following-robot-lifetime-bonus"},
+        tooltip = {"tooltip.following-robot-lifetime-bonus"},
+        slider  = { name="slider_following_robot_lifetime_bonus", min=0, max=1000, default=0 }
       }
     }
   },
@@ -505,12 +553,6 @@ local TABS = {
         name    = "facc_non_minable_permanent",
         caption = {"facc.non-minable-permanent"},
         tooltip = {"tooltip.non-minable-permanent"},
-      },
-      {
-        name    = "facc_set_mining_speed",
-        caption = {"facc.set-mining-speed"},
-        tooltip = {"tooltip.set-mining-speed"},
-        slider  = { name="slider_set_mining_speed", min=0, max=1000, default=0 }
       }
     }
   },
@@ -634,6 +676,19 @@ local function sync_surface_switch_states(player)
   if ok then
     switches.facc_surface_no_enemies_mode = value == true
   end
+end
+
+local function sync_enemy_expansion_switch_state()
+  M.ensure_persistent_state()
+  if not (game and game.map_settings and game.map_settings.enemy_expansion) then
+    return
+  end
+
+  -- This switch means "Disable Enemy Expansion":
+  -- right/on  = disable expansion  (enabled == false)
+  -- left/off  = enable expansion   (enabled == true)
+  local enabled = game.map_settings.enemy_expansion.enabled == true
+  storage.facc_gui_state.switches.facc_enemy_expansion = not enabled
 end
 
 --------------------------------------------------------------------------------
@@ -806,6 +861,11 @@ local function add_function_block(parent, elem, player)
     end
 
     storage.facc_gui_state.inputs[input_name] = tostring(init)
+    if input_name == "input_inventory_slots_bonus" and storage.facc_gui_state.sliders["input_inventory_slots_bonus_bonus"] == nil then
+      storage.facc_gui_state.sliders["input_inventory_slots_bonus_bonus"] = init
+    elseif input_name == "input_character_trash_slot_bonus" and storage.facc_gui_state.sliders["input_character_trash_slot_bonus_bonus"] == nil then
+      storage.facc_gui_state.sliders["input_character_trash_slot_bonus_bonus"] = init
+    end
 
     left_children[#left_children + 1] = {
       type = "flow",
@@ -1003,9 +1063,14 @@ local function add_planet_teleport_blocks(parent, player)
       add_separator(parent)
     end
 
+    local caption = {"facc.teleport-to-planet", display_name}
+    if planet_name == "nauvis" then
+      caption = {"facc.teleport-to-nauvis"}
+    end
+
     add_function_block(parent, {
       name = PLANET_TELEPORT_PREFIX .. planet_name,
-      caption = {"facc.teleport-to-planet", display_name},
+      caption = caption,
       tooltip = {"tooltip.teleport-to-planet"}
     }, player)
 
@@ -1026,6 +1091,7 @@ local function open_gui(player)
   end
   M.ensure_persistent_state()
   sync_surface_switch_states(player)
+  sync_enemy_expansion_switch_state()
 
   if player.gui.screen["facc_main_frame"] then
     player.gui.screen["facc_main_frame"].destroy()

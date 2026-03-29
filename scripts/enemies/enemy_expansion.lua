@@ -6,22 +6,28 @@ local M = {}
 
 --- Toggles biter expansion globally.
 -- @param player LuaPlayer
--- @param disable boolean; true to disable expansion, false to enable expansion
-function M.run(player, disable)
+-- @param disable_expansion boolean; true to disable expansion, false to enable expansion
+function M.run(player, disable_expansion)
     if not is_allowed(player) then
         player.print({ "facc.not-allowed" })
         return
     end
 
-    -- When disable==true (switch ON), we set enabled = false; otherwise enabled = true
-    game.map_settings.enemy_expansion.enabled = not disable
+    local ok = pcall(function()
+      game.map_settings.enemy_expansion.enabled = not disable_expansion
+    end)
+    if not ok then
+      player.print({ "facc.runtime-compat-error", "facc_enemy_expansion" })
+      return
+    end
 
-    if disable then
-        -- user turned the switch ON → expansion is now disabled
-        player.print({ "facc.enemy-expansion-deactivated" })
+    local enabled_now = game.map_settings.enemy_expansion.enabled == true
+    if enabled_now then
+      -- switch OFF behavior: expansion enabled
+      player.print({ "facc.enemy-expansion-activated" })
     else
-        -- user turned the switch OFF → expansion is now enabled
-        player.print({ "facc.enemy-expansion-activated" })
+      -- switch ON behavior: expansion disabled
+      player.print({ "facc.enemy-expansion-deactivated" })
     end
 end
 

@@ -3,9 +3,14 @@ Version: 4.3.0
 Date: 2026-03-22
   Features:
     - Added "Set Inventory Slots Bonus" in the Character tab with numeric input and apply button.
+    - Added "Handcraft Speed Boost", "Character Health Bonus", and "Character Trash Slot Bonus" sliders in the Character tab.
+    - Added "Robot Storage Bonus", "Robot Battery Bonus", and "Following Robot Lifetime Bonus" sliders in the Logistic Network tab.
+    - Added "Gun Speed Boost" and "Artillery Range Boost" sliders in the Combat tab.
+    - Added "Set Surface Solar Power Multiplier" slider+button in the Environment tab.
   Changes:
     - Added Toolbelt-aware minimum validation for inventory slots bonus (minimum 0, or 10 after researching Toolbelt).
     - Removed "Convert to Legendary Quality (Quality)" action from Blueprints, keeping Legendary Upgrader as the official path.
+    - Extended the public Remote API action list and schemas to support all new slider actions.
   Compatibility:
     - Added safe clamp for inventory slots bonus values (0 to 65535).
   Bugfixes:
@@ -13,6 +18,7 @@ Date: 2026-03-22
     - Fixed ammo and turret damage sliders to handle Base-only and DLC combinations without errors when Space Age categories/entities are unavailable.
   Translation:
     - Added EN, pt-BR, and external locale names, messages, and tooltip for the new option.
+    - Added EN, pt-BR, and external locale names and tooltips for the new Character/Combat/Logistic/Environment sliders.
 
 ---------------------------------------------------------------------------------------------------
 Version: 4.2.0

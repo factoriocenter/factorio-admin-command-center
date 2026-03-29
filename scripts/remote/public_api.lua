@@ -26,12 +26,20 @@ local toggle_trains = require("scripts/trains/toggle_trains")
 local distance_bonus = require("scripts/character/distance_bonus")
 local ammo_damage_boost = require("scripts/combat/ammo_damage_boost")
 local turret_damage_boost = require("scripts/combat/turret_damage_boost")
+local gun_speed_boost = require("scripts/combat/gun_speed_boost")
+local artillery_range_boost = require("scripts/combat/artillery_range_boost")
 local set_game_speed = require("scripts/cheats/set_game_speed")
 local set_crafting_speed = require("scripts/manufacturing/set_crafting_speed")
 local set_mining_speed = require("scripts/mining/set_mining_speed")
 local run_faster = require("scripts/character/run_faster")
+local character_health_bonus = require("scripts/character/character_health_bonus")
+local set_character_trash_slot_bonus = require("scripts/character/set_character_trash_slot_bonus")
 local increase_robot_speed = require("scripts/logistic-network/increase_robot_speed")
+local robot_storage_bonus = require("scripts/logistic-network/robot_storage_bonus")
+local robot_battery_bonus = require("scripts/logistic-network/robot_battery_bonus")
+local following_robot_lifetime_bonus = require("scripts/logistic-network/following_robot_lifetime_bonus")
 local set_inventory_slots_bonus = require("scripts/character/set_inventory_slots_bonus")
+local solar_power_multiplier = require("scripts/environment/solar_power_multiplier")
 local console_exec = require("scripts/cheats/console")
 local ghost_toggle = require("scripts/character/toggle_ghost_character")
 local invincible_player = require("scripts/character/invincible_player")
@@ -213,6 +221,45 @@ local VALUE_HANDLERS = {
     local value = to_number(args.value, 0)
     return call_safe(set_mining_speed.run, player, value)
   end,
+  facc_character_health_bonus = function(player, args)
+    local new_value = to_number(args.value, 0)
+    local old_value = to_number(args.old_value, nil)
+    return apply_slider(player, "slider_character_health_bonus", new_value, character_health_bonus.apply, old_value)
+  end,
+  facc_character_trash_slot_bonus = function(player, args)
+    local value = to_number(args.value, 0)
+    local state = get_state()
+    local old_bonus = to_number(args.old_value, nil)
+    if old_bonus == nil and state then
+      if state.sliders then
+        old_bonus = to_number(state.sliders["input_character_trash_slot_bonus_bonus"], nil)
+      end
+      if old_bonus == nil and state.inputs then
+        old_bonus = to_number(state.inputs["input_character_trash_slot_bonus"], 0)
+      end
+    end
+    old_bonus = old_bonus or 0
+
+    local ok, applied_or_err, _minimum, applied_bonus = pcall(set_character_trash_slot_bonus.run, player, old_bonus, value)
+    if not ok then
+      return false, tostring(applied_or_err)
+    end
+    if applied_or_err == nil then
+      return false, "invalid-value"
+    end
+    if state then
+      if type(state.inputs) ~= "table" then
+        state.inputs = {}
+      end
+      if type(state.sliders) ~= "table" then
+        state.sliders = {}
+      end
+      local stored_bonus = math.floor(tonumber(applied_bonus) or 0)
+      state.inputs["input_character_trash_slot_bonus"] = tostring(stored_bonus)
+      state.sliders["input_character_trash_slot_bonus_bonus"] = stored_bonus
+    end
+    return true, nil
+  end,
   facc_run_faster = function(player, args)
     local value = to_number(args.value, 0)
     return call_safe(run_faster.run, player, value)
@@ -232,6 +279,21 @@ local VALUE_HANDLERS = {
     local old_value = to_number(args.old_value, nil)
     return apply_slider(player, "slider_increase_robot_speed", new_value, increase_robot_speed.apply, old_value)
   end,
+  facc_robot_storage_bonus = function(player, args)
+    local new_value = to_number(args.value, 0)
+    local old_value = to_number(args.old_value, nil)
+    return apply_slider(player, "slider_robot_storage_bonus", new_value, robot_storage_bonus.apply, old_value)
+  end,
+  facc_robot_battery_bonus = function(player, args)
+    local new_value = to_number(args.value, 0)
+    local old_value = to_number(args.old_value, nil)
+    return apply_slider(player, "slider_robot_battery_bonus", new_value, robot_battery_bonus.apply, old_value)
+  end,
+  facc_following_robot_lifetime_bonus = function(player, args)
+    local new_value = to_number(args.value, 0)
+    local old_value = to_number(args.old_value, nil)
+    return apply_slider(player, "slider_following_robot_lifetime_bonus", new_value, following_robot_lifetime_bonus.apply, old_value)
+  end,
   facc_ammo_damage_boost = function(player, args)
     local new_value = to_number(args.value, 0)
     local old_value = to_number(args.old_value, nil)
@@ -241,6 +303,16 @@ local VALUE_HANDLERS = {
     local new_value = to_number(args.value, 0)
     local old_value = to_number(args.old_value, nil)
     return apply_slider(player, "slider_turret_damage_boost", new_value, turret_damage_boost.apply, old_value)
+  end,
+  facc_gun_speed_boost = function(player, args)
+    local new_value = to_number(args.value, 0)
+    local old_value = to_number(args.old_value, nil)
+    return apply_slider(player, "slider_gun_speed_boost", new_value, gun_speed_boost.apply, old_value)
+  end,
+  facc_artillery_range_boost = function(player, args)
+    local new_value = to_number(args.value, 0)
+    local old_value = to_number(args.old_value, nil)
+    return apply_slider(player, "slider_artillery_range_boost", new_value, artillery_range_boost.apply, old_value)
   end,
   facc_build_distance = function(player, args)
     local new_value = to_number(args.value, 0)
@@ -308,6 +380,11 @@ local VALUE_HANDLERS = {
     set_slider_state("slider_surface_gravity", value)
     return call_safe(surface_properties.set_property, player, "gravity", value)
   end,
+  facc_surface_solar_power_multiplier = function(player, args)
+    local value = to_number(args.value, 1)
+    set_slider_state("slider_surface_solar_power_multiplier", value)
+    return call_safe(solar_power_multiplier.run, player, value)
+  end,
   facc_auto_clean_pollution_interval = function(_player, args)
     local value = math_util.clamp_number(to_number(args.value, 60), 1, 300, 60)
     set_slider_state("slider_auto_clean_pollution", value)
@@ -320,9 +397,36 @@ local VALUE_HANDLERS = {
   end,
   facc_set_inventory_slots_bonus = function(player, args)
     local value = to_number(args.value, 0)
-    local ok, err = call_safe(set_inventory_slots_bonus.run, player, value)
+    local state = get_state()
+    local old_bonus = to_number(args.old_value, nil)
+    if old_bonus == nil and state then
+      if state.sliders then
+        old_bonus = to_number(state.sliders["input_inventory_slots_bonus_bonus"], nil)
+      end
+      if old_bonus == nil and state.inputs then
+        old_bonus = to_number(state.inputs["input_inventory_slots_bonus"], 0)
+      end
+    end
+    old_bonus = old_bonus or 0
+
+    local ok, applied_or_err, _minimum, applied_bonus = pcall(set_inventory_slots_bonus.run, player, old_bonus, value)
     if not ok then
-      return false, err
+      return false, tostring(applied_or_err)
+    end
+    if applied_or_err == nil then
+      return false, "invalid-value"
+    end
+
+    if state then
+      if type(state.inputs) ~= "table" then
+        state.inputs = {}
+      end
+      if type(state.sliders) ~= "table" then
+        state.sliders = {}
+      end
+      local stored_bonus = math.floor(tonumber(applied_bonus) or 0)
+      state.inputs["input_inventory_slots_bonus"] = tostring(stored_bonus)
+      state.sliders["input_inventory_slots_bonus_bonus"] = stored_bonus
     end
     return true, nil
   end,
@@ -388,11 +492,14 @@ local ACTION_SPEC = {
   },
   value = {
     "facc_set_game_speed", "facc_set_mining_speed", "facc_run_faster",
+    "facc_character_health_bonus", "facc_character_trash_slot_bonus",
     "facc_set_platform_distance", "facc_set_crafting_speed", "facc_increase_robot_speed",
-    "facc_ammo_damage_boost", "facc_turret_damage_boost", "facc_build_distance",
-    "facc_reach_distance", "facc_resource_reach_distance", "facc_item_drop_distance",
-    "facc_item_pickup_distance", "facc_loot_pickup_distance", "facc_surface_daytime",
-    "facc_surface_pressure", "facc_surface_magnetic_field", "facc_surface_gravity",
+    "facc_robot_storage_bonus", "facc_robot_battery_bonus", "facc_following_robot_lifetime_bonus",
+    "facc_ammo_damage_boost", "facc_turret_damage_boost", "facc_gun_speed_boost",
+    "facc_artillery_range_boost", "facc_build_distance", "facc_reach_distance",
+    "facc_resource_reach_distance", "facc_item_drop_distance", "facc_item_pickup_distance",
+    "facc_loot_pickup_distance", "facc_surface_daytime", "facc_surface_pressure",
+    "facc_surface_magnetic_field", "facc_surface_gravity", "facc_surface_solar_power_multiplier",
     "facc_auto_clean_pollution_interval", "facc_auto_instant_research_interval",
     "facc_set_inventory_slots_bonus"
   },
@@ -437,11 +544,18 @@ local ACTION_SCHEMA = {
   facc_set_game_speed = { value = "number" },
   facc_set_mining_speed = { value = "number" },
   facc_run_faster = { value = "number" },
+  facc_character_health_bonus = { value = "number", old_value = "number (optional)" },
+  facc_character_trash_slot_bonus = { value = "number [0..65535]", old_value = "number (optional)" },
   facc_set_platform_distance = { value = "number [0..1]" },
   facc_set_crafting_speed = { value = "number", old_value = "number (optional)" },
   facc_increase_robot_speed = { value = "number", old_value = "number (optional)" },
+  facc_robot_storage_bonus = { value = "number", old_value = "number (optional)" },
+  facc_robot_battery_bonus = { value = "number", old_value = "number (optional)" },
+  facc_following_robot_lifetime_bonus = { value = "number", old_value = "number (optional)" },
   facc_ammo_damage_boost = { value = "number", old_value = "number (optional)" },
   facc_turret_damage_boost = { value = "number", old_value = "number (optional)" },
+  facc_gun_speed_boost = { value = "number", old_value = "number (optional)" },
+  facc_artillery_range_boost = { value = "number", old_value = "number (optional)" },
   facc_build_distance = { value = "number", old_value = "number (optional)" },
   facc_reach_distance = { value = "number", old_value = "number (optional)" },
   facc_resource_reach_distance = { value = "number", old_value = "number (optional)" },
@@ -452,9 +566,10 @@ local ACTION_SCHEMA = {
   facc_surface_pressure = { value = "number" },
   facc_surface_magnetic_field = { value = "number" },
   facc_surface_gravity = { value = "number" },
+  facc_surface_solar_power_multiplier = { value = "number [0..20]" },
   facc_auto_clean_pollution_interval = { value = "number seconds [1..300]" },
   facc_auto_instant_research_interval = { value = "number seconds [1..300]" },
-  facc_set_inventory_slots_bonus = { value = "number [0..65535], min 10 if toolbelt researched" },
+  facc_set_inventory_slots_bonus = { value = "number [0..65535], min 10 if toolbelt researched", old_value = "number (optional)" },
   facc_teleport_to_planet = { planet_name = "string (or use value)" },
   facc_console_exec = { code = "string (Lua code)" },
   facc_refresh_stats_hud = {},
