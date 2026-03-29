@@ -23,6 +23,8 @@ A compact admin toolkit for Factorio 2.0 with a category-based GUI, live sliders
 - 💰 `Receive Coins (Tight spot or Rocket rush)`
 - ⏱️ `Auto Instant Research`
 - ⚡ `Adjust Game Speed`
+- 🧪 `Laboratory Speed Bonus`
+- 🧪 `Laboratory Productivity Bonus`
 
 ### 🛡️ Armor:
 - 🤖 `Create Full Armor`
@@ -45,7 +47,11 @@ A compact admin toolkit for Factorio 2.0 with a category-based GUI, live sliders
 - ✂️ `Delete Orphaned Characters`
 - 🎒 `Convert Inventory to Legendary (Quality)`
 - 🎛️ `Set Inventory Slots Bonus`
+- 🗑️ `Character Trash Slot Bonus`
 - 🏃 `Run Faster`
+- ❤️ `Character Health Bonus`
+- 🛠️ `Adjust Handcraft Speed`
+- ⛏️ `Adjust Mining Speed`
 - 📐 `Build Distance`
 - 🤚 `Reach Distance`
 - ⛏️ `Resource Reach Distance`
@@ -61,6 +67,8 @@ A compact admin toolkit for Factorio 2.0 with a category-based GUI, live sliders
 - 🎯 `Fill Empty Turrets`
 - 💥 `Ammo Damage Boost`
 - 🔫 `Turret Damage Boost`
+- 🔫 `Gun Speed Boost`
+- 🧨 `Artillery Range Boost`
 
 ### 👾 Enemies:
 - 🛑 `Disable Enemy Expansion`
@@ -82,6 +90,7 @@ A compact admin toolkit for Factorio 2.0 with a category-based GUI, live sliders
 - 🌬️ `Set Surface Pressure (Space Age)`
 - 🧲 `Set Surface Magnetic Field (Space Age)`
 - 🌌 `Set Surface Gravity (Space Age)`
+- ☀️ `Set Surface Solar Power Multiplier`
 - 🔍 `Reveal Map`
 - ⛰️ `Remove Cliffs`
 
@@ -90,14 +99,19 @@ A compact admin toolkit for Factorio 2.0 with a category-based GUI, live sliders
 - 🗑️ `Instant Trash`
 - 🤖 `Add Robots`
 - 🐇 `Increase worker robot speed`
-
-### 🏭 Manufacturing:
-- ⚙️ `Adjust Crafting Speed`
+- 📦 `Worker Robot Storage Bonus`
+- 🔋 `Worker Robot Battery Bonus`
+- ⏳ `Following Robot Lifetime Bonus`
+- 🤖 `Maximum Following Robot Count`
+- 🦾 `Inserter Stack Size Bonus`
+- 📥 `Bulk Inserter Capacity Bonus`
+- 📦 `Belt Stack Size Bonus`
+- 📡 `Beacon Distribution Bonus`
 
 ### ⛏️ Mining:
 - ⛏️ `Entity Minability`
 - 🚫 `Non-minable Builds (Permanent, Current Surface)`
-- 🏎️ `Adjust Mining Speed`
+- ⛏️ `Mining Drill Productivity Bonus`
 
 ### 🪐 Planets:
 - ♻️ `Regenerate Resources`
@@ -111,6 +125,7 @@ A compact admin toolkit for Factorio 2.0 with a category-based GUI, live sliders
 
 ### 🚂 Trains:
 - 🚆 `Automatic Trains`
+- 🛑 `Train Braking Force Bonus`
 
 ### 🛰️ Transportation:
 - ⛽ `Refuel Platform Thrusters (Space Age)`

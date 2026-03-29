@@ -75,6 +75,8 @@ Returns runtime capability flags:
 {
   quality = boolean,
   space_age = boolean,
+  elevated_rails = boolean,
+  space_age_stack = boolean,
   planets = {"nauvis", "vulcanus", "fulgora", "gleba", "aquilo", ...}
 }
 ```
@@ -464,12 +466,28 @@ Use `get_capabilities().space_age` before calling Space Age specific behavior in
 | `facc_set_game_speed` | yes | `value:number` | Sets game speed. |
 | `facc_set_mining_speed` | yes | `value:number` | Mining speed bonus value. |
 | `facc_set_inventory_slots_bonus` | yes | `value:number` | Delta-style bonus input for `LuaForce.character_inventory_slots_bonus` (preserves research/base), clamped to `0..65535`; total never goes below `10` when `toolbelt` is researched. |
+| `facc_character_trash_slot_bonus` | yes | `value:number`, `old_value?:number` | Delta-style bonus input for `LuaForce.character_trash_slot_count`, clamped to `0..65535`; respects force minimum after logistics unlocks. |
 | `facc_run_faster` | yes | `value:number` | Running speed bonus value. |
+| `facc_character_health_bonus` | yes | `value:number`, `old_value?:number` | Delta slider for `LuaForce.character_health_bonus`. |
 | `facc_set_platform_distance` | yes | `value:number` | Clamped to `[0..1]` in module. |
 | `facc_set_crafting_speed` | yes | `value:number`, `old_value?:number` | Delta slider for `LuaForce.manual_crafting_speed_modifier` (handcraft speed). |
 | `facc_increase_robot_speed` | yes | `value:number`, `old_value?:number` | Delta style slider action. |
+| `facc_robot_storage_bonus` | yes | `value:number`, `old_value?:number` | Delta slider for `LuaForce.worker_robots_storage_bonus`. |
+| `facc_robot_battery_bonus` | yes | `value:number`, `old_value?:number` | Delta slider for `LuaForce.worker_robots_battery_modifier`. |
+| `facc_following_robot_lifetime_bonus` | yes | `value:number`, `old_value?:number` | Delta slider for `LuaForce.following_robots_lifetime_modifier`. |
+| `facc_maximum_following_robot_count` | yes | `value:number`, `old_value?:number` | Delta slider for `LuaForce.maximum_following_robot_count`. |
+| `facc_inserter_stack_size_bonus` | yes | `value:number`, `old_value?:number` | Delta slider for `LuaForce.inserter_stack_size_bonus`. |
+| `facc_bulk_inserter_capacity_bonus` | yes | `value:number`, `old_value?:number` | Delta slider for `LuaForce.bulk_inserter_capacity_bonus` (API clamped to `0..254`). |
+| `facc_belt_stack_size_bonus` | yes | `value:number`, `old_value?:number` | Delta slider for `LuaForce.belt_stack_size_bonus`. |
+| `facc_beacon_distribution_bonus` | yes | `value:number`, `old_value?:number` | Delta slider for `LuaForce.beacon_distribution_modifier`. |
 | `facc_ammo_damage_boost` | yes | `value:number`, `old_value?:number` | Delta style slider action. |
 | `facc_turret_damage_boost` | yes | `value:number`, `old_value?:number` | Delta style slider action. |
+| `facc_gun_speed_boost` | yes | `value:number`, `old_value?:number` | Delta slider for gun speed modifiers by ammo category. |
+| `facc_artillery_range_boost` | yes | `value:number`, `old_value?:number` | Delta slider for `LuaForce.artillery_range_modifier`. |
+| `facc_laboratory_speed_bonus` | yes | `value:number`, `old_value?:number` | Delta slider for `LuaForce.laboratory_speed_modifier`. |
+| `facc_laboratory_productivity_bonus` | yes | `value:number`, `old_value?:number` | Delta slider for `LuaForce.laboratory_productivity_bonus`. |
+| `facc_mining_drill_productivity_bonus` | yes | `value:number`, `old_value?:number` | Delta slider for `LuaForce.mining_drill_productivity_bonus`. |
+| `facc_train_braking_force_bonus` | yes | `value:number`, `old_value?:number` | Delta slider for `LuaForce.train_braking_force_bonus`. |
 | `facc_build_distance` | yes | `value:number`, `old_value?:number` | Adds/removes build distance bonus delta. |
 | `facc_reach_distance` | yes | `value:number`, `old_value?:number` | Adds/removes reach distance bonus delta. |
 | `facc_resource_reach_distance` | yes | `value:number`, `old_value?:number` | Adds/removes resource reach bonus delta. |
@@ -480,6 +498,7 @@ Use `get_capabilities().space_age` before calling Space Age specific behavior in
 | `facc_surface_pressure` | yes | `value:number` | Surface property setter path. |
 | `facc_surface_magnetic_field` | yes | `value:number` | Surface property setter path. |
 | `facc_surface_gravity` | yes | `value:number` | Surface property setter path. |
+| `facc_surface_solar_power_multiplier` | yes | `value:number` | Surface solar multiplier setter path (clamped by module). |
 | `facc_auto_clean_pollution_interval` | no | `value:number` | Clamped to `1..300` seconds. |
 | `facc_auto_instant_research_interval` | no | `value:number` | Clamped to `1..300` seconds. |
 
@@ -545,3 +564,5 @@ See:
 - Convenience wrappers (`set_toggle`, `set_value`, `run_batch`).
 - GUI helpers (`toggle_main_gui`, `toggle_console_gui`).
 - Runtime capability and action introspection methods.
+- Added capability flags `elevated_rails` and `space_age_stack`.
+- Expanded value actions with force bonus controls for labs, inserters, belts, beacons, mining drills, train braking, and follower robot limits.

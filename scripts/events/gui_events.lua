@@ -31,6 +31,15 @@ local character_health_bonus = require("scripts/character/character_health_bonus
 local robot_storage_bonus    = require("scripts/logistic-network/robot_storage_bonus")
 local robot_battery_bonus    = require("scripts/logistic-network/robot_battery_bonus")
 local following_robot_lifetime_bonus = require("scripts/logistic-network/following_robot_lifetime_bonus")
+local maximum_following_robot_count = require("scripts/logistic-network/maximum_following_robot_count")
+local inserter_stack_size_bonus = require("scripts/logistic-network/inserter_stack_size_bonus")
+local bulk_inserter_capacity_bonus = require("scripts/logistic-network/bulk_inserter_capacity_bonus")
+local belt_stack_size_bonus = require("scripts/logistic-network/belt_stack_size_bonus")
+local beacon_distribution_bonus = require("scripts/logistic-network/beacon_distribution_bonus")
+local laboratory_speed_bonus = require("scripts/cheats/laboratory_speed_bonus")
+local laboratory_productivity_bonus = require("scripts/cheats/laboratory_productivity_bonus")
+local mining_drill_productivity_bonus = require("scripts/mining/mining_drill_productivity_bonus")
+local train_braking_force_bonus = require("scripts/trains/train_braking_force_bonus")
 local solar_power_multiplier = require("scripts/environment/solar_power_multiplier")
 
 -- live auto-run sliders
@@ -195,6 +204,15 @@ local FACC_SLIDERS = {
   slider_turret_damage_boost=true,
   slider_gun_speed_boost=true,
   slider_artillery_range_boost=true,
+  slider_laboratory_speed_bonus=true,
+  slider_laboratory_productivity_bonus=true,
+  slider_inserter_stack_size_bonus=true,
+  slider_bulk_inserter_capacity_bonus=true,
+  slider_belt_stack_size_bonus=true,
+  slider_maximum_following_robot_count=true,
+  slider_mining_drill_productivity_bonus=true,
+  slider_train_braking_force_bonus=true,
+  slider_beacon_distribution_bonus=true,
   slider_surface_daytime=true,
   slider_surface_pressure=true,
   slider_surface_magnetic_field=true,
@@ -531,6 +549,56 @@ local function on_gui_value_changed(event)
     return
   end
 
+  if elem.name == "slider_maximum_following_robot_count" then
+    local old = state.sliders["slider_maximum_following_robot_count"] or 0
+    local new = elem.slider_value
+    safe_call_player(player, elem.name, maximum_following_robot_count.apply, player, old, new)
+    state.sliders["slider_maximum_following_robot_count"] = new
+    local box = elem.parent["slider_maximum_following_robot_count_value"]
+    if box and box.valid then box.text = tostring(new) end
+    return
+  end
+
+  if elem.name == "slider_inserter_stack_size_bonus" then
+    local old = state.sliders["slider_inserter_stack_size_bonus"] or 0
+    local new = elem.slider_value
+    safe_call_player(player, elem.name, inserter_stack_size_bonus.apply, player, old, new)
+    state.sliders["slider_inserter_stack_size_bonus"] = new
+    local box = elem.parent["slider_inserter_stack_size_bonus_value"]
+    if box and box.valid then box.text = tostring(new) end
+    return
+  end
+
+  if elem.name == "slider_bulk_inserter_capacity_bonus" then
+    local old = state.sliders["slider_bulk_inserter_capacity_bonus"] or 0
+    local new = elem.slider_value
+    safe_call_player(player, elem.name, bulk_inserter_capacity_bonus.apply, player, old, new)
+    state.sliders["slider_bulk_inserter_capacity_bonus"] = new
+    local box = elem.parent["slider_bulk_inserter_capacity_bonus_value"]
+    if box and box.valid then box.text = tostring(new) end
+    return
+  end
+
+  if elem.name == "slider_belt_stack_size_bonus" then
+    local old = state.sliders["slider_belt_stack_size_bonus"] or 0
+    local new = elem.slider_value
+    safe_call_player(player, elem.name, belt_stack_size_bonus.apply, player, old, new)
+    state.sliders["slider_belt_stack_size_bonus"] = new
+    local box = elem.parent["slider_belt_stack_size_bonus_value"]
+    if box and box.valid then box.text = tostring(new) end
+    return
+  end
+
+  if elem.name == "slider_beacon_distribution_bonus" then
+    local old = state.sliders["slider_beacon_distribution_bonus"] or 0
+    local new = elem.slider_value
+    safe_call_player(player, elem.name, beacon_distribution_bonus.apply, player, old, new)
+    state.sliders["slider_beacon_distribution_bonus"] = new
+    local box = elem.parent["slider_beacon_distribution_bonus_value"]
+    if box and box.valid then box.text = tostring(new) end
+    return
+  end
+
   local distance_property = DISTANCE_SLIDERS[elem.name]
   if distance_property then
     local old = state.sliders[elem.name] or 0
@@ -578,6 +646,46 @@ local function on_gui_value_changed(event)
     safe_call_player(player, elem.name, artillery_range_boost.apply, player, old, new)
     state.sliders["slider_artillery_range_boost"] = new
     local box = elem.parent["slider_artillery_range_boost_value"]
+    if box and box.valid then box.text = tostring(new) end
+    return
+  end
+
+  if elem.name == "slider_laboratory_speed_bonus" then
+    local old = state.sliders["slider_laboratory_speed_bonus"] or 0
+    local new = elem.slider_value
+    safe_call_player(player, elem.name, laboratory_speed_bonus.apply, player, old, new)
+    state.sliders["slider_laboratory_speed_bonus"] = new
+    local box = elem.parent["slider_laboratory_speed_bonus_value"]
+    if box and box.valid then box.text = tostring(new) end
+    return
+  end
+
+  if elem.name == "slider_laboratory_productivity_bonus" then
+    local old = state.sliders["slider_laboratory_productivity_bonus"] or 0
+    local new = elem.slider_value
+    safe_call_player(player, elem.name, laboratory_productivity_bonus.apply, player, old, new)
+    state.sliders["slider_laboratory_productivity_bonus"] = new
+    local box = elem.parent["slider_laboratory_productivity_bonus_value"]
+    if box and box.valid then box.text = tostring(new) end
+    return
+  end
+
+  if elem.name == "slider_mining_drill_productivity_bonus" then
+    local old = state.sliders["slider_mining_drill_productivity_bonus"] or 0
+    local new = elem.slider_value
+    safe_call_player(player, elem.name, mining_drill_productivity_bonus.apply, player, old, new)
+    state.sliders["slider_mining_drill_productivity_bonus"] = new
+    local box = elem.parent["slider_mining_drill_productivity_bonus_value"]
+    if box and box.valid then box.text = tostring(new) end
+    return
+  end
+
+  if elem.name == "slider_train_braking_force_bonus" then
+    local old = state.sliders["slider_train_braking_force_bonus"] or 0
+    local new = elem.slider_value
+    safe_call_player(player, elem.name, train_braking_force_bonus.apply, player, old, new)
+    state.sliders["slider_train_braking_force_bonus"] = new
+    local box = elem.parent["slider_train_braking_force_bonus_value"]
     if box and box.valid then box.text = tostring(new) end
     return
   end

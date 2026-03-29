@@ -28,9 +28,12 @@ local ammo_damage_boost = require("scripts/combat/ammo_damage_boost")
 local turret_damage_boost = require("scripts/combat/turret_damage_boost")
 local gun_speed_boost = require("scripts/combat/gun_speed_boost")
 local artillery_range_boost = require("scripts/combat/artillery_range_boost")
+local laboratory_speed_bonus = require("scripts/cheats/laboratory_speed_bonus")
+local laboratory_productivity_bonus = require("scripts/cheats/laboratory_productivity_bonus")
 local set_game_speed = require("scripts/cheats/set_game_speed")
 local set_crafting_speed = require("scripts/manufacturing/set_crafting_speed")
 local set_mining_speed = require("scripts/mining/set_mining_speed")
+local mining_drill_productivity_bonus = require("scripts/mining/mining_drill_productivity_bonus")
 local run_faster = require("scripts/character/run_faster")
 local character_health_bonus = require("scripts/character/character_health_bonus")
 local set_character_trash_slot_bonus = require("scripts/character/set_character_trash_slot_bonus")
@@ -38,6 +41,12 @@ local increase_robot_speed = require("scripts/logistic-network/increase_robot_sp
 local robot_storage_bonus = require("scripts/logistic-network/robot_storage_bonus")
 local robot_battery_bonus = require("scripts/logistic-network/robot_battery_bonus")
 local following_robot_lifetime_bonus = require("scripts/logistic-network/following_robot_lifetime_bonus")
+local maximum_following_robot_count = require("scripts/logistic-network/maximum_following_robot_count")
+local inserter_stack_size_bonus = require("scripts/logistic-network/inserter_stack_size_bonus")
+local bulk_inserter_capacity_bonus = require("scripts/logistic-network/bulk_inserter_capacity_bonus")
+local belt_stack_size_bonus = require("scripts/logistic-network/belt_stack_size_bonus")
+local beacon_distribution_bonus = require("scripts/logistic-network/beacon_distribution_bonus")
+local train_braking_force_bonus = require("scripts/trains/train_braking_force_bonus")
 local set_inventory_slots_bonus = require("scripts/character/set_inventory_slots_bonus")
 local solar_power_multiplier = require("scripts/environment/solar_power_multiplier")
 local console_exec = require("scripts/cheats/console")
@@ -314,6 +323,51 @@ local VALUE_HANDLERS = {
     local old_value = to_number(args.old_value, nil)
     return apply_slider(player, "slider_artillery_range_boost", new_value, artillery_range_boost.apply, old_value)
   end,
+  facc_laboratory_speed_bonus = function(player, args)
+    local new_value = to_number(args.value, 0)
+    local old_value = to_number(args.old_value, nil)
+    return apply_slider(player, "slider_laboratory_speed_bonus", new_value, laboratory_speed_bonus.apply, old_value)
+  end,
+  facc_laboratory_productivity_bonus = function(player, args)
+    local new_value = to_number(args.value, 0)
+    local old_value = to_number(args.old_value, nil)
+    return apply_slider(player, "slider_laboratory_productivity_bonus", new_value, laboratory_productivity_bonus.apply, old_value)
+  end,
+  facc_inserter_stack_size_bonus = function(player, args)
+    local new_value = to_number(args.value, 0)
+    local old_value = to_number(args.old_value, nil)
+    return apply_slider(player, "slider_inserter_stack_size_bonus", new_value, inserter_stack_size_bonus.apply, old_value)
+  end,
+  facc_bulk_inserter_capacity_bonus = function(player, args)
+    local new_value = to_number(args.value, 0)
+    local old_value = to_number(args.old_value, nil)
+    return apply_slider(player, "slider_bulk_inserter_capacity_bonus", new_value, bulk_inserter_capacity_bonus.apply, old_value)
+  end,
+  facc_belt_stack_size_bonus = function(player, args)
+    local new_value = to_number(args.value, 0)
+    local old_value = to_number(args.old_value, nil)
+    return apply_slider(player, "slider_belt_stack_size_bonus", new_value, belt_stack_size_bonus.apply, old_value)
+  end,
+  facc_maximum_following_robot_count = function(player, args)
+    local new_value = to_number(args.value, 0)
+    local old_value = to_number(args.old_value, nil)
+    return apply_slider(player, "slider_maximum_following_robot_count", new_value, maximum_following_robot_count.apply, old_value)
+  end,
+  facc_mining_drill_productivity_bonus = function(player, args)
+    local new_value = to_number(args.value, 0)
+    local old_value = to_number(args.old_value, nil)
+    return apply_slider(player, "slider_mining_drill_productivity_bonus", new_value, mining_drill_productivity_bonus.apply, old_value)
+  end,
+  facc_train_braking_force_bonus = function(player, args)
+    local new_value = to_number(args.value, 0)
+    local old_value = to_number(args.old_value, nil)
+    return apply_slider(player, "slider_train_braking_force_bonus", new_value, train_braking_force_bonus.apply, old_value)
+  end,
+  facc_beacon_distribution_bonus = function(player, args)
+    local new_value = to_number(args.value, 0)
+    local old_value = to_number(args.old_value, nil)
+    return apply_slider(player, "slider_beacon_distribution_bonus", new_value, beacon_distribution_bonus.apply, old_value)
+  end,
   facc_build_distance = function(player, args)
     local new_value = to_number(args.value, 0)
     local old_value = to_number(args.old_value, nil)
@@ -496,7 +550,11 @@ local ACTION_SPEC = {
     "facc_set_platform_distance", "facc_set_crafting_speed", "facc_increase_robot_speed",
     "facc_robot_storage_bonus", "facc_robot_battery_bonus", "facc_following_robot_lifetime_bonus",
     "facc_ammo_damage_boost", "facc_turret_damage_boost", "facc_gun_speed_boost",
-    "facc_artillery_range_boost", "facc_build_distance", "facc_reach_distance",
+    "facc_artillery_range_boost", "facc_laboratory_speed_bonus", "facc_laboratory_productivity_bonus",
+    "facc_inserter_stack_size_bonus", "facc_bulk_inserter_capacity_bonus", "facc_belt_stack_size_bonus",
+    "facc_maximum_following_robot_count", "facc_mining_drill_productivity_bonus",
+    "facc_train_braking_force_bonus", "facc_beacon_distribution_bonus",
+    "facc_build_distance", "facc_reach_distance",
     "facc_resource_reach_distance", "facc_item_drop_distance", "facc_item_pickup_distance",
     "facc_loot_pickup_distance", "facc_surface_daytime", "facc_surface_pressure",
     "facc_surface_magnetic_field", "facc_surface_gravity", "facc_surface_solar_power_multiplier",
@@ -556,6 +614,15 @@ local ACTION_SCHEMA = {
   facc_turret_damage_boost = { value = "number", old_value = "number (optional)" },
   facc_gun_speed_boost = { value = "number", old_value = "number (optional)" },
   facc_artillery_range_boost = { value = "number", old_value = "number (optional)" },
+  facc_laboratory_speed_bonus = { value = "number", old_value = "number (optional)" },
+  facc_laboratory_productivity_bonus = { value = "number", old_value = "number (optional)" },
+  facc_inserter_stack_size_bonus = { value = "number", old_value = "number (optional)" },
+  facc_bulk_inserter_capacity_bonus = { value = "number [0..254]", old_value = "number (optional)" },
+  facc_belt_stack_size_bonus = { value = "number", old_value = "number (optional)" },
+  facc_maximum_following_robot_count = { value = "number", old_value = "number (optional)" },
+  facc_mining_drill_productivity_bonus = { value = "number", old_value = "number (optional)" },
+  facc_train_braking_force_bonus = { value = "number", old_value = "number (optional)" },
+  facc_beacon_distribution_bonus = { value = "number", old_value = "number (optional)" },
   facc_build_distance = { value = "number", old_value = "number (optional)" },
   facc_reach_distance = { value = "number", old_value = "number (optional)" },
   facc_resource_reach_distance = { value = "number", old_value = "number (optional)" },

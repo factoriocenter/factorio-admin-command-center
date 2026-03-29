@@ -44,7 +44,16 @@ local CONFIRM_BUTTON_EXCLUDED = {
   facc_ammo_damage_boost = true,
   facc_turret_damage_boost = true,
   facc_gun_speed_boost = true,
-  facc_artillery_range_boost = true
+  facc_artillery_range_boost = true,
+  facc_laboratory_speed_bonus = true,
+  facc_laboratory_productivity_bonus = true,
+  facc_inserter_stack_size_bonus = true,
+  facc_bulk_inserter_capacity_bonus = true,
+  facc_belt_stack_size_bonus = true,
+  facc_maximum_following_robot_count = true,
+  facc_mining_drill_productivity_bonus = true,
+  facc_train_braking_force_bonus = true,
+  facc_beacon_distribution_bonus = true
 }
 
 --------------------------------------------------------------------------------
@@ -308,6 +317,18 @@ local TABS = {
         caption = {"facc.set-game-speed"},
         tooltip = {"tooltip.set-game-speed"},
         slider  = { name="slider_set_game_speed", min=1, max=9, default=3 }
+      },
+      {
+        name    = "facc_laboratory_speed_bonus",
+        caption = {"facc.laboratory-speed-bonus"},
+        tooltip = {"tooltip.laboratory-speed-bonus"},
+        slider  = { name="slider_laboratory_speed_bonus", min=0, max=1000, default=0 }
+      },
+      {
+        name    = "facc_laboratory_productivity_bonus",
+        caption = {"facc.laboratory-productivity-bonus"},
+        tooltip = {"tooltip.laboratory-productivity-bonus"},
+        slider  = { name="slider_laboratory_productivity_bonus", min=0, max=1000, default=0 }
       }
     }
   },
@@ -537,6 +558,36 @@ local TABS = {
         caption = {"facc.following-robot-lifetime-bonus"},
         tooltip = {"tooltip.following-robot-lifetime-bonus"},
         slider  = { name="slider_following_robot_lifetime_bonus", min=0, max=1000, default=0 }
+      },
+      {
+        name    = "facc_maximum_following_robot_count",
+        caption = {"facc.maximum-following-robot-count"},
+        tooltip = {"tooltip.maximum-following-robot-count"},
+        slider  = { name="slider_maximum_following_robot_count", min=0, max=1000, default=0 }
+      },
+      {
+        name    = "facc_inserter_stack_size_bonus",
+        caption = {"facc.inserter-stack-size-bonus"},
+        tooltip = {"tooltip.inserter-stack-size-bonus"},
+        slider  = { name="slider_inserter_stack_size_bonus", min=0, max=100, default=0 }
+      },
+      {
+        name    = "facc_bulk_inserter_capacity_bonus",
+        caption = {"facc.bulk-inserter-capacity-bonus"},
+        tooltip = {"tooltip.bulk-inserter-capacity-bonus"},
+        slider  = { name="slider_bulk_inserter_capacity_bonus", min=0, max=254, default=0 }
+      },
+      {
+        name    = "facc_belt_stack_size_bonus",
+        caption = {"facc.belt-stack-size-bonus"},
+        tooltip = {"tooltip.belt-stack-size-bonus"},
+        slider  = { name="slider_belt_stack_size_bonus", min=0, max=100, default=0 }
+      },
+      {
+        name    = "facc_beacon_distribution_bonus",
+        caption = {"facc.beacon-distribution-bonus"},
+        tooltip = {"tooltip.beacon-distribution-bonus"},
+        slider  = { name="slider_beacon_distribution_bonus", min=0, max=1000, default=0 }
       }
     }
   },
@@ -553,6 +604,12 @@ local TABS = {
         name    = "facc_non_minable_permanent",
         caption = {"facc.non-minable-permanent"},
         tooltip = {"tooltip.non-minable-permanent"},
+      },
+      {
+        name    = "facc_mining_drill_productivity_bonus",
+        caption = {"facc.mining-drill-productivity-bonus"},
+        tooltip = {"tooltip.mining-drill-productivity-bonus"},
+        slider  = { name="slider_mining_drill_productivity_bonus", min=0, max=1000, default=0 }
       }
     }
   },
@@ -599,6 +656,12 @@ local TABS = {
         caption = {"facc.trains-auto-mode"},
         tooltip = {"tooltip.trains-auto-mode"},
         switch  = true
+      },
+      {
+        name    = "facc_train_braking_force_bonus",
+        caption = {"facc.train-braking-force-bonus"},
+        tooltip = {"tooltip.train-braking-force-bonus"},
+        slider  = { name="slider_train_braking_force_bonus", min=0, max=1000, default=0 }
       }
     }
   },
