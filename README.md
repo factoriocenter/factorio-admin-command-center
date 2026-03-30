@@ -128,6 +128,8 @@ A compact admin toolkit for Factorio 2.0 with a category-based GUI, live sliders
 - 🛑 `Train Braking Force Bonus`
 
 ### 🛰️ Transportation:
+- 🛡️ `Create Full Tank`
+- 🕷️ `Create Full Spidertron`
 - ⛽ `Refuel Platform Thrusters (Space Age)`
 - 📏 `Platform Distance (Space Age)`
 
