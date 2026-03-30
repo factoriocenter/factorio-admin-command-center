@@ -496,12 +496,6 @@ local TABS = {
         slider  = { name="slider_surface_gravity", min=0, max=2000, default=10 }
       },
       {
-        name    = "facc_surface_solar_power_multiplier",
-        caption = {"facc.surface-solar-power-multiplier"},
-        tooltip = {"tooltip.surface-solar-power-multiplier"},
-        slider  = { name="slider_surface_solar_power_multiplier", min=0, max=20, default=1 }
-      },
-      {
         name    = "facc_reveal_map",
         caption = {"facc.reveal-map"},
         tooltip = {"tooltip.reveal-map"},
@@ -645,6 +639,12 @@ local TABS = {
         name    = "facc_recharge_energy",
         caption = {"facc.recharge-energy"},
         tooltip = {"tooltip.recharge-energy"}
+      },
+      {
+        name    = "facc_surface_solar_power_multiplier",
+        caption = {"facc.surface-solar-power-multiplier"},
+        tooltip = {"tooltip.surface-solar-power-multiplier"},
+        slider  = { name="slider_surface_solar_power_multiplier", min=0, max=20, default=1 }
       }
     }
   },

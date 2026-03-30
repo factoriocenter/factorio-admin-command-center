@@ -7,7 +7,7 @@ A compact admin toolkit for Factorio 2.0 with a category-based GUI, live sliders
 
 ## Current Version
 
-- 🏷️ Version: `4.3.0`
+- 🏷️ Version: `4.3.1`
 - 📝 Changelog: [changelog.txt](changelog.txt)
 
 ## Features (All Current)
@@ -90,7 +90,6 @@ A compact admin toolkit for Factorio 2.0 with a category-based GUI, live sliders
 - 🌬️ `Set Surface Pressure (Space Age)`
 - 🧲 `Set Surface Magnetic Field (Space Age)`
 - 🌌 `Set Surface Gravity (Space Age)`
-- ☀️ `Set Surface Solar Power Multiplier`
 - 🔍 `Reveal Map`
 - ⛰️ `Remove Cliffs`
 
@@ -122,6 +121,7 @@ A compact admin toolkit for Factorio 2.0 with a category-based GUI, live sliders
 
 ### ⚡ Power:
 - 🔋 `Recharge Energy`
+- ☀️ `Set Surface Solar Power Multiplier`
 
 ### 🚂 Trains:
 - 🚆 `Automatic Trains`

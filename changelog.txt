@@ -1,4 +1,12 @@
 ---------------------------------------------------------------------------------------------------
+Version: 4.3.1
+Date: 2026-03-30
+  Changes:
+    - Moved "Set Surface Solar Power Multiplier" from the Environment tab to the Power tab.
+  Bugfixes:
+    - Fixed "Generate Planets Surfaces and Chart Area (Space Age)" to reliably chart a 150x150 area after creating each planet surface.
+
+---------------------------------------------------------------------------------------------------
 Version: 4.3.0
 Date: 2026-03-30
   Features:

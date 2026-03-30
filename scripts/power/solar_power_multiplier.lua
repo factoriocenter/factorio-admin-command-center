@@ -1,4 +1,4 @@
--- scripts/environment/solar_power_multiplier.lua
+-- scripts/power/solar_power_multiplier.lua
 -- Sets surface solar power multiplier.
 
 local M = {}

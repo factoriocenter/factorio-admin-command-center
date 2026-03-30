@@ -80,7 +80,9 @@ function M.run(player, planet_name)
 
   if generated_now and player.force and player.force.valid then
     local half = 75
-    pcall(player.force.chart, player.force, surface, {{-half, -half}, {half, half}})
+    pcall(function()
+      player.force.chart(surface, {{-half, -half}, {half, half}})
+    end)
     player.print({"facc.teleport-to-planet-generated", display_name})
   end
 

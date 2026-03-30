@@ -40,7 +40,7 @@ local laboratory_speed_bonus = require("scripts/cheats/laboratory_speed_bonus")
 local laboratory_productivity_bonus = require("scripts/cheats/laboratory_productivity_bonus")
 local mining_drill_productivity_bonus = require("scripts/mining/mining_drill_productivity_bonus")
 local train_braking_force_bonus = require("scripts/trains/train_braking_force_bonus")
-local solar_power_multiplier = require("scripts/environment/solar_power_multiplier")
+local solar_power_multiplier = require("scripts/power/solar_power_multiplier")
 
 -- live auto-run sliders
 local set_game_speed         = require("scripts/cheats/set_game_speed")
