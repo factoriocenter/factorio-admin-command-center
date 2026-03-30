@@ -1,6 +1,6 @@
 ---------------------------------------------------------------------------------------------------
 Version: 4.3.0
-Date: 2026-03-22
+Date: 2026-03-30
   Features:
     - Added "Set Inventory Slots Bonus" in the Character tab with numeric input and apply button.
     - Added "Handcraft Speed Boost", "Character Health Bonus", and "Character Trash Slot Bonus" sliders in the Character tab.
