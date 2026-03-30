@@ -420,6 +420,8 @@ Use `get_capabilities().space_age` before calling Space Age specific behavior in
 | `facc_remove_ground_items` | yes | none | Removes dropped item entities. |
 | `facc_generate_planet_surfaces` | yes | none | Generates available planet surfaces. |
 | `facc_create_full_armor` | yes | none | Gives full armor/equipment set. |
+| `facc_create_full_tank` | yes | none | Gives a pre-equipped Tank loadout. |
+| `facc_create_full_spidertron` | yes | none | Gives a pre-equipped Spidertron loadout. |
 | `facc_add_robots` | yes | none | Adds logistic/construction bots. |
 | `facc_fill_platform_thrusters` | yes | none | Space platform thruster refuel helper. |
 | `facc_regenerate_resources` | yes | none | Regenerates resource patches. |

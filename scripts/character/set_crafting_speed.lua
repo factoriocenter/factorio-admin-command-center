@@ -1,4 +1,4 @@
--- scripts/manufacturing/set_crafting_speed.lua
+-- scripts/character/set_crafting_speed.lua
 -- Live slider: adjusts manual crafting speed modifier via slider.
 local M = {}
 local math_util = require("scripts/utils/flib_math")

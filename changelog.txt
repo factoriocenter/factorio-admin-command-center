@@ -11,6 +11,8 @@ Date: 2026-03-22
     - Added "Inserter Stack Size Bonus", "Bulk Inserter Capacity Bonus", "Belt Stack Size Bonus", "Maximum Following Robot Count", and "Beacon Distribution Bonus" sliders in the Logistic Network tab.
     - Added "Mining Drill Productivity Bonus" slider in the Mining tab.
     - Added "Train Braking Force Bonus" slider in the Trains tab.
+    - Added "Create Full Tank" action in the Transportation tab with pre-equipped grid loadout.
+    - Added "Create Full Spidertron" action in the Transportation tab with pre-equipped grid loadout.
   Changes:
     - Added Toolbelt-aware minimum validation for inventory slots bonus (minimum 0, or 10 after researching Toolbelt).
     - Removed "Convert to Legendary Quality (Quality)" action from Blueprints, keeping Legendary Upgrader as the official path.

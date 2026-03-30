@@ -31,7 +31,7 @@ local artillery_range_boost = require("scripts/combat/artillery_range_boost")
 local laboratory_speed_bonus = require("scripts/cheats/laboratory_speed_bonus")
 local laboratory_productivity_bonus = require("scripts/cheats/laboratory_productivity_bonus")
 local set_game_speed = require("scripts/cheats/set_game_speed")
-local set_crafting_speed = require("scripts/manufacturing/set_crafting_speed")
+local set_crafting_speed = require("scripts/character/set_crafting_speed")
 local set_mining_speed = require("scripts/mining/set_mining_speed")
 local mining_drill_productivity_bonus = require("scripts/mining/mining_drill_productivity_bonus")
 local run_faster = require("scripts/character/run_faster")
@@ -76,6 +76,8 @@ local features = {
   facc_remove_ground_items = require("scripts/environment/remove_ground_items"),
   facc_generate_planet_surfaces = require("scripts/planets/generate_planet_surfaces"),
   facc_create_full_armor = require("scripts/armor/create_full_armor"),
+  facc_create_full_tank = require("scripts/transportation/create_full_tank"),
+  facc_create_full_spidertron = require("scripts/transportation/create_full_spidertron"),
   facc_add_robots = require("scripts/logistic-network/add_robots"),
   facc_fill_platform_thrusters = require("scripts/transportation/fill_platform_thrusters"),
   facc_regenerate_resources = require("scripts/planets/regenerate_resources"),
@@ -528,6 +530,8 @@ local ACTION_SPEC = {
     "facc_recharge_energy", "facc_ammo_turrets", "facc_increase_resources",
     "facc_unlock_recipes", "facc_unlock_technologies", "facc_insert_coins",
     "facc_remove_ground_items", "facc_generate_planet_surfaces", "facc_create_full_armor",
+    "facc_create_full_tank",
+    "facc_create_full_spidertron",
     "facc_add_robots", "facc_regenerate_resources", "facc_high_infinite_research_levels",
     "facc_add_infinite_research_levels", "facc_ghost_on_death",
     "facc_indestructible_builds_permanent", "facc_non_minable_permanent",
@@ -637,6 +641,8 @@ local ACTION_SCHEMA = {
   facc_auto_clean_pollution_interval = { value = "number seconds [1..300]" },
   facc_auto_instant_research_interval = { value = "number seconds [1..300]" },
   facc_set_inventory_slots_bonus = { value = "number [0..65535], min 10 if toolbelt researched", old_value = "number (optional)" },
+  facc_create_full_tank = {},
+  facc_create_full_spidertron = {},
   facc_teleport_to_planet = { planet_name = "string (or use value)" },
   facc_console_exec = { code = "string (Lua code)" },
   facc_refresh_stats_hud = {},

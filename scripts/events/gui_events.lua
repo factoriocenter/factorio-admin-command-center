@@ -44,7 +44,7 @@ local solar_power_multiplier = require("scripts/environment/solar_power_multipli
 
 -- live auto-run sliders
 local set_game_speed         = require("scripts/cheats/set_game_speed")
-local set_crafting_speed     = require("scripts/manufacturing/set_crafting_speed")
+local set_crafting_speed     = require("scripts/character/set_crafting_speed")
 local set_mining_speed       = require("scripts/mining/set_mining_speed")
 local run_faster             = require("scripts/character/run_faster")
 local increase_robot_speed   = require("scripts/logistic-network/increase_robot_speed")
@@ -154,6 +154,8 @@ local FACC_BUTTONS = {
   facc_remove_ground_items=true,
   facc_generate_planet_surfaces=true,
   facc_create_full_armor=true,
+  facc_create_full_tank=true,
+  facc_create_full_spidertron=true,
   facc_add_robots=true,
   facc_regenerate_resources=true,
   facc_high_infinite_research_levels = true,
@@ -275,6 +277,8 @@ local features = {
   facc_remove_ground_items  = require("scripts/environment/remove_ground_items"),
   facc_generate_planet_surfaces = require("scripts/planets/generate_planet_surfaces"),
   facc_create_full_armor    = require("scripts/armor/create_full_armor"),
+  facc_create_full_tank = require("scripts/transportation/create_full_tank"),
+  facc_create_full_spidertron = require("scripts/transportation/create_full_spidertron"),
   facc_add_robots           = require("scripts/logistic-network/add_robots"),
   facc_fill_platform_thrusters = require("scripts/transportation/fill_platform_thrusters"),
   facc_regenerate_resources = require("scripts/planets/regenerate_resources"),

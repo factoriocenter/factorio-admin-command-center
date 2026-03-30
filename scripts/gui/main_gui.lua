@@ -669,6 +669,16 @@ local TABS = {
     label    = {"facc.tab-transportation"},
     elements = {
       {
+        name    = "facc_create_full_tank",
+        caption = {"facc.create-full-tank"},
+        tooltip = {"tooltip.create-full-tank"}
+      },
+      {
+        name    = "facc_create_full_spidertron",
+        caption = {"facc.create-full-spidertron"},
+        tooltip = {"tooltip.create-full-spidertron"}
+      },
+      {
         name    = "facc_fill_platform_thrusters",
         caption = {"facc.fill-thrusters"},
         tooltip = {"tooltip.fill-thrusters"}
@@ -811,6 +821,12 @@ local function is_feature_enabled(name, player)
   end
   if name == "facc_set_platform_distance" then return space_age_enabled end
   if name == "facc_fill_platform_thrusters" then return space_age_enabled end
+  if name == "facc_create_full_tank" then
+    return compat.prototype_exists("item_prototypes", "tank")
+  end
+  if name == "facc_create_full_spidertron" then
+    return compat.prototype_exists("item_prototypes", "spidertron")
+  end
   if name == "facc_generate_planet_surfaces" then return space_age_enabled end
   if name == "facc_convert_inventory"
       or name == "facc_upgrade_blueprints" then
