@@ -107,6 +107,16 @@ data:extend({
   },
   {
     type = "bool-setting",
+    name = "facc-infinite-ammo",
+    setting_type = "startup",
+    default_value = false,
+    order = "i2",
+    per_user = false,
+    localised_name = {"mod-setting-name.facc-infinite-ammo"},
+    localised_description = {"mod-setting-description.facc-infinite-ammo"}
+  },
+  {
+    type = "bool-setting",
     name = "facc-ignore-recipe-inputs",
     setting_type = "startup",
     default_value = false,

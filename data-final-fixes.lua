@@ -74,6 +74,12 @@ if settings.startup["facc-remove-fuel-usage"]
   require("scripts/startup-settings/remove_fuel_usage")
 end
 
+-- Optional: remove ammo consumption from weapons/turrets
+if settings.startup["facc-infinite-ammo"]
+    and settings.startup["facc-infinite-ammo"].value then
+  require("scripts/startup-settings/infinite_ammo")
+end
+
 -- Optional: remove all recipe ingredient inputs
 if settings.startup["facc-ignore-recipe-inputs"]
     and settings.startup["facc-ignore-recipe-inputs"].value then
