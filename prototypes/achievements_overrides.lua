@@ -31,7 +31,7 @@ override("you-are-doing-it-right", "construct-with-robots-achievement", {
 
 -- 2) Getting on track like a pro
 override("getting-on-track-like-a-pro", "build-entity-achievement", {
-  within = 2147483647 * minute,
+  within = 4294967295 * minute,
 })
 
 -- 3) Keeping your hands clean
@@ -44,7 +44,7 @@ override("keeping-your-hands-clean", "dont-kill-manually-achievement", {
 -- 4) Lazy bastard
 override("lazy-bastard", "dont-craft-manually-achievement", {
   limited_to_one_game = false,
-  amount              = 2147483647,
+  amount              = 4294967295,
 })
 
 -- 5) Steam all the way
@@ -67,12 +67,12 @@ override("logistic-network-embargo", "dont-build-entity-achievement", {
 
 -- 8) No time for chitchat
 override("no-time-for-chitchat", "complete-objective-achievement", {
-  within = 2147483647 * hour,
+  within = 4294967295 * hour,
 })
 
 -- 9) There is no spoon
 override("there-is-no-spoon", "complete-objective-achievement", {
-  within = 2147483647 * hour,
+  within = 4294967295 * hour,
 })
 
 -- 10) Rush to space (Space Age)
@@ -82,10 +82,10 @@ override("rush-to-space", "complete-objective-achievement", {
 
 -- 11) Work around the clock (Space Age)
 override("work-around-the-clock", "complete-objective-achievement", {
-  within = 2147483647 * hour,
+  within = 4294967295 * hour,
 })
 
 -- 12) Express delivery (Space Age)
 override("express-delivery", "complete-objective-achievement", {
-  within = 2147483647 * hour,
+  within = 4294967295 * hour,
 })
