@@ -7,6 +7,9 @@ if base then
   local ghost = flib_data_util.copy_prototype(base, "facc-ghost-character")
 
   ghost.localised_name = {"entity-name.facc-ghost-character"}
+  ghost.items_to_place_this = nil
+  ghost.placeable_by = nil
+  ghost.minable = nil
   ghost.collision_mask = ghost.collision_mask or {}
   ghost.collision_mask.layers = {}
   ghost.collision_box = ghost.collision_box

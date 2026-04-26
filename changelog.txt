@@ -1,4 +1,10 @@
 ---------------------------------------------------------------------------------------------------
+Version: 4.3.2
+Date: 2026-04-26
+  Bugfixes:
+    - Fixed a startup crash that could happen when another mod changed the player character setup. The internal ghost character is now created without trying to use a missing inventory item.
+
+---------------------------------------------------------------------------------------------------
 Version: 4.3.1
 Date: 2026-03-30
   Changes:
