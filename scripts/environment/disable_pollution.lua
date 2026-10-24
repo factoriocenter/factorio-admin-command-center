@@ -14,7 +14,7 @@ function M.run(player, enabled)
     end
     if enabled then
         -- Clear existing pollution
-        flib_table.for_each(game.surfaces, function(surface)
+        flib_table.any_of(game.surfaces, function(surface)
             surface.clear_pollution()
         end)
         -- Disable new pollution

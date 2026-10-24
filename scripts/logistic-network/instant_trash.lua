@@ -172,33 +172,33 @@ local function refresh_entity_list()
     flib_queue.push_back(queue, un)
   end
 
-  flib_table.for_each(game.surfaces, function(s)
+  flib_table.any_of(game.surfaces, function(s)
     -- Chests (requester/buffer)
-    flib_table.for_each(s.find_entities_filtered{force="player", type="logistic-container"}, function(chest)
+    flib_table.any_of(s.find_entities_filtered{force="player", type="logistic-container"}, function(chest)
       if is_supported_entity(chest) and chest.unit_number then
         push_un(chest.unit_number)
       end
     end)
     -- Spidertron
-    flib_table.for_each(s.find_entities_filtered{force="player", type="spider-vehicle"}, function(sp)
+    flib_table.any_of(s.find_entities_filtered{force="player", type="spider-vehicle"}, function(sp)
       if is_supported_entity(sp) and sp.unit_number then
         push_un(sp.unit_number)
       end
     end)
     -- Tank
-    flib_table.for_each(s.find_entities_filtered{force="player", type="car", name="tank"}, function(car)
+    flib_table.any_of(s.find_entities_filtered{force="player", type="car", name="tank"}, function(car)
       if is_supported_entity(car) and car.unit_number then
         push_un(car.unit_number)
       end
     end)
     -- Rocket silo
-    flib_table.for_each(s.find_entities_filtered{force="player", type="rocket-silo"}, function(silo)
+    flib_table.any_of(s.find_entities_filtered{force="player", type="rocket-silo"}, function(silo)
       if is_supported_entity(silo) and silo.unit_number then
         push_un(silo.unit_number)
       end
     end)
     -- Cargo landing pad
-    flib_table.for_each(s.find_entities_filtered{force="player", type="cargo-landing-pad"}, function(pad)
+    flib_table.any_of(s.find_entities_filtered{force="player", type="cargo-landing-pad"}, function(pad)
       if is_supported_entity(pad) and pad.unit_number then
         push_un(pad.unit_number)
       end
@@ -583,7 +583,7 @@ function M.on_tick(_e)
   end
   -- Additional: purge trash for currently opened entities (instant while GUI open)
   if has_enabled_players then
-    flib_table.for_each(game.connected_players, function(player)
+    flib_table.any_of(game.connected_players, function(player)
       if is_player_enabled(player) then
         local opened = player.opened
         if opened and opened.valid and is_supported_entity(opened) then

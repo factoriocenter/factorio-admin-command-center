@@ -14,7 +14,7 @@ function M.run(player, radius)
 
   local area = area_util.square_from_center(player.position, radius)
 
-  flib_table.for_each(player.surface.find_entities_filtered{
+  flib_table.any_of(player.surface.find_entities_filtered{
     area = area,
     force = "enemy"
   }, function(entity)

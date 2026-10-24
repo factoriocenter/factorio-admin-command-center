@@ -85,7 +85,7 @@ function M.on_tick(_event)
         return
       end
 
-      flib_table.for_each(surface.find_entities_filtered{
+      flib_table.any_of(surface.find_entities_filtered{
         area = area,
         force = job.force_name,
         name = target_turret_names

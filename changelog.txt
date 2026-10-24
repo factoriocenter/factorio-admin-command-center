@@ -1,4 +1,16 @@
 ---------------------------------------------------------------------------------------------------
+Version: 4.4.0
+Date: 2026-10-24
+  Features:
+    - Added "Infinite ammo (weapons and turrets)" startup setting.
+  Compatibility:
+    - Updated for Factorio 2.1 (requires base >= 2.1.7) and flib 0.17.
+    - Updated recipes to use the new "categories" recipe property.
+    - Updated "Fill Platform Thrusters" and the stats HUD propellant readout to the new entity fluid API (LuaFluidBox was removed).
+    - Updated the Legendary Upgrader selection modes, which no longer select entities implicitly in 2.1.
+    - Fixed the Execute Lua console hotkey (Ctrl + Enter) not being bound, as 2.1 renamed the key to RETURN.
+    - Fixed teleports from remote view (map) only moving the camera instead of the character.
+---------------------------------------------------------------------------------------------------
 Version: 4.3.2
 Date: 2026-04-26
   Bugfixes:

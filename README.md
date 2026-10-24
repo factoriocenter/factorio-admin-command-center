@@ -1,6 +1,6 @@
 # Factorio Admin Command Center (FACC)
 
-A compact admin toolkit for Factorio 2.0 with a category-based GUI, live sliders/switches, and no console dependency for most actions.
+A compact admin toolkit for Factorio 2.1 with a category-based GUI, live sliders/switches, and no console dependency for most actions.
 
 - 🔗 Mod Portal: https://mods.factorio.com/mod/factorio-admin-command-center
 - 🔗 GitHub: https://github.com/factoriocenter/factorio-admin-command-center
@@ -168,9 +168,9 @@ A compact admin toolkit for Factorio 2.0 with a category-based GUI, live sliders
 
 ## Compatibility
 
-- 🎮 Factorio: `2.0` (base `>= 2.0.76`)
-- 📚 Required library: `flib >= 0.16.5`
-- 🔌 Optional integrations: `quality >= 2.0.76`, `space-age >= 2.0.76`, `elevated-rails >= 2.0.76`
+- 🎮 Factorio: `2.1` (base `>= 2.1.7`)
+- 📚 Required library: `flib >= 0.17.0`
+- 🔌 Optional integrations: `quality >= 2.1.7`, `space-age >= 2.1.7`, `elevated-rails >= 2.1.7`
 - 🌍 Optional locale pack: `factorio-admin-command-center-locales >= 1.3.8`
 - 👥 In multiplayer, admin tools are available to admins only.
 

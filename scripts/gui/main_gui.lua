@@ -1386,7 +1386,7 @@ end
 function M.restore_open_gui_for_all_players()
   M.ensure_persistent_state()
   if not storage.facc_gui_state.is_open then return end
-  flib_table.for_each(game.players, function(player)
+  flib_table.any_of(game.players, function(player)
     if not game.is_multiplayer() or player.admin then
       open_gui(player)
     end

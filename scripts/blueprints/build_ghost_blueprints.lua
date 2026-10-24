@@ -15,7 +15,7 @@ function M.run(player)
   local force = player.force
 
   -- Revive entity ghosts
-  flib_table.for_each(surface.find_entities_filtered{force = force, type = "entity-ghost"}, function(ghost)
+  flib_table.any_of(surface.find_entities_filtered{force = force, type = "entity-ghost"}, function(ghost)
     if ghost.valid then
       ghost.revive()
     end
@@ -23,7 +23,7 @@ function M.run(player)
 
   -- Revive tile ghosts (excluding landfill)
   local tiles_to_set = {}
-  flib_table.for_each(surface.find_entities_filtered{type = "tile-ghost"}, function(tile)
+  flib_table.any_of(surface.find_entities_filtered{type = "tile-ghost"}, function(tile)
     if tile.valid and tile.ghost_name ~= "landfill" then
       table.insert(tiles_to_set, {name = tile.ghost_name, position = tile.position})
     end

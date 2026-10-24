@@ -217,9 +217,9 @@ end
 local function refresh_entity_queue()
   local queue = flib_queue.new()
   local set = {}
-  flib_table.for_each(game.surfaces, function(s)
+  flib_table.any_of(game.surfaces, function(s)
     -- We fetch all entities for the player force, then probe; this runs only on enable or manual refresh.
-    flib_table.for_each(s.find_entities_filtered{force = "player"}, function(ent)
+    flib_table.any_of(s.find_entities_filtered{force = "player"}, function(ent)
       if entity_is_auto_supported(ent) then
         local un = ent.unit_number
         if un and not set[un] then

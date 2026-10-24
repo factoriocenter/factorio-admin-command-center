@@ -28,27 +28,27 @@ function M.round_to(value, step)
   return flib_math.round(value, step or 1)
 end
 
---- Floor wrapper to keep all math calls centralized on FLib.
+--- Floor wrapper (FLib 0.17 no longer re-exports Lua math functions).
 -- @param value number
 -- @return number
 function M.floor(value)
-  return flib_math.floor(value)
+  return math.floor(value)
 end
 
---- Max wrapper backed by FLib's math extension.
+--- Max wrapper.
 -- @param a number
 -- @param b number
 -- @return number
 function M.max(a, b)
-  return flib_math.max(a, b)
+  return math.max(a, b)
 end
 
---- Min wrapper backed by FLib's math extension.
+--- Min wrapper.
 -- @param a number
 -- @param b number
 -- @return number
 function M.min(a, b)
-  return flib_math.min(a, b)
+  return math.min(a, b)
 end
 
 return M

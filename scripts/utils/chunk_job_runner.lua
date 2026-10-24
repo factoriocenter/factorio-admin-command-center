@@ -68,7 +68,7 @@ end
 
 function M.collect_all_surface_indices()
   local surface_indices = {}
-  flib_table.for_each(game.surfaces, function(surface)
+  flib_table.any_of(game.surfaces, function(surface)
     if surface and surface.valid then
       surface_indices[#surface_indices + 1] = surface.index
     end

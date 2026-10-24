@@ -116,10 +116,20 @@ local function format_tag_caption(tag_info)
   return string.format("%s (%d,%d)", text, px, py)
 end
 
+-- Since Factorio 2.1, teleport() no longer implicitly exits remote view; while in
+-- remote view it only moves the camera. Exit first so the character is moved.
+local function exit_remote_view(player)
+  if player.controller_type == defines.controllers.remote then
+    pcall(player.exit_remote_view)
+  end
+end
+
 local function find_safe_destination(surface, player, desired)
   if not (player and player.valid) then
     return false
   end
+
+  exit_remote_view(player)
 
   local target = player
   local search_name = "character"

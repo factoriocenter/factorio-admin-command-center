@@ -36,7 +36,7 @@ function M.on_tick(_event)
     JOBS_KEY,
     CHUNKS_PER_TICK,
     function(_job, surface, _chunk, area)
-      flib_table.for_each(surface.find_entities_filtered{
+      flib_table.any_of(surface.find_entities_filtered{
         area = area,
         type = "resource"
       }, function(resource)

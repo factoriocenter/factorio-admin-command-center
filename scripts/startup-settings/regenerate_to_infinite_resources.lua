@@ -65,7 +65,7 @@ function M.run_on_surface(surface)
 
   -- 1) Destroy all finite resources and collect their names
   local to_regen = {}
-  flib_table.for_each(surface.find_entities_filtered{ type = "resource" }, function(resource)
+  flib_table.any_of(surface.find_entities_filtered{ type = "resource" }, function(resource)
     if not resource.prototype.infinite_resource then
       to_regen[resource.name] = true
       resource.destroy()
@@ -80,7 +80,7 @@ function M.run_on_surface(surface)
   end
 
   -- 3) Top up all remaining resource patches according to their category
-  flib_table.for_each(surface.find_entities_filtered{ type = "resource" }, function(resource)
+  flib_table.any_of(surface.find_entities_filtered{ type = "resource" }, function(resource)
     local normal_amount = resource.prototype.normal_resource_amount
     if normal_amount and normal_amount > 0 then
       local m = is_fluid_resource(resource) and mult_fluid or mult_solid
@@ -91,7 +91,7 @@ function M.run_on_surface(surface)
   end)
 
   -- 4) Refresh connections on all mining drills
-  flib_table.for_each(surface.find_entities_filtered{ type = "mining-drill" }, function(drill)
+  flib_table.any_of(surface.find_entities_filtered{ type = "mining-drill" }, function(drill)
     drill.update_connections()
   end)
 end

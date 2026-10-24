@@ -743,11 +743,11 @@ local function on_gui_switch_state_changed(event)
   state.switches[elem.name] = on
 
   if     elem.name == "facc_auto_clean_pollution"   then
-    flib_table.for_each(game.players, function(p)
+    flib_table.any_of(game.players, function(p)
       safe_call_player(p, elem.name, clean_pollution.run, p)
     end)
   elseif elem.name == "facc_auto_instant_research"  then
-    flib_table.for_each(game.players, function(p)
+    flib_table.any_of(game.players, function(p)
       safe_call_player(p, elem.name, instant_research.run, p)
     end)
   elseif elem.name == "facc_cheat_mode"             then safe_call_player(player, elem.name, cheat_mode.run, player, on)

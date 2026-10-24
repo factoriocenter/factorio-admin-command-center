@@ -101,7 +101,7 @@ end
 local function top_up_area(surface, area)
   -- Read multipliers at runtime, with legacy fallback
   local mult_solid, mult_fluid = read_multipliers_pair()
-  flib_table.for_each(surface.find_entities_filtered{ area = area, type = "resource" }, function(resource)
+  flib_table.any_of(surface.find_entities_filtered{ area = area, type = "resource" }, function(resource)
     if resource.prototype.infinite_resource then
       local normal = resource.prototype.normal_resource_amount
       if normal and normal > 0 then
@@ -117,7 +117,7 @@ end
 -- Remove legacy UI buttons on init/updates
 --------------------------------------------------------------------------------
 local function remove_old_button()
-  flib_table.for_each(game.players, function(player)
+  flib_table.any_of(game.players, function(player)
     for _, name in ipairs({ "facc_main_button", "factorio_admin_command_center_button" }) do
       local btn = player.gui.top[name]
       if btn and btn.valid then
@@ -143,7 +143,7 @@ end
 
 local function update_legendary_shortcut_availability()
   local quality_active = compat.is_quality_active()
-  flib_table.for_each(game.players, function(player)
+  flib_table.any_of(game.players, function(player)
     if not (player and player.valid) then
       return
     end
@@ -185,7 +185,7 @@ script.on_configuration_changed(function(event)
   if is_auto_resource_regeneration_enabled() then
     -- If infinite-resources was just disabled, restore finite resources on all surfaces
     if not settings.startup["facc-infinite-resources"].value then
-      flib_table.for_each(game.surfaces, function(surface)
+      flib_table.any_of(game.surfaces, function(surface)
         -- dummy context to satisfy regenerate_finite.run
         local ctx = {
           surface = surface,
@@ -197,7 +197,7 @@ script.on_configuration_changed(function(event)
     end
     -- If infinite-resources is enabled, top up every existing surface to N× once
     if settings.startup["facc-infinite-resources"].value then
-      flib_table.for_each(game.surfaces, function(surface)
+      flib_table.any_of(game.surfaces, function(surface)
         safe_control_call("regenerate_infinite.run_on_surface", regenerate_infinite.run_on_surface, surface)
       end)
     end

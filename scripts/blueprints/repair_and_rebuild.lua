@@ -136,7 +136,7 @@ function M.on_tick(_event)
     JOBS_KEY_HEALTH,
     CHUNKS_PER_TICK,
     function(job, surface, _chunk, area)
-      flib_table.for_each(surface.find_entities_filtered{
+      flib_table.any_of(surface.find_entities_filtered{
         area = area,
         force = job.force_name
       }, function(ent)
@@ -165,7 +165,7 @@ function M.on_tick(_event)
     JOBS_KEY_ENTITY_GHOSTS,
     CHUNKS_PER_TICK,
     function(job, surface, _chunk, area)
-      flib_table.for_each(surface.find_entities_filtered{
+      flib_table.any_of(surface.find_entities_filtered{
         area = area,
         force = job.force_name,
         type = "entity-ghost"
@@ -196,7 +196,7 @@ function M.on_tick(_event)
     CHUNKS_PER_TICK,
     function(job, surface, _chunk, area)
       local tiles_to_set = {}
-      flib_table.for_each(surface.find_entities_filtered{
+      flib_table.any_of(surface.find_entities_filtered{
         area = area,
         force = job.force_name,
         type = "tile-ghost"
@@ -232,7 +232,7 @@ function M.on_tick(_event)
     JOBS_KEY_PROXIES,
     CHUNKS_PER_TICK,
     function(_job, surface, _chunk, area)
-      flib_table.for_each(surface.find_entities_filtered{
+      flib_table.any_of(surface.find_entities_filtered{
         area = area,
         type = "item-request-proxy"
       }, function(proxy)

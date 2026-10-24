@@ -232,7 +232,7 @@ script.on_event(defines.events.on_tick, function(event)
     if task == AUTO_TASK_CLEAN then
       auto_task_ids[AUTO_TASK_CLEAN] = nil
       if s.switches["facc_auto_clean_pollution"] then
-        flib_table.for_each(game.players, function(p)
+        flib_table.any_of(game.players, function(p)
           safe_call("clean_pollution.run", clean_pollution.run, p)
         end)
         ensure_auto_task(auto_task_ids, auto_task_intervals, AUTO_TASK_CLEAN, s.sliders["slider_auto_clean_pollution"] or 60)
@@ -240,7 +240,7 @@ script.on_event(defines.events.on_tick, function(event)
     elseif task == AUTO_TASK_RESEARCH then
       auto_task_ids[AUTO_TASK_RESEARCH] = nil
       if s.switches["facc_auto_instant_research"] then
-        flib_table.for_each(game.players, function(p)
+        flib_table.any_of(game.players, function(p)
           safe_call("instant_research.run", instant_research.run, p)
         end)
         ensure_auto_task(auto_task_ids, auto_task_intervals, AUTO_TASK_RESEARCH, s.sliders["slider_auto_instant_research"] or 1)

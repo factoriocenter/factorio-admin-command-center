@@ -15,7 +15,7 @@ local function recharge_grid(grid)
   if not grid then
     return
   end
-  flib_table.for_each(grid.equipment, function(eq)
+  flib_table.any_of(grid.equipment, function(eq)
     if eq.valid and eq.energy and eq.max_energy then
       eq.energy = eq.max_energy
     end
@@ -51,7 +51,7 @@ function M.on_tick(_event)
     JOBS_KEY,
     CHUNKS_PER_TICK,
     function(job, surface, _chunk, area)
-      flib_table.for_each(surface.find_entities_filtered{
+      flib_table.any_of(surface.find_entities_filtered{
         area = area,
         force = job.force_name
       }, function(entity)

@@ -44,7 +44,7 @@ function M.run(player)
     and player.force
     or game.forces["player"]
 
-  flib_table.for_each(game.planets, function(planet)
+  flib_table.any_of(game.planets, function(planet)
     if planet and planet.valid then
       local surface, _created, err = get_or_create_surface(planet)
       if surface and surface.valid and chart_force and chart_force.valid then
@@ -56,7 +56,7 @@ function M.run(player)
           { x = 0, y = 0 }
         }
         local seen_centers = {}
-        flib_table.for_each(centers, function(center)
+        flib_table.any_of(centers, function(center)
           local x = tonumber(center and center.x) or 0
           local y = tonumber(center and center.y) or 0
           local key = math.floor(x) .. ":" .. math.floor(y)

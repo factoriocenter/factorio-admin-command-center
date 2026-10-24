@@ -57,7 +57,7 @@ function M.on_tick(_event)
     JOBS_KEY_RESOURCES,
     CHUNKS_PER_TICK_RESOURCES,
     function(job, surface, _chunk, area)
-      flib_table.for_each(surface.find_entities_filtered{
+      flib_table.any_of(surface.find_entities_filtered{
         area = area,
         type = "resource"
       }, function(resource)
@@ -98,7 +98,7 @@ function M.on_tick(_event)
     JOBS_KEY_DRILLS,
     CHUNKS_PER_TICK_DRILLS,
     function(_job, surface, _chunk, area)
-      flib_table.for_each(surface.find_entities_filtered{
+      flib_table.any_of(surface.find_entities_filtered{
         area = area,
         type = "mining-drill"
       }, function(drill)

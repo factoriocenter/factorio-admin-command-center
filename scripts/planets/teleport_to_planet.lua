@@ -12,6 +12,14 @@ local function get_planet_display_name(planet)
   return planet and planet.name or "unknown"
 end
 
+-- Since Factorio 2.1, teleport() no longer implicitly exits remote view; while in
+-- remote view it only moves the camera. Exit first so the character is moved.
+local function exit_remote_view(player)
+  if player.controller_type == defines.controllers.remote then
+    pcall(player.exit_remote_view)
+  end
+end
+
 local function get_safe_destination(surface, player)
   local search_name = "character"
   if player and player.character and player.character.valid and player.character.name then
@@ -86,6 +94,7 @@ function M.run(player, planet_name)
     player.print({"facc.teleport-to-planet-generated", display_name})
   end
 
+  exit_remote_view(player)
   local destination = get_safe_destination(surface, player)
   local ok_teleport = player.teleport(destination, surface)
   if ok_teleport then

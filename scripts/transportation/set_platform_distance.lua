@@ -71,7 +71,7 @@ function M.on_tick(event)
         return
     end
 
-    flib_table.for_each(game.players, function(player)
+    flib_table.any_of(game.players, function(player)
         local frame = player.gui.screen["facc_main_frame"]
         if not (frame and frame.valid) then
             return
