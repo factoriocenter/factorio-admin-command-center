@@ -122,7 +122,7 @@ local SPIDERTRON_LAYOUT_BASE = {
 }
 
 local function select_layout()
-  if compat.is_space_age_stack_active() then
+  if compat.is_space_age_stack_active() and compat.is_quality_active() then
     return SPIDERTRON_LAYOUT_SPACE_AGE
   end
   if compat.is_quality_active() then

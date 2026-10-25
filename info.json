@@ -10,6 +10,7 @@
   "dependencies": [
     "base >= 2.1.23",
     "flib >= 0.17.2",
+    "? recycler >= 2.1.23",
     "? quality >= 2.1.23",
     "? space-age >= 2.1.23",
     "? elevated-rails >= 2.1.23",

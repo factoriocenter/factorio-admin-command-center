@@ -1,6 +1,6 @@
 -- scripts/armor/create_full_armor.lua
 -- Generates a fully-equipped armor based on active mods:
--- • Space Age → legendary mech-armor
+-- • Space Age → mech-armor (legendary with Quality; normal without Quality)
 -- • Quality only → legendary power-armor-mk2
 -- • Base only → standard power-armor-mk2
 
@@ -21,7 +21,7 @@ function M.run(player)
 
   -- Choose armor and layout
   local armor_name, armor_quality, layout
-  if space_age_enabled then
+  if space_age_enabled and quality_enabled then
     armor_name    = "mech-armor"
     armor_quality = "legendary"
     layout = {
@@ -155,7 +155,7 @@ function M.run(player)
     }
 
   else
-    armor_name    = "power-armor-mk2"
+    armor_name    = space_age_enabled and "mech-armor" or "power-armor-mk2"
     armor_quality = nil
     layout = {
       {"fission-reactor-equipment",     0,  0},
@@ -178,6 +178,14 @@ function M.run(player)
       {"personal-roboport-mk2-equipment", 6,  8},
       {"personal-roboport-mk2-equipment", 8,  8}
     }
+  end
+
+  -- Space Age without Quality uses the normal-sized grid and advanced equipment.
+  if space_age_enabled and not quality_enabled then
+    for _, equipment in ipairs(layout) do
+      if equipment[1] == "fission-reactor-equipment" then equipment[1] = "fusion-reactor-equipment" end
+      if equipment[1] == "battery-mk2-equipment" then equipment[1] = "battery-mk3-equipment" end
+    end
   end
 
   -- Helper: place equipment into the grid

@@ -2,6 +2,7 @@
 -- Runtime helpers to improve compatibility with modded environments.
 
 local M = {}
+local version = require("scripts/utils/version_compat")
 
 local PROTOTYPE_COLLECTION_MAP = {
   item_prototypes = "item",
@@ -53,13 +54,11 @@ function M.is_elevated_rails_active()
   return M.is_mod_active("elevated-rails")
 end
 
--- Space Age gameplay stack as shipped by the base game.
--- In normal setups, Space Age depends on both Quality and Elevated Rails.
--- This helper is useful in modded environments that may alter dependencies.
+-- Quality is optional for Space Age in 2.1. Retain the original 2.0 gate.
 function M.is_space_age_stack_active()
   return M.is_space_age_active()
-    and M.is_quality_active()
     and M.is_elevated_rails_active()
+    and (version.is_2_1 or M.is_quality_active())
 end
 
 function M.prototype_exists(collection_name, prototype_name)

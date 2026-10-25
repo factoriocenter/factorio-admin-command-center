@@ -4,6 +4,7 @@ Date: 2026-10-25
   Compatibility:
     - Updated the mod for Factorio 2.1, including its crafting menu, Legendary Upgrader, and console shortcut.
     - Kept Factorio 2.0 support available through the separate 4.3.3 download, with the same tools and fixes.
+    - Added support for playing Space Age with Quality turned off, including planets, platforms, and normal-quality armor and vehicle equipment.
   Bugfixes:
     - Fixed teleports from map view so your character reaches the destination too.
     - Fixed filling space platform thrusters and displaying their remaining propellant.

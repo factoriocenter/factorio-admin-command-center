@@ -13,6 +13,8 @@ Factorio's Mod Structure documentation explicitly restricts `factorio_version` t
 
 The repository's `info.json` is the primary 2.1 manifest. `compatibility/2.0.json` overrides only the fallback version and dependencies during packaging. The builder does not modify the working copy's manifest.
 
+On Factorio 2.1, Space Age can run with Quality disabled. Its planets, platforms, thruster filling, surface controls and advanced research remain available in that configuration. Quality-only tools remain disabled, and generated armor/vehicles use normal-quality equipment and layouts that fit their smaller grids. The original Space Age dependency checks remain in place for Factorio 2.0. Recycler is an official Space Age component separated into its own mod in 2.1, not an additional paid expansion.
+
 Creating a GitHub release, or running the **Zip and Upload Mod** workflow manually, builds and attaches both engine-specific ZIPs. The workflow contains its own package generation step and does not depend on local development scripts. ZIP contents exclude development files, Git metadata and generated artifacts. Publishing to the Mod Portal remains a separate action.
 
 Install the appropriate ZIP and matching dependencies in the game's mod directory. When using a development checkout directly, its default manifest requires Factorio 2.1. Use the generated fallback ZIP in a separate Factorio 2.0 mod directory.
