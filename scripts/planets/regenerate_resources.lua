@@ -2,7 +2,7 @@
 -- Event-driven regeneration of finite resources on current surface.
 
 local M = {}
-local flib_table = require("__flib__.table")
+local flib_table = require("scripts/utils/flib_table")
 local chunk_jobs = require("scripts/utils/chunk_job_runner")
 
 local JOBS_KEY_RESOURCES = "facc_jobs_regen_resources"
@@ -22,6 +22,25 @@ local STATUS_FINAL = {
 local function has_active_job(player_index)
   return chunk_jobs.has_active_job_for_player(JOBS_KEY_RESOURCES, player_index)
     or chunk_jobs.has_active_job_for_player(JOBS_KEY_DRILLS, player_index)
+end
+
+-- Configuration updates have no invoking player. Restore the surface directly
+-- instead of queuing a player job with an invalid player index.
+function M.run_on_surface(surface)
+  if not (surface and surface.valid) then return end
+  local names = {}
+  for _, resource in pairs(surface.find_entities_filtered{type = "resource"}) do
+    if resource.valid and not resource.prototype.infinite_resource then
+      names[resource.name] = true
+      resource.destroy()
+    end
+  end
+  for name in pairs(names) do
+    pcall(function() surface.regenerate_entity(name) end)
+  end
+  for _, drill in pairs(surface.find_entities_filtered{type = "mining-drill"}) do
+    if drill.valid then drill.update_connections() end
+  end
 end
 
 --- Regenerates finite resource entities on the player's current surface.

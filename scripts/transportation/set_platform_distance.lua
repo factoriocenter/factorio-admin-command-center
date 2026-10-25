@@ -4,7 +4,7 @@
 
 local M = {}
 local math_util = require("scripts/utils/flib_math")
-local flib_table = require("__flib__.table")
+local flib_table = require("scripts/utils/flib_table")
 
 --- Set the platform distance threshold on the player's current surface.
 -- @param player LuaPlayer

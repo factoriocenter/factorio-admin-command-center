@@ -61,7 +61,7 @@ local repair_mined_item      = require("scripts/character/repair_mined_item")
 local instant_request        = require("scripts/logistic-network/instant_request")
 local instant_trash          = require("scripts/logistic-network/instant_trash")
 local math_util              = require("scripts/utils/flib_math")
-local flib_table             = require("__flib__.table")
+local flib_table             = require("scripts/utils/flib_table")
 
 local main_gui_api = nil
 local console_gui_api = nil

@@ -4,7 +4,7 @@
 -- All comments and docs in English as requested.
 
 local M = {}
-local flib_table = require("__flib__.table")
+local flib_table = require("scripts/utils/flib_table")
 
 --- Internal storage helper (per-player boolean map).
 -- @return table
@@ -50,12 +50,7 @@ function M.run(player, enable)
     return
   end
 
-  -- No character: inform according to controller type (ghost vs. god/editor).
-  if player.controller_type == defines.controllers.ghost then
-    player.print({"facc.invincible-player-cannot-before-respawn"})
-  else
-    player.print({"facc.invincible-player-cannot-in-god"})
-  end
+  player.print({"facc.invincible-player-unavailable"})
 end
 
 return M

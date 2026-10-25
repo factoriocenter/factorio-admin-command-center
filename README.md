@@ -1,13 +1,13 @@
 # Factorio Admin Command Center (FACC)
 
-A compact admin toolkit for Factorio 2.0 with a category-based GUI, live sliders/switches, and no console dependency for most actions.
+A compact admin toolkit for Factorio 2.1, with a maintained Factorio 2.0 fallback, a category-based GUI, live sliders/switches, and no console dependency for most actions.
 
 - 🔗 Mod Portal: https://mods.factorio.com/mod/factorio-admin-command-center
 - 🔗 GitHub: https://github.com/factoriocenter/factorio-admin-command-center
 
 ## Current Version
 
-- 🏷️ Version: `4.3.1`
+- 🏷️ Version: `4.4.0` (Factorio 2.1); `4.3.3` (Factorio 2.0 fallback)
 - 📝 Changelog: [changelog.txt](changelog.txt)
 
 ## Features (All Current)
@@ -168,10 +168,14 @@ A compact admin toolkit for Factorio 2.0 with a category-based GUI, live sliders
 
 ## Compatibility
 
-- 🎮 Factorio: `2.0` (base `>= 2.0.76`)
-- 📚 Required library: `flib >= 0.16.5`
-- 🔌 Optional integrations: `quality >= 2.0.76`, `space-age >= 2.0.76`, `elevated-rails >= 2.0.76`
-- 🌍 Optional locale pack: `factorio-admin-command-center-locales >= 1.3.8`
+| Target | FACC | Base / official DLC minimum | FLib minimum | Companion locales |
+| --- | --- | --- | --- | --- |
+| Factorio 2.1 (primary) | 4.4.0 | 2.1.23 | 0.17.2 | 1.4.0 |
+| Factorio 2.0 (fallback) | 4.3.3 | 2.0.76 | 0.16.5 | 1.3.9 |
+
+Both packages share the same features and Lua sources. Factorio accepts only one major/minor engine version in a mod's `info.json`, so each target needs its own ZIP. Install the matching FLib and locale pack for your engine. Official DLC integrations remain optional.
+
+- 📦 Engine packages: [Factorio compatibility guide](docs/COMPATIBILITY.md).
 - 👥 In multiplayer, admin tools are available to admins only.
 
 ## Languages

@@ -5,9 +5,10 @@
 -- - Optional hide/show for tags in the picker.
 
 local M = {}
+local teleport_compat = require("scripts/utils/teleport_compat")
 
 local flib_gui = require("__flib__.gui")
-local flib_table = require("__flib__.table")
+local flib_table = require("scripts/utils/flib_table")
 local gui_events = require("scripts/events/gui_events")
 
 local FRAME_NAME = "facc_tp_frame"
@@ -120,6 +121,8 @@ local function find_safe_destination(surface, player, desired)
   if not (player and player.valid) then
     return false
   end
+
+  if not teleport_compat.prepare_player(player) then return false end
 
   local target = player
   local search_name = "character"

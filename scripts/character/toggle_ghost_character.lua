@@ -86,7 +86,7 @@ local function snapshot_personal_logistics(player)
 
   -- Try reading sections_count; if not present, fall back to probing get_section(i).
   local count = safe_get(lp, "sections_count")
-  if type(count) == "number" and count > 0 then
+  if type(count) == "number" and count >= 0 then
     for i = 1, count do
       local ok, sec = pcall(function() return lp.get_section(i) end)
       if ok and sec then
@@ -139,15 +139,15 @@ local function restore_personal_logistics(player, snap)
 
   -- Remove existing sections (backwards‐compatible).
   local count = safe_get(lp, "sections_count")
-  if type(count) == "number" and count > 0 then
+  if type(count) == "number" and count >= 0 then
     for i = count, 1, -1 do
       pcall(function() lp.remove_section(i) end)
     end
   else
     -- Repeatedly try removing section 1 until it fails.
     while true do
-      local ok = pcall(function() lp.remove_section(1) end)
-      if not ok then break end
+      local ok, removed = pcall(function() return lp.remove_section(1) end)
+      if not ok or not removed then break end
     end
   end
 

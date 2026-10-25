@@ -85,3 +85,20 @@ if settings.startup["facc-ignore-recipe-inputs"]
     and settings.startup["facc-ignore-recipe-inputs"].value then
   require("scripts/startup-settings/ignore_recipe_inputs")
 end
+-- The logistics workers retain unit numbers across ticks and save/load. Entities
+-- with a unit number are only returned by get_entity_by_unit_number when their
+-- prototype explicitly opts into that index (required in both 2.0 and 2.1).
+for _, entity_type in ipairs({"character", "car", "spider-vehicle", "logistic-container", "rocket-silo", "cargo-landing-pad", "space-platform-hub"}) do
+  for _, prototype in pairs(data.raw[entity_type] or {}) do
+    local found = false
+    local flags = {}
+    for _, flag in ipairs(prototype.flags or {}) do
+      flags[#flags + 1] = flag
+      if flag == "get-by-unit-number" then found = true; break end
+    end
+    if not found then
+      flags[#flags + 1] = "get-by-unit-number"
+      prototype.flags = flags
+    end
+  end
+end

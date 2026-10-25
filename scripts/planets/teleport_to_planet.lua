@@ -3,6 +3,7 @@
 -- If the planet surface does not exist yet, it is generated first.
 
 local M = {}
+local teleport_compat = require("scripts/utils/teleport_compat")
 local compat = require("scripts/utils/mod_compat")
 
 local function get_planet_display_name(planet)
@@ -86,6 +87,10 @@ function M.run(player, planet_name)
     player.print({"facc.teleport-to-planet-generated", display_name})
   end
 
+  if not teleport_compat.prepare_player(player) then
+    player.print({"facc.teleport-to-planet-failed", display_name})
+    return
+  end
   local destination = get_safe_destination(surface, player)
   local ok_teleport = player.teleport(destination, surface)
   if ok_teleport then

@@ -2,7 +2,7 @@
 -- Event-driven toggle for minable state on current surface.
 
 local M = {}
-local flib_table = require("__flib__.table")
+local flib_table = require("scripts/utils/flib_table")
 local chunk_jobs = require("scripts/utils/chunk_job_runner")
 
 local JOBS_KEY = "facc_jobs_toggle_minable"

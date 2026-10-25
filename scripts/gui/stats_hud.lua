@@ -4,7 +4,7 @@
 local M = {}
 
 local flib_format = require("__flib__.format")
-local flib_table = require("__flib__.table")
+local flib_table = require("scripts/utils/flib_table")
 
 local FRAME_NAME = "facc_stats_hud_frame"
 
@@ -427,20 +427,17 @@ local function get_platform_propellant_text(surface)
     return nil
   end
 
-  local ok_find, thrusters = pcall(surface.find_entities_filtered, surface, { type = "thruster" })
+  local ok_find, thrusters = pcall(function()
+    return surface.find_entities_filtered{ type = "thruster" }
+  end)
   if not ok_find or type(thrusters) ~= "table" or #thrusters == 0 then
     return nil
   end
 
   local total = 0
   for _, thruster in pairs(thrusters) do
-    if thruster and thruster.valid and thruster.fluidbox then
-      for i = 1, #thruster.fluidbox do
-        local fluid = thruster.fluidbox[i]
-        if fluid and fluid.amount then
-          total = total + fluid.amount
-        end
-      end
+    if thruster and thruster.valid then
+      total = total + thruster.get_fluid_count()
     end
   end
 

@@ -2,7 +2,7 @@
 -- Clear all existing pollution and toggle pollution generation
 
 local M = {}
-local flib_table = require("__flib__.table")
+local flib_table = require("scripts/utils/flib_table")
 
 --- Clears all pollution and toggles new pollution generation globally.
 -- @param player LuaPlayer

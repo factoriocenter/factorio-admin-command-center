@@ -2,7 +2,7 @@
 -- Shared chunk-based job runner for heavy map-wide operations.
 
 local M = {}
-local flib_table = require("__flib__.table")
+local flib_table = require("scripts/utils/flib_table")
 local BACKGROUND_OPTIMIZATION_SETTING = "facc-enable-background-optimization"
 
 local function get_jobs(storage_key)

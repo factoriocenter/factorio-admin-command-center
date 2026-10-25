@@ -1,4 +1,39 @@
 ---------------------------------------------------------------------------------------------------
+Version: 4.4.0
+Date: 2026-10-25
+  Compatibility:
+    - Updated the mod for Factorio 2.1, including its crafting menu, Legendary Upgrader, and console shortcut.
+    - Kept Factorio 2.0 support available through the separate 4.3.3 download, with the same tools and fixes.
+  Bugfixes:
+    - Fixed teleports from map view so your character reaches the destination too.
+    - Fixed filling space platform thrusters and displaying their remaining propellant.
+    - Fixed blueprint item and equipment requests, including requests that cannot be filled immediately.
+    - Fixed instant deliveries and automatic removal of excess items in requester chests.
+    - Kept characters associated with players safe when deleting orphaned characters.
+    - Fixed changing a surface's pressure, magnetic field, and gravity.
+    - Fixed automatic resource regeneration when updating mods or changing settings.
+  Translation:
+    - Fixed missing messages and Brazilian Portuguese names for turret damage bonuses.
+    - Completed missing translations and planet teleport help in all seven companion languages.
+    - Fixed broken formatting in Korean and Traditional Chinese setting descriptions.
+---------------------------------------------------------------------------------------------------
+Version: 4.3.3
+Date: 2026-10-25
+  Compatibility:
+    - Continued support for Factorio 2.0 with the same tools and fixes as the Factorio 2.1 release.
+  Bugfixes:
+    - Fixed teleports from map view so your character reaches the destination too.
+    - Fixed filling space platform thrusters and displaying their remaining propellant.
+    - Fixed blueprint item and equipment requests, including requests that cannot be filled immediately.
+    - Fixed instant deliveries and automatic removal of excess items in requester chests.
+    - Kept characters associated with players safe when deleting orphaned characters.
+    - Fixed changing a surface's pressure, magnetic field, and gravity.
+    - Fixed automatic resource regeneration when updating mods or changing settings.
+  Translation:
+    - Fixed missing messages and Brazilian Portuguese names for turret damage bonuses.
+    - Completed missing translations and planet teleport help in all seven companion languages.
+    - Fixed broken formatting in Korean and Traditional Chinese setting descriptions.
+---------------------------------------------------------------------------------------------------
 Version: 4.3.2
 Date: 2026-04-26
   Bugfixes:

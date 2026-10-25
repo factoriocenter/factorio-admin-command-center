@@ -1,42 +1,12 @@
 -- scripts/transportation/fill_platform_thrusters.lua
 -- Fills the current platform thrusters with the fluids required by each fluidbox.
--- Uses runtime API fluidbox filters/prototypes instead of hardcoded fluid names.
+-- Uses the versioned fluid API instead of hardcoded fluid names.
 
 local M = {}
 local compat = require("scripts/utils/mod_compat")
+local fluid_compat = require("scripts/utils/fluid_compat")
 
 local space_age_enabled = compat.is_space_age_stack_active()
-
-local function get_required_fluid_name(fluidbox, index)
-  local ok_proto, proto = pcall(function() return fluidbox.get_prototype(index) end)
-  if ok_proto and proto and proto.valid and type(proto.filter) == "string" and proto.filter ~= "" then
-    return proto.filter
-  end
-
-  local ok_filter, filter = pcall(function() return fluidbox.get_filter(index) end)
-  if ok_filter and type(filter) == "string" and filter ~= "" then
-    return filter
-  end
-
-  local ok_locked, locked = pcall(function() return fluidbox.get_locked_fluid(index) end)
-  if ok_locked and type(locked) == "string" and locked ~= "" then
-    return locked
-  end
-
-  return nil
-end
-
-local function fill_fluidbox_slot(fluidbox, index, fluid_name)
-  local ok_cap, capacity = pcall(function() return fluidbox.get_capacity(index) end)
-  if not ok_cap or type(capacity) ~= "number" or capacity <= 0 then
-    return false
-  end
-
-  local ok_set = pcall(function()
-    fluidbox[index] = { name = fluid_name, amount = capacity }
-  end)
-  return ok_set
-end
 
 function M.run(player)
   if not (player and player.valid) then return end
@@ -70,12 +40,11 @@ function M.run(player)
 
   for _, thruster in pairs(thrusters) do
     if thruster.valid then
-      local fluidbox = thruster.fluidbox
       local filled_any = false
 
       for i = 1, (thruster.fluids_count or 0) do
-        local fluid_name = get_required_fluid_name(fluidbox, i)
-        if fluid_name and fill_fluidbox_slot(fluidbox, i, fluid_name) then
+        local fluid_name = fluid_compat.get_required_fluid_name(thruster, i)
+        if fluid_name and fluid_compat.fill_storage(thruster, i, fluid_name) then
           filled_any = true
         end
       end

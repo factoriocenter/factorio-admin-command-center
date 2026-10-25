@@ -5,7 +5,7 @@ local main_gui = require("scripts/gui/main_gui")
 local console_gui = require("scripts/gui/console_gui")
 local teleport_gui = require("scripts/gui/teleport_gui")
 local stats_hud = require("scripts/gui/stats_hud")
-local flib_table = require("__flib__.table")
+local flib_table = require("scripts/utils/flib_table")
 local math_util = require("scripts/utils/flib_math")
 local compat = require("scripts/utils/mod_compat")
 

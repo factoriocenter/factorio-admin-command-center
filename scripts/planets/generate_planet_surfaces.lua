@@ -2,7 +2,7 @@
 -- Generates all planet surfaces and charts a 150x150 area around force spawn.
 
 local M = {}
-local flib_table = require("__flib__.table")
+local flib_table = require("scripts/utils/flib_table")
 local flib_area = require("scripts/utils/flib_area")
 local compat = require("scripts/utils/mod_compat")
 

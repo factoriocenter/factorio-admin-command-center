@@ -2,6 +2,7 @@
 -- Instant Blueprint Building
 
 local M = {}
+local item_request_proxy = require("scripts/utils/item_request_proxy")
 local flib_bounding_box = require("__flib__.bounding-box")
 local flib_queue = require("__flib__.queue")
 
@@ -165,83 +166,7 @@ end
 -- Preserves item quality if Quality DLC is active.
 -- Returns true if fully fulfilled (proxy destroyed or empty).
 local function fulfill_item_request_proxy(proxy)
-  if not (proxy and proxy.valid and proxy.type == "item-request-proxy") then
-    return true
-  end
-
-  local target = proxy.proxy_target
-  if not (target and target.valid) then
-    proxy.destroy()
-    return true
-  end
-
-  local reqs = proxy.item_requests or {}
-  local remaining = {}
-  local all_ok = true
-
-  for _, r in pairs(reqs) do
-    local name = r.name
-    local need = tonumber(r.count) or 0
-    if name and need > 0 then
-      local left = need
-
-      -- Extract quality if present. It may be a string or a table with .name.
-      local q = r.quality
-      if type(q) == "table" and q.name then q = q.name end
-
-      -- Helper to build an insert stack that includes quality only when present.
-      local function stack(cnt)
-        local s = { name = name, count = cnt }
-        if q ~= nil then s.quality = q end
-        return s
-      end
-
-      -- 1) Module inventory first
-      local ok_mod, mod_inv = pcall(function()
-        return target.get_module_inventory and target.get_module_inventory()
-      end)
-      if ok_mod and mod_inv and left > 0 then
-        local ok_ins, ins = pcall(function() return mod_inv.insert(stack(left)) end)
-        if ok_ins and tonumber(ins) then left = left - ins end
-      end
-
-      -- 2) Direct insert into entity
-      if left > 0 then
-        local ok_ins, ins = pcall(function() return target.insert(stack(left)) end)
-        if ok_ins and tonumber(ins) then left = left - ins end
-      end
-
-      -- 3) Try common inventories (ammo, fuel, trunk)
-      if left > 0 and target.get_inventory then
-        local function try_inv(id)
-          local ok1, inv = pcall(function() return target.get_inventory(id) end)
-        if ok1 and inv then
-            local ok2, ins = pcall(function() return inv.insert(stack(left)) end)
-            if ok2 and tonumber(ins) then left = left - ins end
-          end
-        end
-        local ok_def, inv_def = pcall(function() return defines.inventory end)
-        if ok_def and inv_def then
-          if left > 0 and inv_def.turret_ammo then try_inv(inv_def.turret_ammo) end
-          if left > 0 and inv_def.fuel       then try_inv(inv_def.fuel)       end
-          if left > 0 and inv_def.car_trunk  then try_inv(inv_def.car_trunk)  end
-        end
-      end
-
-      if left > 0 then
-        all_ok = false
-        table.insert(remaining, { name = name, count = left, quality = q })
-      end
-    end
-  end
-
-  if all_ok then
-    proxy.destroy()
-    return true
-  else
-    proxy.item_requests = remaining
-    return false
-  end
+  return item_request_proxy.fulfill(proxy)
 end
 
 --- Fulfill every item-request proxy inside area (or around entity bbox).

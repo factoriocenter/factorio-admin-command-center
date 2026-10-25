@@ -1,7 +1,7 @@
 -- scripts/logistic-network/instant_trash.lua
 -- Instant Trash
 local M = {}
-local flib_table = require("__flib__.table")
+local flib_table = require("scripts/utils/flib_table")
 local flib_queue = require("__flib__.queue")
 -- ------------------------------------------------------------------------------
 -- Tunables
@@ -312,6 +312,8 @@ local function get_requester_point_generic(owner)
     return lp
   end
   -- Entity
+  local ok_requester, requester = pcall(function() return owner.get_requester_point() end)
+  if ok_requester and requester and requester.enabled then return requester end
   local index
   if owner.type == "character" then
     index = defines.logistic_member_index.character_requester

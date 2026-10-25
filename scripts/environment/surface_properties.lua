@@ -135,13 +135,13 @@ function M.set_property(player, property_name, raw_value)
 
   local value = math_util.clamp_number(raw_value, 0, 100000, 0)
 
-  local ok_get = pcall(surface.get_property, surface, property_name)
+  local ok_get = pcall(function() return surface.get_property(property_name) end)
   if not ok_get then
     player.print({"facc.surface-property-unsupported", property_name})
     return
   end
 
-  local ok_set = pcall(surface.set_property, surface, property_name, value)
+  local ok_set = pcall(function() surface.set_property(property_name, value) end)
   if not ok_set then
     player.print({"facc.surface-property-unsupported", property_name})
     return

@@ -4,7 +4,8 @@
 -- when the Quality DLC is active.
 
 local M = {}
-local flib_table = require("__flib__.table")
+local item_request_proxy = require("scripts/utils/item_request_proxy")
+local flib_table = require("scripts/utils/flib_table")
 local chunk_jobs = require("scripts/utils/chunk_job_runner")
 
 local JOBS_KEY_HEALTH = "facc_jobs_repair_rebuild_health"
@@ -29,80 +30,9 @@ local function has_active_job(player_index)
     or chunk_jobs.has_active_job_for_player(JOBS_KEY_PROXIES, player_index)
 end
 
--- Insert helper that preserves item quality if provided.
-local function insert_with_quality(container, name, count, quality)
-  local stack = { name = name, count = count }
-  if quality ~= nil then stack.quality = quality end
-  local ok, inserted = pcall(function() return container.insert(stack) end)
-  if ok and tonumber(inserted) then
-    return inserted
-  else
-    return 0
-  end
-end
-
--- Fulfill one item-request proxy:
--- 1) module inventory (if present), 2) direct entity insert, 3) common inventories.
--- Keeps the proxy if anything is left (so remainder stays visible to the player/robots).
+-- Shared fulfillment respects blueprint slots, equipment grids, and quality.
 local function fulfill_item_request_proxy(proxy)
-  if not (proxy and proxy.valid and proxy.type == "item-request-proxy") then return end
-
-  local target = proxy.proxy_target
-  if not (target and target.valid) then
-    proxy.destroy() -- orphan proxy
-    return
-  end
-
-  local reqs = proxy.item_requests or {}
-  local all_done = true
-
-  for _, r in pairs(reqs) do
-    local name = r.name
-    local left = tonumber(r.count) or 0
-
-    -- Quality can be a string or a table with .name depending on source; normalize to string.
-    local q = r.quality
-    if type(q) == "table" and q.name then q = q.name end
-
-    if name and left > 0 then
-      -- 1) Module inventory first
-      local ok_mod, mod_inv = pcall(function()
-        return target.get_module_inventory and target.get_module_inventory()
-      end)
-      if ok_mod and mod_inv then
-        left = left - insert_with_quality(mod_inv, name, left, q)
-      end
-
-      -- 2) Direct insert into entity
-      if left > 0 then
-        left = left - insert_with_quality(target, name, left, q)
-      end
-
-      -- 3) Common inventories (ammo, fuel, trunk)
-      if left > 0 and target.get_inventory then
-        local function try_inv(id)
-          local ok1, inv = pcall(function() return target.get_inventory(id) end)
-          if ok1 and inv then
-            left = left - insert_with_quality(inv, name, left, q)
-          end
-        end
-        local ok_def, inv_def = pcall(function() return defines.inventory end)
-        if ok_def and inv_def then
-          if left > 0 and inv_def.turret_ammo then try_inv(inv_def.turret_ammo) end
-          if left > 0 and inv_def.fuel       then try_inv(inv_def.fuel)       end
-          if left > 0 and inv_def.car_trunk  then try_inv(inv_def.car_trunk)  end
-        end
-      end
-
-      if left > 0 then
-        all_done = false
-      end
-    end
-  end
-
-  if all_done then
-    proxy.destroy()
-  end
+  return item_request_proxy.fulfill(proxy)
 end
 
 function M.run(player)

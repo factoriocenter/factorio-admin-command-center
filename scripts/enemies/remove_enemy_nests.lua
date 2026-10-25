@@ -4,7 +4,7 @@
 
 local M = {}
 local area_util = require("scripts/utils/flib_area")
-local flib_table = require("__flib__.table")
+local flib_table = require("scripts/utils/flib_table")
 
 function M.run(player, radius)
   if not is_allowed(player) then

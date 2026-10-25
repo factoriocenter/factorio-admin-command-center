@@ -6,6 +6,7 @@
 -- 0) Read startup setting to show/hide the Cheat Tools tab
 --------------------------------------------------------------------------------
 local show_cheat_tab = settings.startup["facc-show-cheat-tab"].value
+local version = require("scripts/utils/version_compat")
 --------------------------------------------------------------------------------
 -- 0.1) Stats HUD styles (aligned with vanilla HUD look)
 --------------------------------------------------------------------------------
@@ -183,7 +184,7 @@ do
 
       select = {
         border_color    = {0, 200, 0},
-        mode            = {"upgrade"},
+        mode            = version.is_2_1 and {"upgrade", "any-entity"} or {"upgrade"},
         cursor_box_type = "not-allowed",
         started_sound   = { filename = "__core__/sound/upgrade-select-start.ogg" },
         ended_sound     = { filename = "__core__/sound/upgrade-select-end.ogg" }
@@ -195,7 +196,7 @@ do
       },
       reverse_select = {
         border_color    = {0, 200, 0},
-        mode            = {"upgrade"},
+        mode            = version.is_2_1 and {"upgrade", "any-entity"} or {"upgrade"},
         cursor_box_type = "not-allowed"
       },
       reverse_alt_select = {
@@ -228,7 +229,7 @@ data:extend({
   {
     type                  = "custom-input",
     name                  = "facc_console_exec_input",
-    key_sequence          = "CONTROL + ENTER",
+    key_sequence          = version.is_2_1 and "CONTROL + RETURN" or "CONTROL + ENTER",
     consuming             = "game-only",
     localised_name        = {"controls.facc_console_exec_input"},
     localised_description = {"controls.facc_console_exec_input_description"}
@@ -327,7 +328,7 @@ if show_cheat_tab then
   }
   if data.raw.recipe["heat-interface"] then
     local r = data.raw.recipe["heat-interface"]
-    r.category    = nil
+    version.set_recipe_category(r)
     r.ingredients = heat_ingredients
     default_properties(r)
     default_properties(data.raw.item["heat-interface"])
@@ -401,11 +402,11 @@ if show_cheat_tab then
       local r = {
         type            = "recipe",
         name            = name,
-        category        = def.category,
         energy_required = 0.5,
         ingredients     = def.ingredients,
         results         = {{type="item", name=name, amount=1}}
       }
+      version.set_recipe_category(r, def.category)
       default_properties(r)
       data:extend({ r })
     end
@@ -414,7 +415,6 @@ if show_cheat_tab then
       local r = {
         type            = "recipe",
         name            = "turbo-loader",
-        category        = "crafting-with-fluid",
         energy_required = 0.5,
         ingredients     = {
           {type="item",  name="tungsten-plate", amount=1000},
@@ -423,6 +423,7 @@ if show_cheat_tab then
         },
         results         = {{type="item", name="turbo-loader", amount=1}}
       }
+      version.set_recipe_category(r, "crafting-with-fluid")
       default_properties(r)
       data:extend({ r })
     end

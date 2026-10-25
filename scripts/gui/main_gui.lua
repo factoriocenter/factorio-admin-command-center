@@ -5,7 +5,7 @@
 
 local M = {}
 local flib_gui = require("__flib__.gui")
-local flib_table = require("__flib__.table")
+local flib_table = require("scripts/utils/flib_table")
 local gui_events = require("scripts/events/gui_events")
 local compat = require("scripts/utils/mod_compat")
 
@@ -785,7 +785,7 @@ local function surface_supports_property(player, property_name)
   if not (player and player.valid and player.surface and player.surface.valid) then
     return false
   end
-  local ok = pcall(player.surface.get_property, player.surface, property_name)
+  local ok = pcall(function() return player.surface.get_property(property_name) end)
   return ok
 end
 

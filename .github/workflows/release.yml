@@ -7,7 +7,7 @@ on:
   workflow_dispatch:
     inputs:
       version:
-        description: "Versão para o nome do arquivo (ex: 1.0.1)"
+        description: "Release tag (package versions come from the manifests)"
         required: true
         type: string
 
@@ -28,20 +28,61 @@ jobs:
             echo "value=${GITHUB_REF##*/}" >> $GITHUB_OUTPUT
           fi
 
-      - name: Prepare folder
-        run: |
-          mkdir factorio-admin-command-center
-          shopt -s extglob
-          mv !(factorio-admin-command-center) factorio-admin-command-center/
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
 
-      - name: Zip mod
+      - name: Build Factorio 2.1 and 2.0 packages
         run: |
-          zip -r "factorio-admin-command-center_${{ steps.version.outputs.value }}.zip" factorio-admin-command-center/
+          python - <<'PY'
+          import json
+          import re
+          from pathlib import Path
+          from zipfile import ZIP_DEFLATED, ZipFile
+
+          root = Path.cwd()
+          output = root / "dist"
+          output.mkdir(exist_ok=True)
+          excluded = {".git", ".github", "dist", "tools", "tests", "compatibility", "__pycache__"}
+          for target in ("2.0", "2.1"):
+              info = json.loads((root / "info.json").read_text(encoding="utf-8"))
+              if info["factorio_version"] != target:
+                  info.update(json.loads((root / "compatibility" / f"{target}.json").read_text(encoding="utf-8")))
+              assert info["factorio_version"] == target
+              folder = f"{info['name']}_{info['version']}"
+              archive_path = output / f"{folder}.zip"
+              with ZipFile(archive_path, "w", ZIP_DEFLATED) as archive:
+                  for path in sorted(root.rglob("*")):
+                      relative = path.relative_to(root)
+                      if not path.is_file() or any(part in excluded for part in relative.parts):
+                          continue
+                      if path.suffix in {".ps1", ".sh", ".xcf", ".py", ".pyc", ".zip"} or relative.name.startswith("."):
+                          continue
+                      if relative.as_posix() == "info.json":
+                          archive.writestr(f"{folder}/info.json", json.dumps(info, indent=2, ensure_ascii=False) + "\n")
+                      elif relative.as_posix() == "changelog.txt":
+                          version = tuple(map(int, info["version"].split(".")))
+                          blocks = re.split(r"(?m)^-{20,}\s*\n", path.read_text(encoding="utf-8"))
+                          included = []
+                          for block in blocks:
+                              match = re.search(r"(?m)^Version: (\d+)\.(\d+)\.(\d+)", block)
+                              if match and tuple(map(int, match.groups())) <= version:
+                                  included.append("-" * 99 + "\n" + block)
+                          archive.writestr(f"{folder}/changelog.txt", "".join(included))
+                      else:
+                          archive.write(path, f"{folder}/{relative.as_posix()}")
+              with ZipFile(archive_path) as archive:
+                  assert archive.testzip() is None
+                  assert json.loads(archive.read(f"{folder}/info.json")) == info
+              print(f"Factorio {target}: {archive_path}")
+          PY
 
       - name: Upload to Release
         uses: softprops/action-gh-release@v1
         with:
           tag_name: ${{ steps.version.outputs.value }}
-          files: factorio-admin-command-center_${{ steps.version.outputs.value }}.zip
+          files: dist/*.zip
+          fail_on_unmatched_files: true
         env:
           GITHUB_TOKEN: ${{ secrets.GH_PAT }}

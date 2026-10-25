@@ -2,7 +2,7 @@
 -- Event-driven permanent indestructible apply for all surfaces.
 
 local M = {}
-local flib_table = require("__flib__.table")
+local flib_table = require("scripts/utils/flib_table")
 local chunk_jobs = require("scripts/utils/chunk_job_runner")
 
 local JOBS_KEY = "facc_jobs_indestructible_permanent"

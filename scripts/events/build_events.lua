@@ -28,7 +28,7 @@ local set_platform_distance = require("scripts/transportation/set_platform_dista
 local main_gui = require("scripts/gui/main_gui")
 local teleport_gui = require("scripts/gui/teleport_gui")
 local flib_on_tick_n = require("__flib__.on-tick-n")
-local flib_table = require("__flib__.table")
+local flib_table = require("scripts/utils/flib_table")
 local math_util = require("scripts/utils/flib_math")
 
 local ensure_state = main_gui.ensure_persistent_state

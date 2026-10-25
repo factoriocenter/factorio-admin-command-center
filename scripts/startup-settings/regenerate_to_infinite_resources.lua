@@ -3,7 +3,7 @@
 -- Applies distinct multipliers for solid vs fluid resources with robust detection.
 
 local M = {}
-local flib_table = require("__flib__.table")
+local flib_table = require("scripts/utils/flib_table")
 
 --- Parse "Nx" (e.g., "10x") or return 1.
 local function parse_x(str)

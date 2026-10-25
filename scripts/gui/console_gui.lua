@@ -5,7 +5,7 @@
 
 local M = {}
 local flib_gui = require("__flib__.gui")
-local flib_table = require("__flib__.table")
+local flib_table = require("scripts/utils/flib_table")
 local gui_events = require("scripts/events/gui_events")
 
 --------------------------------------------------------------------------------

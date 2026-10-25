@@ -2,7 +2,7 @@
 -- Instant Request
 
 local M = {}
-local flib_table = require("__flib__.table")
+local flib_table = require("scripts/utils/flib_table")
 local flib_queue = require("__flib__.queue")
 
 -- --------------------------------------------------------------------------------
@@ -146,9 +146,13 @@ end
 local function probe_requester_point(ent)
   if not (ent and ent.valid) then return nil end
 
-  -- Best-effort: passing nil returns all logistic points for entities that have them.
-  -- (On legacy cases, an explicit index may be required; we first try nil to cover future entities.)
-  local ok_all, raw_all = pcall(function() return ent.get_logistic_point(nil) end)
+  local ok_requester, requester = pcall(function() return ent.get_requester_point() end)
+  if ok_requester and is_requester_like_enabled(requester) then return requester end
+
+  -- Omitting the index returns all logistic points. Passing an explicit nil
+  -- is rejected by both supported APIs.
+  -- Legacy or modded entities may require one of the explicit indices below.
+  local ok_all, raw_all = pcall(function() return ent.get_logistic_point() end)
   if ok_all and raw_all then
     local pts = to_point_array(raw_all)
     local chosen = pick_best_requester_like_point(pts)
@@ -158,15 +162,12 @@ local function probe_requester_point(ent)
   -- Fallback pass: try known indices when available; if they don't exist, calls are safe via pcall.
   local indices = defines and defines.logistic_member_index or {}
   local try = {
-    indices.character_requester,
-    indices.spidertron_requester,
-    indices.logistic_container,
-    indices.space_platform_hub,
-    indices.space_platform_hub_requester,
-    indices.cargo_landing_pad,
-    indices.cargo_landing_pad_requester
+    "character_requester", "spidertron_requester", "logistic_container",
+    "space_platform_hub", "space_platform_hub_requester",
+    "cargo_landing_pad", "cargo_landing_pad_requester"
   }
-  for _, idx in ipairs(try) do
+  for _, key in ipairs(try) do
+    local idx = indices[key]
     if idx ~= nil then
       local ok_one, raw = pcall(function() return ent.get_logistic_point(idx) end)
       if ok_one and raw then

@@ -2,7 +2,7 @@
 -- Personal cheat: repair entities to max health right before mining.
 
 local M = {}
-local flib_table = require("__flib__.table")
+local flib_table = require("scripts/utils/flib_table")
 
 local ENABLED_PLAYERS_KEY = "facc_repair_mined_item_enabled_players"
 

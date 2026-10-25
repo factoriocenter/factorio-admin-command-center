@@ -3,7 +3,7 @@
 -- Only available in single-player or for admins in multiplayer.
 
 local M = {}
-local flib_table = require("__flib__.table")
+local flib_table = require("scripts/utils/flib_table")
 local chunk_jobs = require("scripts/utils/chunk_job_runner")
 
 local JOBS_KEY = "facc_jobs_delete_ownerless_characters"
@@ -44,7 +44,8 @@ function M.on_tick(_event)
         area = area,
         type = "character"
       }, function(entity)
-        if entity.valid and entity.unit_number ~= job.active_character_unit_number then
+        if entity.valid and entity.unit_number ~= job.active_character_unit_number
+            and not entity.player and not entity.associated_player then
           entity.destroy()
         end
       end)

@@ -3,7 +3,7 @@
 -- Useful when players want to force placement of planned structures.
 
 local M = {}
-local flib_table = require("__flib__.table")
+local flib_table = require("scripts/utils/flib_table")
 
 function M.run(player)
   if not is_allowed(player) then

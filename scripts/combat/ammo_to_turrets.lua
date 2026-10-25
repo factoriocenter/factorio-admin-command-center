@@ -6,7 +6,7 @@
 --   • railgun-turret   → railgun-ammo (10) [Space Age only]
 
 local M = {}
-local flib_table = require("__flib__.table")
+local flib_table = require("scripts/utils/flib_table")
 local chunk_jobs = require("scripts/utils/chunk_job_runner")
 local compat = require("scripts/utils/mod_compat")
 

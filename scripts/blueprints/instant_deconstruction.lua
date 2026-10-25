@@ -5,7 +5,7 @@
 local M = {}
 local flib_bounding_box = require("__flib__.bounding-box")
 local flib_queue = require("__flib__.queue")
-local flib_table = require("__flib__.table")
+local flib_table = require("scripts/utils/flib_table")
 
 -- Keys in storage
 local QUEUE_KEY = "facc_pending_instant_deconstruction"

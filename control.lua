@@ -6,7 +6,7 @@
 local permissions = require("scripts/utils/permissions")
 _G.is_allowed = permissions.is_allowed
 local flib_on_tick_n = require("__flib__.on-tick-n")
-local flib_table = require("__flib__.table")
+local flib_table = require("scripts/utils/flib_table")
 local compat = require("scripts/utils/mod_compat")
 
 local function safe_control_call(label, fn, ...)
@@ -186,13 +186,7 @@ script.on_configuration_changed(function(event)
     -- If infinite-resources was just disabled, restore finite resources on all surfaces
     if not settings.startup["facc-infinite-resources"].value then
       flib_table.for_each(game.surfaces, function(surface)
-        -- dummy context to satisfy regenerate_finite.run
-        local ctx = {
-          surface = surface,
-          admin = true,
-          print = function() end
-        }
-        safe_control_call("regenerate_finite.run", regenerate_finite.run, ctx)
+        safe_control_call("regenerate_finite.run_on_surface", regenerate_finite.run_on_surface, surface)
       end)
     end
     -- If infinite-resources is enabled, top up every existing surface to N× once
